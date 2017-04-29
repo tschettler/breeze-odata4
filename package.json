@@ -1,0 +1,29 @@
+{
+  "name": "breeze-odata4",
+  "version": "1.0.0",
+  "description": "Library to allow OData 4 support for breezejs",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tschettler/breeze-odata4.git"
+  },
+  "keywords": [
+    "breeze",
+    "odata",
+    "typescript"
+  ],
+  "author": "Travis Schettler",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tschettler/breeze-odata4/issues"
+  },
+  "homepage": "https://github.com/tschettler/breeze-odata4#readme",
+  "dependencies": {
+    "breeze-client": "^1.6.3",
+    "breezejs": "^1.5.3",
+    "ts-odatajs": "^4.0.1"
+  }
+}
