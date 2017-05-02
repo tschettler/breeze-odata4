@@ -36,6 +36,8 @@ export interface ODataServiceAdapter extends DataServiceAdapter {
     getAbsoluteUrl: (dataService: DataService, url: string) => string;
 
     _catchNoConnectionError(err: Error): any;
+
+    _createChangeRequestInterceptor(saveContext: DataServiceSaveContext, saveBundle: Object): { getRequest:(request: Object, entity: Entity, index: number) => Object; done: (requests: Object[]) => void };
 }
 
 export interface DataServiceSaveContext {

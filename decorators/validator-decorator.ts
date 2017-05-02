@@ -1,8 +1,8 @@
 import { DataType, DataTypeSymbol } from "breeze-client";
-import { AnnotationAdapter } from "./annotation-adapter";
+import { AnnotationDecorator } from "./annotation-decorator";
 import { DataTypeSymbolEx } from "interfaces";
 
-export class StoreGeneratedPatternAdapter implements AnnotationAdapter {
+export class StoreGeneratedPatternDecorator implements AnnotationDecorator {
     annotation = 'Validator';
 
     private dataTypeMap: { [key: string]: DataTypeSymbol } = {
@@ -20,7 +20,7 @@ export class StoreGeneratedPatternAdapter implements AnnotationAdapter {
         // timeOfDay?
     };
 
-    adapt(property: any, annotation: any): void {
+    decorate(property: any, annotation: any): void {
         property.validators = property.validators || [];
 
         var keys = Object.keys(annotation);

@@ -1,9 +1,9 @@
 import { MetadataAdapter } from "./metadata-adapter";
-import { AnnotationAdapter } from "../annotation/annotation-adapter";
+import { AnnotationDecorator } from "../decorators/annotation-decorator";
 import { oData } from "ts-odatajs";
 
 export class AnnotationMetadataAdapter implements MetadataAdapter {
-    constructor(public adapters: AnnotationAdapter[]) { }
+    constructor(public decorators: AnnotationDecorator[]) { }
 
     adapt(schema: any): void {
         var annotations = schema.annotations || [];
@@ -12,17 +12,17 @@ export class AnnotationMetadataAdapter implements MetadataAdapter {
             var entityTypeName = targetSplit[0];
             var propertyName = targetSplit[1];
             var shortTypeName = entityTypeName.split('.').pop();
-            var entityType = oData.utils.lookupEntityType(shortTypeName, schema); // TODO: verify working
+            var entityType = oData.utils.lookupEntityType(shortTypeName, schema); // TODO: verify working, replaces getEntityType
             var property = this.getProperty(entityType, propertyName);
 
             itemAnnotation.annotation
                 .forEach(annotation => { // term
-                    var adapter = this.adapters
+                    var decorator = this.decorators
                         .find(p => {
                             return annotation.term.indexOf(`.${p.annotation}`) > -1;
                         });
 
-                    adapter.adapt(property || entityType, annotation);
+                    decorator.decorate(property || entityType, annotation);
                 });
         });
     }
@@ -39,6 +39,4 @@ export class AnnotationMetadataAdapter implements MetadataAdapter {
 
         return property;
     }
-
-
 }
