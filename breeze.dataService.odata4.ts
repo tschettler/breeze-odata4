@@ -33,7 +33,7 @@ export class OData4ServiceAdapter implements ODataServiceAdapter {
 
         var serviceName = dataService.serviceName;
         var url = this.getAbsoluteUrl(dataService, '$metadata');
-
+        
         // OData.read(url,
         oData.read({
             requestUri: url,
