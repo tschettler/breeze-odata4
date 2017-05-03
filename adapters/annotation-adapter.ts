@@ -1,9 +1,14 @@
 import { MetadataAdapter } from "./metadata-adapter";
 import { AnnotationDecorator } from "../decorators/annotation-decorator";
 import { oData } from "ts-odatajs";
+import { ClassRegistry } from "ClassRegistry";
 
-export class AnnotationMetadataAdapter implements MetadataAdapter {
-    constructor(public decorators: AnnotationDecorator[]) { }
+export class AnnotationAdapter implements MetadataAdapter {
+    decorators: AnnotationDecorator[] = [];
+
+    constructor() {
+        this.decorators = ClassRegistry.AnnotationDecorators.get();
+     }
 
     adapt(schema: any): void {
         var annotations = schema.annotations || [];

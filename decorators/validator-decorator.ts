@@ -2,7 +2,7 @@ import { DataType, DataTypeSymbol } from "breeze-client";
 import { AnnotationDecorator } from "./annotation-decorator";
 import { DataTypeSymbolEx } from "interfaces";
 
-export class StoreGeneratedPatternDecorator implements AnnotationDecorator {
+export class ValidatorDecorator implements AnnotationDecorator {
     annotation = 'Validator';
 
     private dataTypeMap: { [key: string]: DataTypeSymbol } = {
