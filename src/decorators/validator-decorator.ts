@@ -1,6 +1,6 @@
 import { DataType, DataTypeSymbol } from "breeze-client";
 import { AnnotationDecorator } from "./annotation-decorator";
-import { DataTypeSymbolEx } from "interfaces";
+import { DataTypeSymbolEx } from "../interfaces";
 
 export class ValidatorDecorator implements AnnotationDecorator {
     annotation = 'Validator';
