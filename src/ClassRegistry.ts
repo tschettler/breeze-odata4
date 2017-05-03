@@ -1,7 +1,7 @@
 import { MetadataAdapter } from "./adapters/metadata-adapter";
 import { AnnotationDecorator } from "./decorators/annotation-decorator";
 
-interface Type<T> {
+export interface Type<T> {
     new (): T;
 }
 
