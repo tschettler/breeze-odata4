@@ -14,17 +14,7 @@ export interface DataTypeSymbolEx extends DataTypeSymbol {
 export interface DataServiceEx extends DataService {
     qualifyUrl(suffix: string): string;
 }
-export interface ODataServiceAdapter extends DataServiceAdapter {
-    headers: {
-        [key: string]: string;
-    };
-    getAbsoluteUrl: (dataService: DataService, url: string) => string;
-    _catchNoConnectionError(err: Error): any;
-    _createChangeRequestInterceptor(saveContext: DataServiceSaveContext, saveBundle: Object): {
-        getRequest: (request: Object, entity: Entity, index: number) => Object;
-        done: (requests: Object[]) => void;
-    };
-}
+
 export interface DataServiceSaveContext {
     resourceName: string;
     dataService: DataService;

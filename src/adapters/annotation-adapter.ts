@@ -1,7 +1,7 @@
 import { MetadataAdapter } from "./metadata-adapter";
 import { AnnotationDecorator } from "../decorators/annotation-decorator";
 import { oData } from "ts-odatajs";
-import { ClassRegistry } from "../ClassRegistry";
+import { ClassRegistry } from "../class-registry";
 
 export class AnnotationAdapter implements MetadataAdapter {
     decorators: AnnotationDecorator[] = [];
