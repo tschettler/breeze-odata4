@@ -30,7 +30,7 @@ interface PropertyRef {
 }
 
 export class NavigationAdapter implements MetadataAdapter {
-    private associations: Association[];
+    private associations: Association[] = [];
 
     adapt(schema: any): void {
         schema.entityType.forEach(e => this.adaptEntityType(schema, e));
@@ -53,8 +53,15 @@ export class NavigationAdapter implements MetadataAdapter {
 
         var assocName = sourceType + '_' + targetType;
         var assoc = this.getAssociation(sourceType, targetType);
+
+        var fullSourceTypeName = `${namespace}.${sourceType}`;
+        var fullTargetTypeName = `${namespace}.${targetType}`;
         if (!(navTypeIsSource || assoc)) {
-            var targetEntityType = oData.utils.lookupEntityType(targetType, schema); // TODO: verify working, replaces getEntityType
+            var targetEntityType = oData.utils.lookupEntityType(fullTargetTypeName, schema); // TODO: verify working, replaces getEntityType
+            if (targetEntityType === null){
+                throw new Error(`Could not find entity with type name ${fullTargetTypeName}`);
+            }
+            
             var targetKey = <PropertyRef[]>targetEntityType.key.propertyRef;
             var sourceKey = <PropertyRef[]>targetKey;
 
@@ -69,16 +76,16 @@ export class NavigationAdapter implements MetadataAdapter {
                 name: assocName,
                 end: [
                     {
-                        entitySet: oData.utils.getEntitySetInfo(`${namespace}.${sourceType}`, schema), // TODO: verify working, replaces getResourceFromEntityName
+                        entitySet: oData.utils.getEntitySetInfo(fullSourceTypeName, schema), // TODO: verify working, replaces getResourceFromEntityName
                         multiplicity: '*',
                         role: `${assocName}_Source`,
-                        type: `${namespace}.${sourceType}`
+                        type: fullSourceTypeName
                     },
                     {
-                        entitySet: oData.utils.getEntitySetInfo(`${namespace}.${targetType}`, schema),  // TODO: verify working, replaces getResourceFromEntityName
+                        entitySet: oData.utils.getEntitySetInfo(fullTargetTypeName, schema),  // TODO: verify working, replaces getResourceFromEntityName
                         multiplicity: '1',
                         role: `${assocName}_Target`,
-                        type: `${namespace}.${targetType}`
+                        type: fullTargetTypeName
                     }
                 ],
                 referentialConstraint: {
