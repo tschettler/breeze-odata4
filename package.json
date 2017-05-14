@@ -2,8 +2,11 @@
   "name": "breeze-odata4",
   "version": "1.0.0",
   "description": "Library to allow OData 4 support for breezejs",
-  "main": "./src/index.ts",
-  "typings": "./src/index.d.ts",
+  "main": "./lib/index.js",
+  "typings": "./lib/index",
+  "files": [
+    "/lib"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
