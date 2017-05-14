@@ -25,7 +25,7 @@ interface ServiceAdapter extends DataServiceAdapter {
     };
 }
 
-class ProxyServiceAdapter { }
+export class ProxyServiceAdapter { }
 Object.setPrototypeOf(ProxyServiceAdapter.prototype, config.getAdapter('dataService', 'WebApi').prototype);
 
 // TODO: Latest error from breeze - ERROR Error: The 'dataService' parameter  must be an instance of 'DataService'
@@ -101,7 +101,7 @@ export class OData4ServiceAdapter extends ProxyServiceAdapter implements DataSer
                         return reject(error);
                     }
                     var csdlMetadata = data.dataServices;
-                    var schema = csdlMetadata.schema;
+/*                    var schema = csdlMetadata.schema;
 
                     if (schema instanceof Array && schema.length > 1) {
                         for (var prop in schema[1]) {
@@ -115,7 +115,11 @@ export class OData4ServiceAdapter extends ProxyServiceAdapter implements DataSer
                     }
 
                     this.metadataAdapters.forEach(a => {
-                        oData.utils.forEachSchema(schema, a.adapt)
+                        oData.utils.forEachSchema(schema, a.adapt.bind(a))
+                    });*/
+
+                    this.metadataAdapters.forEach(a => {
+                        oData.utils.forEachSchema(csdlMetadata, a.adapt.bind(a))
                     });
 
                     // might have been fetched by another query

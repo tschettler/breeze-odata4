@@ -4,20 +4,32 @@ import { oData } from "ts-odatajs";
 import { ClassRegistry } from "../class-registry";
 
 export class AnnotationAdapter implements MetadataAdapter {
+    private metadata: any;
     decorators: AnnotationDecorator[] = [];
 
     constructor() {
         this.decorators = ClassRegistry.AnnotationDecorators.get();
-     }
+    }
 
-    adapt(schema: any): void {
-        var annotations = schema.annotations || [];
-        annotations.forEach(function (itemAnnotation) {
+    adapt(metadata: any): void {
+        this.metadata = metadata;
+
+        oData.utils.forEachSchema(this.metadata.schema, this.adaptSchema.bind(this));
+    }
+
+    adaptSchema(schema: any): void {
+        const annotations: any[] = schema.annotations || [];
+
+        annotations.forEach(itemAnnotation => {
             var targetSplit = itemAnnotation.target.split('/');
             var entityTypeName = targetSplit[0];
             var propertyName = targetSplit[1];
-            var shortTypeName = entityTypeName.split('.').pop();
-            var entityType = oData.utils.lookupEntityType(shortTypeName, schema); // TODO: verify working, replaces getEntityType
+            var entityType = oData.utils.lookupEntityType(entityTypeName, this.metadata.schema);
+
+            if (entityType === null) {
+                throw new Error(`Could not find entity with type name ${entityTypeName}`);
+            }
+
             var property = this.getProperty(entityType, propertyName);
 
             itemAnnotation.annotation
@@ -32,7 +44,7 @@ export class AnnotationAdapter implements MetadataAdapter {
         });
     }
 
-    private getProperty(entityType, propertyName) {
+    private getProperty(entityType, propertyName): void {
         if (!propertyName) {
             return null;
         }

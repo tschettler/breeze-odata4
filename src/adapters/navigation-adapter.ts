@@ -1,39 +1,25 @@
 import { MetadataAdapter } from "./metadata-adapter";
 import { oData } from "ts-odatajs";
 
-interface Association {
-    association: string;
-    name: string;
-    end: AssociationEndpoint[];
-    referentialConstraint: AssociationConstraint;
-}
-
-interface AssociationEndpoint {
-    entitySet: string;
-    multiplicity: string;
-    role: string;
-    type: string;
-}
-
-interface AssociationConstraint {
-    dependent: ConstraintActor;
-    principal: ConstraintActor;
-}
-
-interface ConstraintActor {
-    propertyRef: PropertyRef[];
-    role: string;
-}
-
-interface PropertyRef {
-    name: string;
-}
-
 export class NavigationAdapter implements MetadataAdapter {
-    private associations: Association[] = [];
+    private metadata: any;
+    private entityContainer: oData.utils.EntityContainer;
+    private associations: { [key: string]: oData.utils.Association; } = {};
 
-    adapt(schema: any): void {
-        schema.entityType.forEach(e => this.adaptEntityType(schema, e));
+    adapt(metadata: any): void {
+        this.metadata = metadata;
+
+        this.entityContainer = oData.utils.lookupDefaultEntityContainer(this.metadata.schema);
+
+        oData.utils.forEachSchema(this.metadata.schema, this.adaptSchema.bind(this));
+    }
+
+    adaptSchema(schema: any): void {
+        this.associations = {};
+
+        const entityTypes: any[] = schema.entityType || [];
+
+        entityTypes.forEach(e => this.adaptEntityType(schema, e));
     }
 
     adaptEntityType(schema: any, entityType: any) {
@@ -57,13 +43,13 @@ export class NavigationAdapter implements MetadataAdapter {
         var fullSourceTypeName = `${namespace}.${sourceType}`;
         var fullTargetTypeName = `${namespace}.${targetType}`;
         if (!(navTypeIsSource || assoc)) {
-            var targetEntityType = oData.utils.lookupEntityType(fullTargetTypeName, schema); // TODO: verify working, replaces getEntityType
-            if (targetEntityType === null){
+            var targetEntityType = oData.utils.lookupEntityType(fullTargetTypeName, this.metadata.schema);
+            if (targetEntityType === null) {
                 throw new Error(`Could not find entity with type name ${fullTargetTypeName}`);
             }
-            
-            var targetKey = <PropertyRef[]>targetEntityType.key.propertyRef;
-            var sourceKey = <PropertyRef[]>targetKey;
+
+            var targetKey = <oData.utils.PropertyRef[]>targetEntityType.key.propertyRef;
+            var sourceKey = <oData.utils.PropertyRef[]>targetKey;
 
             var constraint = (navProp.referentialConstraint || [])[0];
             if (constraint) {
@@ -76,13 +62,13 @@ export class NavigationAdapter implements MetadataAdapter {
                 name: assocName,
                 end: [
                     {
-                        entitySet: oData.utils.getEntitySetInfo(fullSourceTypeName, schema), // TODO: verify working, replaces getResourceFromEntityName
+                        entitySet: this.getEntitySetNameByEntityType(fullSourceTypeName),
                         multiplicity: '*',
                         role: `${assocName}_Source`,
                         type: fullSourceTypeName
                     },
                     {
-                        entitySet: oData.utils.getEntitySetInfo(fullTargetTypeName, schema),  // TODO: verify working, replaces getResourceFromEntityName
+                        entitySet: this.getEntitySetNameByEntityType(fullTargetTypeName),
                         multiplicity: '1',
                         role: `${assocName}_Target`,
                         type: fullTargetTypeName
@@ -103,24 +89,29 @@ export class NavigationAdapter implements MetadataAdapter {
             this.associations[assoc.name] = assoc;
         }
 
-        var isSource = !navTypeIsSource;
         navProp.relationship = `${namespace}.${assocName}`;
-        navProp.toRole = assocName + (isSource ? '_Target' : '_Source');
-        navProp.fromRole = assocName + (isSource ? '_Source' : '_Target');
+        navProp.fromRole = assocName + (navTypeIsSource ? '_Target' : '_Source');
+        navProp.toRole = assocName + (navTypeIsSource ? '_Source' : '_Target');
     }
 
-    private getAssociation(firstType, secondType): Association {
+    private getAssociation(firstType, secondType): oData.utils.Association {
         return this.associations[`${firstType}_${secondType}`]
             || this.associations[`${secondType}_${firstType}`];
     }
-    
+
+    private getEntitySetNameByEntityType(entityType: string): string {
+        const set = this.entityContainer.entitySet.find(s => s.entityType === entityType);
+
+        return set && set.name;
+    }
+
     private setAssociations(schema) {
-        var assoc = [];
+        var assoc: oData.utils.Association[] = [];
         for (var key in this.associations) {
             assoc.push(this.associations[key]);
         }
 
         schema.association = assoc;
-        schema.entityContainer.associationSet = assoc;
+        this.entityContainer.associationSet = assoc;
     }
 }

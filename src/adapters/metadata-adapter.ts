@@ -1,3 +1,4 @@
 export interface MetadataAdapter {
-    adapt(schema: any): void;
+    adapt(metadata: any): void;
+    adaptSchema(schema: any): void;
 }
