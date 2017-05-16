@@ -5,16 +5,26 @@
     "baseUrl": "",
     "rootDir": "./src",
     "sourceMap": true,
-    "declaration": true,
+    "declaration": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "noImplicitAny": false,
     "module": "commonjs",
     "moduleResolution": "node",
     "removeComments": true,
     "target": "es5",
-    "typeRoots": [
-    ],
     "lib": [
       "es2016",
       "dom"
+    ],
+    "typeRoots": [
+      "typings"
+    ],
+    "types": [
+      "breeze-client"
     ]
-  }
+  },
+  "exclude": [
+    "node_modules"
+  ]
 }

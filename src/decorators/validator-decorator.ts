@@ -1,6 +1,5 @@
 import { DataType, DataTypeSymbol } from "breeze-client";
 import { AnnotationDecorator } from "./annotation-decorator";
-import { DataTypeSymbolEx } from "../interfaces";
 
 export class ValidatorDecorator implements AnnotationDecorator {
     annotation = 'Validator';
@@ -29,7 +28,7 @@ export class ValidatorDecorator implements AnnotationDecorator {
         var name = nameAndProp.shift();
         var prop = nameAndProp.shift();
 
-        var validator = property.validators.find((val) => {
+        var validator = property.validators.find((val: { name: string; }) => {
             return val.name === name;
         });
 
@@ -38,12 +37,11 @@ export class ValidatorDecorator implements AnnotationDecorator {
             property.validators.push(validator);
         }
 
-        // TODO: cleanup after typings get updated
-        var dataType = <DataTypeSymbolEx>this.getDataType(keys[1]);
+        var dataType = this.getDataType(keys[1]);
         validator[prop] = dataType.parse(value, 'string');
     }
 
-    private getDataType(key): DataTypeSymbol {
+    private getDataType(key: string): DataTypeSymbol {
         var dataType = this.dataTypeMap[key] || this.dataTypeMap.string;
         return dataType;
     }

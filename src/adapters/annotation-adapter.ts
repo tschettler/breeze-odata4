@@ -20,7 +20,7 @@ export class AnnotationAdapter implements MetadataAdapter {
     adaptSchema(schema: any): void {
         const annotations: any[] = schema.annotations || [];
 
-        annotations.forEach(itemAnnotation => {
+        annotations.forEach((itemAnnotation: any) => {
             var targetSplit = itemAnnotation.target.split('/');
             var entityTypeName = targetSplit[0];
             var propertyName = targetSplit[1];
@@ -33,7 +33,7 @@ export class AnnotationAdapter implements MetadataAdapter {
             var property = this.getProperty(entityType, propertyName);
 
             itemAnnotation.annotation
-                .forEach(annotation => { // term
+                .forEach((annotation: any) => { // term
                     var decorator = this.decorators
                         .find(p => {
                             return annotation.term.indexOf(`.${p.annotation}`) > -1;
@@ -44,13 +44,13 @@ export class AnnotationAdapter implements MetadataAdapter {
         });
     }
 
-    private getProperty(entityType, propertyName): void {
+    private getProperty(entityType: any, propertyName: string): any {
         if (!propertyName) {
             return null;
         }
 
         var properties = entityType.property.concat(entityType.navigationProperty);
-        var property = properties.find(prop => {
+        var property = properties.find((prop: any) => {
             return prop.name == propertyName;
         });
 

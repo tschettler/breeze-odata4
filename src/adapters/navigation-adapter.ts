@@ -23,7 +23,7 @@ export class NavigationAdapter implements MetadataAdapter {
     }
 
     adaptEntityType(schema: any, entityType: any) {
-        (entityType.navigationProperty || []).forEach(n => this.adaptNavigationProperty(schema, entityType.name, n));
+        (entityType.navigationProperty || []).forEach((n: any) => this.adaptNavigationProperty(schema, entityType.name, n));
 
         this.setAssociations(schema);
     }
@@ -94,7 +94,7 @@ export class NavigationAdapter implements MetadataAdapter {
         navProp.toRole = assocName + (navTypeIsSource ? '_Source' : '_Target');
     }
 
-    private getAssociation(firstType, secondType): oData.utils.Association {
+    private getAssociation(firstType: string, secondType: string): oData.utils.Association {
         return this.associations[`${firstType}_${secondType}`]
             || this.associations[`${secondType}_${firstType}`];
     }
@@ -105,7 +105,7 @@ export class NavigationAdapter implements MetadataAdapter {
         return set && set.name;
     }
 
-    private setAssociations(schema) {
+    private setAssociations(schema: any) {
         var assoc: oData.utils.Association[] = [];
         for (var key in this.associations) {
             assoc.push(this.associations[key]);
