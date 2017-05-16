@@ -30,8 +30,8 @@ export class NavigationAdapter implements MetadataAdapter {
 
     adaptNavigationProperty(schema: any, entityTypeName: string, navProp: any) {
         var namespace = schema.namespace;
-        var navTypeIsSource = navProp.type.indexOf('Collection(') === 0;
-        var fullType = navProp.type.replace(/Collection\(([^)]*)\)/, '$1');
+        var navTypeIsSource = !oData.utils.isCollectionType(navProp.type);
+        var fullType = oData.utils.getCollectionType(navProp.type) || navProp.type;
         var shortType = fullType.split('.').pop();
 
         var sourceType = navTypeIsSource ? shortType : entityTypeName;

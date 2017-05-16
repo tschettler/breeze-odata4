@@ -10,3 +10,4 @@ Thumbs.db
 *.js
 *.map
 *.d.ts
+!typings/**/*.d.ts

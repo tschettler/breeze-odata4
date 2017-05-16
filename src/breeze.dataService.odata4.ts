@@ -12,35 +12,27 @@ import { AnnotationDecorator } from "./decorators/annotation-decorator";
 import { StoreGeneratedPatternDecorator } from "./decorators/store-generated-pattern-decorator";
 import { DisplayNameDecorator } from "./decorators/display-name-decorator";
 import { ValidatorDecorator } from "./decorators/validator-decorator";
-import { ODataError } from "./interfaces";
+import { ODataError } from "./odata-error";
 
-interface ServiceAdapter extends DataServiceAdapter {
-    checkForRecomposition(interfaceInitializedArgs: { interfaceName: string; isDefault: boolean; }): void;
-
-    _catchNoConnectionError(err: Error): any;
-
-    _createChangeRequestInterceptor(saveContext: DataServiceSaveContext, saveBundle: Object): {
-        getRequest: (request: Object, entity: Entity, index: number) => Object;
-        done: (requests: Object[]) => void;
-    };
+export class ProxyServiceAdapter {
+    
 }
 
-export class ProxyServiceAdapter { }
 Object.setPrototypeOf(ProxyServiceAdapter.prototype, config.getAdapter('dataService', 'WebApi').prototype);
 
 // TODO: Latest error from breeze - ERROR Error: The 'dataService' parameter  must be an instance of 'DataService'
 export class OData4ServiceAdapter extends ProxyServiceAdapter implements DataServiceAdapter {
-    private innerAdapter: ServiceAdapter = <ServiceAdapter>config.getAdapterInstance('dataService', 'WebApi');
+    private innerAdapter: DataServiceAdapter = <DataServiceAdapter>config.getAdapterInstance('dataService', 'WebApi');
 
     private metadataAdapters: MetadataAdapter[] = [];
 
-    name = 'OData4';
+    public name = 'OData4';
 
-    headers = {
+    public headers = {
         'OData-Version': '4.0'
     };
 
-    metadata: any;
+    public metadata: any;
 
     static register() {
         config.registerAdapter('dataService', OData4ServiceAdapter);
@@ -50,7 +42,7 @@ export class OData4ServiceAdapter extends ProxyServiceAdapter implements DataSer
         super();
     }
 
-    initialize(): void {
+    public initialize(): void {
         // TODO: Figure out why this doesn't work
         /*core.requireLib("odatajs", "Needed to support remote OData v4 services");*/
         this.fixODataFormats();
@@ -61,11 +53,22 @@ export class OData4ServiceAdapter extends ProxyServiceAdapter implements DataSer
         this.metadataAdapters = ClassRegistry.MetadataAdapters.get();
     }
 
-    checkForRecomposition(interfaceInitializedArgs: { interfaceName: string; isDefault: boolean; }): void {
+    public _catchNoConnectionError(err: Error): any {
+        return this.innerAdapter._catchNoConnectionError(err);
+    }
+
+    public _createChangeRequestInterceptor(saveContext: DataServiceSaveContext, saveBundle: Object): {
+        getRequest: (request: Object, entity: Entity, index: number) => Object;
+        done: (requests: Object[]) => void
+    } {
+        return this.innerAdapter._createChangeRequestInterceptor(saveContext, saveBundle);
+    }
+
+    public checkForRecomposition(interfaceInitializedArgs: { interfaceName: string; isDefault: boolean; }): void {
         this.innerAdapter.checkForRecomposition(interfaceInitializedArgs);
     }
 
-    getAbsoluteUrl(dataService: DataService, url: string): string {
+    public getAbsoluteUrl(dataService: DataService, url: string): string {
         var serviceName = dataService.qualifyUrl('');
         // only prefix with serviceName if not already on the url
         var base = core.stringStartsWith(url, serviceName) ? '' : serviceName;
@@ -79,7 +82,7 @@ export class OData4ServiceAdapter extends ProxyServiceAdapter implements DataSer
         return base + url;
     }
 
-    fetchMetadata(metadataStore: MetadataStore, dataService: DataService): Promise<any> {
+    public fetchMetadata(metadataStore: MetadataStore, dataService: DataService): Promise<any> {
 
         var associations = {};
 
@@ -147,7 +150,7 @@ export class OData4ServiceAdapter extends ProxyServiceAdapter implements DataSer
         });
     }
 
-    executeQuery(mappingContext: { getUrl: () => string; query: EntityQuery; dataService: DataService; }): Promise<any> {
+    public executeQuery(mappingContext: { getUrl: () => string; query: EntityQuery; dataService: DataService; }): Promise<any> {
         var url = this.getAbsoluteUrl(mappingContext.dataService, mappingContext.getUrl());
 
         /**
@@ -181,7 +184,7 @@ export class OData4ServiceAdapter extends ProxyServiceAdapter implements DataSer
         });
     }
 
-    saveChanges(saveContext: DataServiceSaveContext, saveBundle: Object): Promise<SaveResult> {
+    public saveChanges(saveContext: DataServiceSaveContext, saveBundle: Object): Promise<SaveResult> {
         var adapter = saveContext.adapter = this;
 
         saveContext.routePrefix = this.getAbsoluteUrl(saveContext.dataService, '');
@@ -254,7 +257,7 @@ export class OData4ServiceAdapter extends ProxyServiceAdapter implements DataSer
         });
     }
 
-    JsonResultsAdapter: JsonResultsAdapter = new JsonResultsAdapter(
+    public JsonResultsAdapter: JsonResultsAdapter = new JsonResultsAdapter(
         {
             name: 'Test',
             visitNode: (node: any, mappingContext: QueryContext, nodeContext: NodeContext): { entityType?: EntityType; nodeId?: any; nodeRefId?: any; ignore?: boolean; } => {
