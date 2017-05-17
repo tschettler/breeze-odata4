@@ -1,5 +1,11 @@
 
+import { Property, NavigationProperty, Annotation } from "ts-odatajs";
+
+export interface StringAnnotation extends Annotation {
+    string: string;
+}
+
 export interface AnnotationDecorator {
     annotation: string;
-    decorate(property: any, annotation: any): void; 
+    decorate(property: NavigationProperty | Property, annotation: Annotation): void;
 }

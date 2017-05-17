@@ -759,7 +759,7 @@ declare module "breeze-client"
         hasMetadataFor(serviceName: string): boolean;
         static importMetadata(exportedString: string): MetadataStore;
         static normalizeTypeName(typeName: string): string;
-        importMetadata(exportedString: string, allowMerge?: boolean): MetadataStore;
+        importMetadata(exportedMetadata: any, allowMerge?: boolean): MetadataStore;
         isEmpty(): boolean;
         registerEntityTypeCtor(entityTypeName: string, entityCtor: Function, initializationFn?: (entity: Entity) => void, noTrackingFn?: (node: Object, entityType: EntityType) => Object): void;
         trackUnmappedType(entityCtor: Function, interceptor?: Function): void;

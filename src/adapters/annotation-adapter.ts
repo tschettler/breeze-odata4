@@ -1,26 +1,27 @@
 import { MetadataAdapter } from "./metadata-adapter";
 import { AnnotationDecorator } from "../decorators/annotation-decorator";
-import { oData } from "ts-odatajs";
+import { EntityType, oData, Schema, Annotation, Property, NavigationProperty, Annotations } from "ts-odatajs";
 import { ClassRegistry } from "../class-registry";
+import { Metadata } from "../interfaces";
 
 export class AnnotationAdapter implements MetadataAdapter {
-    private metadata: any;
+    private metadata: Metadata;
     decorators: AnnotationDecorator[] = [];
 
     constructor() {
         this.decorators = ClassRegistry.AnnotationDecorators.get();
     }
 
-    adapt(metadata: any): void {
+    adapt(metadata: Metadata): void {
         this.metadata = metadata;
 
         oData.utils.forEachSchema(this.metadata.schema, this.adaptSchema.bind(this));
     }
 
-    adaptSchema(schema: any): void {
-        const annotations: any[] = schema.annotations || [];
+    adaptSchema(schema: Schema): void {
+        const annotations: Annotations[] = schema.annotations || [];
 
-        annotations.forEach((itemAnnotation: any) => {
+        annotations.forEach((itemAnnotation: Annotations) => {
             var targetSplit = itemAnnotation.target.split('/');
             var entityTypeName = targetSplit[0];
             var propertyName = targetSplit[1];
@@ -33,7 +34,7 @@ export class AnnotationAdapter implements MetadataAdapter {
             var property = this.getProperty(entityType, propertyName);
 
             itemAnnotation.annotation
-                .forEach((annotation: any) => { // term
+                .forEach((annotation: Annotation) => { // term
                     var decorator = this.decorators
                         .find(p => {
                             return annotation.term.indexOf(`.${p.annotation}`) > -1;
@@ -44,12 +45,12 @@ export class AnnotationAdapter implements MetadataAdapter {
         });
     }
 
-    private getProperty(entityType: any, propertyName: string): any {
+    private getProperty(entityType: EntityType, propertyName: string): Property | NavigationProperty {
         if (!propertyName) {
             return null;
         }
 
-        var properties = entityType.property.concat(entityType.navigationProperty);
+        var properties: (Property | NavigationProperty)[] = entityType.property.concat(entityType.navigationProperty);
         var property = properties.find((prop: any) => {
             return prop.name == propertyName;
         });

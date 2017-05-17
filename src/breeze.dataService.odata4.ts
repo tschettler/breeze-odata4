@@ -4,7 +4,6 @@ import { oData } from 'ts-odatajs';
 import { ClassRegistry } from "./class-registry";
 
 import { MetadataAdapter } from "./adapters/metadata-adapter";
-import { IdentityAdapter } from "./adapters/identity-adapter";
 import { NavigationAdapter } from "./adapters/navigation-adapter";
 import { AnnotationAdapter } from "./adapters/annotation-adapter";
 
@@ -13,17 +12,29 @@ import { StoreGeneratedPatternDecorator } from "./decorators/store-generated-pat
 import { DisplayNameDecorator } from "./decorators/display-name-decorator";
 import { ValidatorDecorator } from "./decorators/validator-decorator";
 import { ODataError } from "./odata-error";
+import { Metadata } from "./interfaces";
 
 export class ProxyServiceAdapter {
-    
+    public _catchNoConnectionError(err: Error): any {
+        throw new Error("_catchNoConnectionError not implemented");
+    }
+
+    public _createChangeRequestInterceptor(saveContext: DataServiceSaveContext, saveBundle: Object): {
+        getRequest: (request: Object, entity: Entity, index: number) => Object;
+        done: (requests: Object[]) => void
+    } {
+        throw new Error("_createChangeRequestInterceptor not implemented");
+    }
+
+    public checkForRecomposition(interfaceInitializedArgs: { interfaceName: string; isDefault: boolean; }): void {
+        throw new Error("checkForRecomposition not implemented");
+    }
 }
 
 Object.setPrototypeOf(ProxyServiceAdapter.prototype, config.getAdapter('dataService', 'WebApi').prototype);
 
 // TODO: Latest error from breeze - ERROR Error: The 'dataService' parameter  must be an instance of 'DataService'
 export class OData4ServiceAdapter extends ProxyServiceAdapter implements DataServiceAdapter {
-    private innerAdapter: DataServiceAdapter = <DataServiceAdapter>config.getAdapterInstance('dataService', 'WebApi');
-
     private metadataAdapters: MetadataAdapter[] = [];
 
     public name = 'OData4';
@@ -47,25 +58,10 @@ export class OData4ServiceAdapter extends ProxyServiceAdapter implements DataSer
         /*core.requireLib("odatajs", "Needed to support remote OData v4 services");*/
         this.fixODataFormats();
 
-        ClassRegistry.MetadataAdapters.add(IdentityAdapter, NavigationAdapter, AnnotationAdapter);
+        ClassRegistry.MetadataAdapters.add(NavigationAdapter, AnnotationAdapter);
         ClassRegistry.AnnotationDecorators.add(StoreGeneratedPatternDecorator, DisplayNameDecorator, ValidatorDecorator);
 
         this.metadataAdapters = ClassRegistry.MetadataAdapters.get();
-    }
-
-    public _catchNoConnectionError(err: Error): any {
-        return this.innerAdapter._catchNoConnectionError(err);
-    }
-
-    public _createChangeRequestInterceptor(saveContext: DataServiceSaveContext, saveBundle: Object): {
-        getRequest: (request: Object, entity: Entity, index: number) => Object;
-        done: (requests: Object[]) => void
-    } {
-        return this.innerAdapter._createChangeRequestInterceptor(saveContext, saveBundle);
-    }
-
-    public checkForRecomposition(interfaceInitializedArgs: { interfaceName: string; isDefault: boolean; }): void {
-        this.innerAdapter.checkForRecomposition(interfaceInitializedArgs);
     }
 
     public getAbsoluteUrl(dataService: DataService, url: string): string {
@@ -103,7 +99,10 @@ export class OData4ServiceAdapter extends ProxyServiceAdapter implements DataSer
                         var error = new Error('Metadata query failed for: ' + url);
                         return reject(error);
                     }
-                    var csdlMetadata = data.dataServices;
+
+                    var csdlMetadata: Metadata = {
+                        schema: [].concat(data.dataServices.schema || [])
+                    }
                     /*var schema = csdlMetadata.schema;
 
                     if (schema instanceof Array && schema.length > 1) {
@@ -320,7 +319,7 @@ export class OData4ServiceAdapter extends ProxyServiceAdapter implements DataSer
     );
 
     private createChangeRequests(saveContext: DataServiceSaveContext, saveBundle: Object) {
-        var changeRequestInterceptor = this.innerAdapter._createChangeRequestInterceptor(saveContext, saveBundle);
+        var changeRequestInterceptor = this._createChangeRequestInterceptor(saveContext, saveBundle);
         var changeRequests: any[] = [];
         var tempKeys: any[] = [];
         var contentKeys: any[] = [];
@@ -461,7 +460,7 @@ export class OData4ServiceAdapter extends ProxyServiceAdapter implements DataSer
 
             }
         }
-        this.innerAdapter._catchNoConnectionError(result);
+        this._catchNoConnectionError(result);
         return result;
     }
 

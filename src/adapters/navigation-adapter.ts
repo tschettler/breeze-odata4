@@ -1,12 +1,13 @@
 import { MetadataAdapter } from "./metadata-adapter";
-import { oData } from "ts-odatajs";
+import { Association, EntityContainer, EntityType, NavigationProperty, oData, Schema } from "ts-odatajs";
+import { Metadata } from "../interfaces";
 
 export class NavigationAdapter implements MetadataAdapter {
-    private metadata: any;
-    private entityContainer: oData.utils.EntityContainer;
-    private associations: { [key: string]: oData.utils.Association; } = {};
+    private metadata: Metadata;
+    private entityContainer: EntityContainer;
+    private associations: { [key: string]: Association; } = {};
 
-    adapt(metadata: any): void {
+    adapt(metadata: Metadata): void {
         this.metadata = metadata;
 
         this.entityContainer = oData.utils.lookupDefaultEntityContainer(this.metadata.schema);
@@ -14,42 +15,42 @@ export class NavigationAdapter implements MetadataAdapter {
         oData.utils.forEachSchema(this.metadata.schema, this.adaptSchema.bind(this));
     }
 
-    adaptSchema(schema: any): void {
+    adaptSchema(schema: Schema): void {
         this.associations = {};
 
-        const entityTypes: any[] = schema.entityType || [];
+        const entityTypes: EntityType[] = schema.entityType || [];
 
         entityTypes.forEach(e => this.adaptEntityType(schema, e));
     }
 
-    adaptEntityType(schema: any, entityType: any) {
-        (entityType.navigationProperty || []).forEach((n: any) => this.adaptNavigationProperty(schema, entityType.name, n));
+    adaptEntityType(schema: any, entityType: EntityType) {
+        (entityType.navigationProperty || []).forEach((n: NavigationProperty) => this.adaptNavigationProperty(schema, entityType.name, n));
 
         this.setAssociations(schema);
     }
 
-    adaptNavigationProperty(schema: any, entityTypeName: string, navProp: any) {
+    adaptNavigationProperty(schema: Schema, entityTypeName: string, navProp: NavigationProperty) {
         var namespace = schema.namespace;
-        var navTypeIsSource = !oData.utils.isCollectionType(navProp.type);
+        var isCollection = oData.utils.isCollectionType(navProp.type);
         var fullType = oData.utils.getCollectionType(navProp.type) || navProp.type;
         var shortType = fullType.split('.').pop();
 
-        var sourceType = navTypeIsSource ? shortType : entityTypeName;
-        var targetType = navTypeIsSource ? entityTypeName : shortType;
+        var sourceType = isCollection ? shortType : entityTypeName;
+        var targetType = isCollection ? entityTypeName : shortType;
 
         var assocName = sourceType + '_' + targetType;
         var assoc = this.getAssociation(sourceType, targetType);
 
         var fullSourceTypeName = `${namespace}.${sourceType}`;
         var fullTargetTypeName = `${namespace}.${targetType}`;
-        if (!(navTypeIsSource || assoc)) {
+        if (!(isCollection || assoc)) {
             var targetEntityType = oData.utils.lookupEntityType(fullTargetTypeName, this.metadata.schema);
             if (targetEntityType === null) {
                 throw new Error(`Could not find entity with type name ${fullTargetTypeName}`);
             }
 
-            var targetKey = <oData.utils.PropertyRef[]>targetEntityType.key.propertyRef;
-            var sourceKey = <oData.utils.PropertyRef[]>targetKey;
+            var targetKey = targetEntityType.key.propertyRef;
+            var sourceKey = targetKey;
 
             var constraint = (navProp.referentialConstraint || [])[0];
             if (constraint) {
@@ -90,11 +91,11 @@ export class NavigationAdapter implements MetadataAdapter {
         }
 
         navProp.relationship = `${namespace}.${assocName}`;
-        navProp.fromRole = assocName + (navTypeIsSource ? '_Target' : '_Source');
-        navProp.toRole = assocName + (navTypeIsSource ? '_Source' : '_Target');
+        navProp.fromRole = assocName + (isCollection ? '_Target' : '_Source');
+        navProp.toRole = assocName + (isCollection ? '_Source' : '_Target');
     }
 
-    private getAssociation(firstType: string, secondType: string): oData.utils.Association {
+    private getAssociation(firstType: string, secondType: string): Association {
         return this.associations[`${firstType}_${secondType}`]
             || this.associations[`${secondType}_${firstType}`];
     }
@@ -105,8 +106,8 @@ export class NavigationAdapter implements MetadataAdapter {
         return set && set.name;
     }
 
-    private setAssociations(schema: any) {
-        var assoc: oData.utils.Association[] = [];
+    private setAssociations(schema: Schema) {
+        var assoc: Association[] = [];
         for (var key in this.associations) {
             assoc.push(this.associations[key]);
         }
