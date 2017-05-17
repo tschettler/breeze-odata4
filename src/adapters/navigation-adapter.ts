@@ -1,13 +1,12 @@
 import { MetadataAdapter } from "./metadata-adapter";
-import { Association, EntityContainer, EntityType, NavigationProperty, oData, Schema } from "ts-odatajs";
-import { Metadata } from "../interfaces";
+import { Edm, EdmExtra, oData, Edmx } from "ts-odatajs";
 
 export class NavigationAdapter implements MetadataAdapter {
-    private metadata: Metadata;
-    private entityContainer: EntityContainer;
-    private associations: { [key: string]: Association; } = {};
+    private metadata: Edmx.DataServices;
+    private entityContainer: Edm.EntityContainer;
+    private associations: { [key: string]: EdmExtra.Association; } = {};
 
-    adapt(metadata: Metadata): void {
+    adapt(metadata: Edmx.DataServices): void {
         this.metadata = metadata;
 
         this.entityContainer = oData.utils.lookupDefaultEntityContainer(this.metadata.schema);
@@ -15,21 +14,21 @@ export class NavigationAdapter implements MetadataAdapter {
         oData.utils.forEachSchema(this.metadata.schema, this.adaptSchema.bind(this));
     }
 
-    adaptSchema(schema: Schema): void {
+    adaptSchema(schema: Edm.Schema): void {
         this.associations = {};
 
-        const entityTypes: EntityType[] = schema.entityType || [];
+        const entityTypes: Edm.EntityType[] = schema.entityType || [];
 
         entityTypes.forEach(e => this.adaptEntityType(schema, e));
     }
 
-    adaptEntityType(schema: any, entityType: EntityType) {
-        (entityType.navigationProperty || []).forEach((n: NavigationProperty) => this.adaptNavigationProperty(schema, entityType.name, n));
+    adaptEntityType(schema: any, entityType: Edm.EntityType) {
+        (entityType.navigationProperty || []).forEach((n: Edm.NavigationProperty) => this.adaptNavigationProperty(schema, entityType.name, n));
 
         this.setAssociations(schema);
     }
 
-    adaptNavigationProperty(schema: Schema, entityTypeName: string, navProp: NavigationProperty) {
+    adaptNavigationProperty(schema: Edm.Schema, entityTypeName: string, navProp: Edm.NavigationProperty) {
         var namespace = schema.namespace;
         var isCollection = oData.utils.isCollectionType(navProp.type);
         var fullType = oData.utils.getCollectionType(navProp.type) || navProp.type;
@@ -95,7 +94,7 @@ export class NavigationAdapter implements MetadataAdapter {
         navProp.toRole = assocName + (isCollection ? '_Source' : '_Target');
     }
 
-    private getAssociation(firstType: string, secondType: string): Association {
+    private getAssociation(firstType: string, secondType: string): EdmExtra.Association {
         return this.associations[`${firstType}_${secondType}`]
             || this.associations[`${secondType}_${firstType}`];
     }
@@ -106,8 +105,8 @@ export class NavigationAdapter implements MetadataAdapter {
         return set && set.name;
     }
 
-    private setAssociations(schema: Schema) {
-        var assoc: Association[] = [];
+    private setAssociations(schema: Edm.Schema) {
+        var assoc: EdmExtra.Association[] = [];
         for (var key in this.associations) {
             assoc.push(this.associations[key]);
         }

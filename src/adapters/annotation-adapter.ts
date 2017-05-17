@@ -1,27 +1,26 @@
 import { MetadataAdapter } from "./metadata-adapter";
 import { AnnotationDecorator } from "../decorators/annotation-decorator";
-import { EntityType, oData, Schema, Annotation, Property, NavigationProperty, Annotations } from "ts-odatajs";
+import { Edm, oData, Edmx } from "ts-odatajs";
 import { ClassRegistry } from "../class-registry";
-import { Metadata } from "../interfaces";
 
 export class AnnotationAdapter implements MetadataAdapter {
-    private metadata: Metadata;
+    private metadata: Edmx.DataServices;
     decorators: AnnotationDecorator[] = [];
 
     constructor() {
         this.decorators = ClassRegistry.AnnotationDecorators.get();
     }
 
-    adapt(metadata: Metadata): void {
+    adapt(metadata: Edmx.DataServices): void {
         this.metadata = metadata;
 
         oData.utils.forEachSchema(this.metadata.schema, this.adaptSchema.bind(this));
     }
 
-    adaptSchema(schema: Schema): void {
-        const annotations: Annotations[] = schema.annotations || [];
+    adaptSchema(schema: Edm.Schema): void {
+        const annotations: Edm.Annotations[] = schema.annotations || [];
 
-        annotations.forEach((itemAnnotation: Annotations) => {
+        annotations.forEach((itemAnnotation: Edm.Annotations) => {
             var targetSplit = itemAnnotation.target.split('/');
             var entityTypeName = targetSplit[0];
             var propertyName = targetSplit[1];
@@ -34,7 +33,7 @@ export class AnnotationAdapter implements MetadataAdapter {
             var property = this.getProperty(entityType, propertyName);
 
             itemAnnotation.annotation
-                .forEach((annotation: Annotation) => { // term
+                .forEach((annotation: Edm.Annotation) => { // term
                     var decorator = this.decorators
                         .find(p => {
                             return annotation.term.indexOf(`.${p.annotation}`) > -1;
@@ -45,12 +44,12 @@ export class AnnotationAdapter implements MetadataAdapter {
         });
     }
 
-    private getProperty(entityType: EntityType, propertyName: string): Property | NavigationProperty {
+    private getProperty(entityType: Edm.EntityType, propertyName: string): Edm.BaseProperty {
         if (!propertyName) {
             return null;
         }
 
-        var properties: (Property | NavigationProperty)[] = entityType.property.concat(entityType.navigationProperty);
+        var properties: Edm.BaseProperty[] = entityType.property.concat(entityType.navigationProperty);
         var property = properties.find((prop: any) => {
             return prop.name == propertyName;
         });

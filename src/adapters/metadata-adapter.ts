@@ -1,7 +1,6 @@
-import { Schema } from "ts-odatajs";
-import { Metadata } from "../interfaces";
+import { Edm, Edmx } from "ts-odatajs";
 
 export interface MetadataAdapter {
-    adapt(metadata: Metadata): void;
-    adaptSchema(schema: Schema): void;
+    adapt(metadata: Edmx.DataServices): void;
+    adaptSchema(schema: Edm.Schema): void;
 }

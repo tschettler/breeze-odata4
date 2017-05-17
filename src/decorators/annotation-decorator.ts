@@ -1,11 +1,7 @@
 
-import { Property, NavigationProperty, Annotation } from "ts-odatajs";
-
-export interface StringAnnotation extends Annotation {
-    string: string;
-}
+import { Edm } from "ts-odatajs";
 
 export interface AnnotationDecorator {
     annotation: string;
-    decorate(property: NavigationProperty | Property, annotation: Annotation): void;
+    decorate(property: any, annotation: Edm.Annotation): void;
 }
