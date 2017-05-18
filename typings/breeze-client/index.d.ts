@@ -228,13 +228,18 @@ declare module "breeze-client"
         initialize(): void;
         fetchMetadata(metadataStore: MetadataStore, dataService: DataService): Promise<any>;
         executeQuery(mappingContext: { getUrl: () => string; query: EntityQuery; dataService: DataService }): Promise<any>;
-        saveChanges(saveContext: { resourceName: string; dataService: DataService }, saveBundle: Object): Promise<SaveResult>;
+        saveChanges(saveContext: { resourceName: string; dataService: DataService }, saveBundle: SaveBundle): Promise<SaveResult>;
         JsonResultsAdapter: JsonResultsAdapter;
         _catchNoConnectionError(err: Error): any;
-        _createChangeRequestInterceptor(saveContext: DataServiceSaveContext, saveBundle: Object): {
+        _createChangeRequestInterceptor(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): {
             getRequest: (request: Object, entity: Entity, index: number) => Object;
             done: (requests: Object[]) => void;
         };
+    }
+
+    export interface SaveBundle {
+        entities: Entity[];
+        saveOptions: SaveOptions;
     }
 
     export class JsonResultsAdapter {
@@ -242,14 +247,21 @@ declare module "breeze-client"
         extractResults: (data: {}) => {};
         extractSaveResults: (data: {}) => any[];
         extractKeyMappings: (data: {}) => KeyMapping[];
-        visitNode: (node: {}, queryContext: QueryContext, nodeContext: NodeContext) => { entityType?: EntityType; nodeId?: any; nodeRefId?: any; ignore?: boolean; };
+        visitNode: (node: {}, queryContext: QueryContext, nodeContext: NodeContext) => VisitNodeResult;
         constructor(config: {
             name: string;
             extractResults?: (data: {}) => {};
             extractSaveResults?: (data: {}) => any[];
             extractKeyMappings?: (data: {}) => KeyMapping[];
-            visitNode: (node: {}, queryContext: QueryContext, nodeContext: NodeContext) => { entityType?: EntityType; nodeId?: any; nodeRefId?: any; ignore?: boolean; };
+            visitNode: (node: {}, queryContext: QueryContext, nodeContext: NodeContext) => VisitNodeResult;
         });
+    }
+    export interface VisitNodeResult {
+        entityType?: EntityType; 
+        nodeId?: any; 
+        nodeRefId?: any; 
+        ignore?: boolean;
+        extraMetadata?: { [key:string]: any; }
     }
 
     export interface QueryContext {
@@ -263,6 +275,7 @@ declare module "breeze-client"
     export interface NodeContext {
         nodeType: string;
         propertyName: string;
+        navigationProperty?: { entityTypeName: string; }
     }
 
     export class DataTypeSymbol extends core.EnumSymbol {
