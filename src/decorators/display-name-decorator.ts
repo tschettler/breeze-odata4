@@ -1,7 +1,7 @@
 import { AnnotationDecorator } from './annotation-decorator';
 import { Edm } from 'ts-odatajs';
 
-export interface ExpressionWithDisplayName extends Edm.Base.NamedExpression {
+export interface ExpressionWithDisplayName extends Edm.Base.Annotatable {
     displayName?: string;
 }
 

@@ -1,4 +1,4 @@
-import { OData4ServiceAdapter } from './breeze-odata4-dataService';
-import { ClassRegistry, ClassRepository, Type } from './class-registry';
-
-export { ClassRegistry, ClassRepository, Type, OData4ServiceAdapter };
+export { OData4DataService } from './breeze-odata4-dataService';
+export { ClassRegistry, ClassRepository, Type } from './class-registry';
+export { MetadataAdapter } from './adapters/metadata-adapter';
+export { AnnotationDecorator } from './decorators/annotation-decorator';

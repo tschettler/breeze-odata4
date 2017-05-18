@@ -1,7 +1,7 @@
 import { AnnotationDecorator } from './annotation-decorator';
 import { Edm } from 'ts-odatajs';
 
-export interface ExpressionWithStoreGeneratedPattern extends Edm.Base.NamedExpression {
+export interface ExpressionWithStoreGeneratedPattern extends Edm.Base.Annotatable {
     'annotation:StoreGeneratedPattern'?: string;
 }
 

@@ -2,7 +2,7 @@ import { DataType, DataTypeSymbol } from 'breeze-client';
 import { AnnotationDecorator } from './annotation-decorator';
 import { Edm } from 'ts-odatajs';
 
-export interface ExpressionWithValidators extends Edm.Base.NamedExpression {
+export interface ExpressionWithValidators extends Edm.Base.Annotatable {
     validators?: any[];
 }
 
