@@ -169,6 +169,9 @@ declare module "breeze-client"
         relatedNavigationProperty: NavigationProperty;
         validators: Validator[];
         constructor(config: DataPropertyOptions);
+
+        static getRawValueFromClient(rawEntity: any, dp: any): any;
+        static getRawValueFromServer(rawEntity: any, dp: any): any;
     }
 
     export interface DataPropertyOptions {

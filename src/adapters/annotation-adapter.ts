@@ -44,12 +44,12 @@ export class AnnotationAdapter implements MetadataAdapter {
         });
     }
 
-    private getProperty(entityType: Edm.EntityType, propertyName: string): Edm.BaseProperty {
+    private getProperty(entityType: Edm.EntityType, propertyName: string): Edm.Base.NamedExpression {
         if (!propertyName) {
             return null;
         }
 
-        var properties: Edm.BaseProperty[] = entityType.property.concat(entityType.navigationProperty);
+        var properties: Edm.Base.NamedExpression[] = entityType.property.concat(entityType.navigationProperty);
         var property = properties.find((prop: any) => {
             return prop.name == propertyName;
         });
