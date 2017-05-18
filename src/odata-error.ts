@@ -1,14 +1,14 @@
 export class ODataError extends Error {
-    body: any;
-    statusText: string;
-    status: number;
-    url: string;
+    public body: any;
+    public statusText: string;
+    public status: number;
+    public url: string;
 
     constructor(message?: string) {
         super(message);
     }
 
-    toString() {
+    public toString() {
         return this.name + ': ' + this.message;
     }
 }

@@ -31,5 +31,6 @@
   "homepage": "https://github.com/tschettler/breeze-odata4#readme",
   "dependencies": {
     "ts-odatajs": "file:///D:\\Users\\Travis\\Documents\\GitHub\\ts-odatajs-4.0.2.tgz"
-  }
+  },
+  "devDependencies": {}
 }
