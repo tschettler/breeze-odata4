@@ -24,6 +24,10 @@
       "breeze-client"
     ]
   },
+  "include": [
+    "src/**/*.ts",
+    "typings/**/*.d.ts"
+  ],
   "exclude": [
     "node_modules"
   ]

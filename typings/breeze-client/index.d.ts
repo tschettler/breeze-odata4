@@ -90,7 +90,6 @@ declare module "breeze-client"
 
     }
 
-
     export interface Entity {
         entityAspect: EntityAspect;
         entityType: EntityType;
@@ -232,7 +231,7 @@ declare module "breeze-client"
         JsonResultsAdapter: JsonResultsAdapter;
         _catchNoConnectionError(err: Error): any;
         _createChangeRequestInterceptor(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): {
-            getRequest: (request: Object, entity: Entity, index: number) => Object;
+            getRequest: <T>(request: T, entity: Entity, index: number) => T;
             done: (requests: Object[]) => void;
         };
     }
@@ -256,12 +255,13 @@ declare module "breeze-client"
             visitNode: (node: {}, queryContext: QueryContext, nodeContext: NodeContext) => VisitNodeResult;
         });
     }
+
     export interface VisitNodeResult {
-        entityType?: EntityType; 
-        nodeId?: any; 
-        nodeRefId?: any; 
+        entityType?: EntityType;
+        nodeId?: any;
+        nodeRefId?: any;
         ignore?: boolean;
-        extraMetadata?: { [key:string]: any; }
+        extraMetadata?: { [key: string]: any; }
     }
 
     export interface QueryContext {
@@ -1042,7 +1042,7 @@ declare module "breeze-client"
         /** Register a validator instance so that any deserialized metadata can reference it. */
         static register(validator: Validator): void;
         /** Register a validator factory so that any deserialized metadata can reference it.  */
-        static registerFactory(fn: () => Validator, name: string): void;
+        static registerFactory(fn: (ctx?: ValidatorFunctionContext) => Validator, name: string): void;
         /** Creates a regular expression validator with a fixed expression. */
         static makeRegExpValidator(validatorName: string, expression: RegExp, defaultMessage: string, context?: any): Validator;
 
@@ -1061,11 +1061,16 @@ declare module "breeze-client"
     }
 
     export interface ValidatorFunctionContext {
-        value: any;
-        validatorName: string;
-        displayName: string;
-        messageTemplate: string;
+        name: string;
+        displayName?: string;
+        messageTemplate?: string;
         message?: string;
+        value?: any;
+
+        entity?: Entity;
+        property?: DataProperty;
+        propertyName?: string;
+        index?: number;
     }
 
     export var metadataVersion: string;

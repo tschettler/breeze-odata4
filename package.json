@@ -3,10 +3,7 @@
   "version": "0.9.0",
   "description": "Library to allow OData 4 support for breezejs",
   "main": "./lib/index.js",
-  "typings": [
-    "./lib/index",
-    "./typings/breeze-client/index"
-  ],
+  "typings": "./lib/index",
   "files": [
     "/lib",
     "/typings"
