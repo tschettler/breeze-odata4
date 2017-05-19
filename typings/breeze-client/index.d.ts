@@ -766,6 +766,7 @@ declare module "breeze-client"
         namingConvention: NamingConvention;
         addDataService(dataService: DataService, shouldOverwrite?: boolean): void;
         addEntityType(structuralType: IStructuralType): void;
+        dataServices: DataService[];
         exportMetadata(): string;
         fetchMetadata(dataService: string, callback?: (data: any) => void, errorCallback?: core.ErrorCallback): Promise<any>;
         fetchMetadata(dataService: DataService, callback?: (data: any) => void, errorCallback?: core.ErrorCallback): Promise<any>;
@@ -777,6 +778,7 @@ declare module "breeze-client"
         static normalizeTypeName(typeName: string): string;
         importMetadata(exportedMetadata: any, allowMerge?: boolean): MetadataStore;
         isEmpty(): boolean;
+        metadataFetched: core.Event;
         registerEntityTypeCtor(entityTypeName: string, entityCtor: Function, initializationFn?: (entity: Entity) => void, noTrackingFn?: (node: Object, entityType: EntityType) => Object): void;
         trackUnmappedType(entityCtor: Function, interceptor?: Function): void;
         setEntityTypeForResourceName(resourceName: string, entityType: EntityType): void;

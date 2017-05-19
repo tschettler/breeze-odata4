@@ -1,6 +1,6 @@
 # breeze-odata4 [![NPM version](https://badge.fury.io/js/breeze-odata4.svg)](https://npmjs.org/package/breeze-odata4) [![Build Status](https://travis-ci.org/tschettler/breeze-odata4.svg?branch=master)](https://travis-ci.org/tschettler/breeze-odata4)
 
-> A TypeScript library to querying an OData 4 API using [breezejs](http://www.getbreezenow.com/breezejs)
+> A TypeScript library to enable querying an OData 4 API using [breezejs](http://www.getbreezenow.com/breezejs)
 
 ## Prerequisites
 
@@ -31,6 +31,10 @@ manager.fetchMetadata();
 
 ```
 Now we can utilize breeze to query against an OData 4 API.
+
+## Typings
+
+This library is currently referencing its own version of breeze-client typings, since the current typings available on DefinitelyTyped and within the breeze-client npm package are incomplete/outdated.
 
 ## License
 
