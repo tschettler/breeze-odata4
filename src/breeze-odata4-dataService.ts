@@ -10,6 +10,7 @@ import { AnnotationAdapter } from './adapters/annotation-adapter';
 import { NavigationAdapter } from './adapters/navigation-adapter';
 
 import { AnnotationDecorator } from './decorators/annotation-decorator';
+import { CustomDecorator } from './decorators/custom-decorator';
 import { DisplayNameDecorator } from './decorators/display-name-decorator';
 import { StoreGeneratedPatternDecorator } from './decorators/store-generated-pattern-decorator';
 import { ValidatorDecorator } from './decorators/validator-decorator';
@@ -64,7 +65,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         this.fixODataFormats();
 
         ClassRegistry.MetadataAdapters.add(NavigationAdapter, AnnotationAdapter);
-        ClassRegistry.AnnotationDecorators.add(StoreGeneratedPatternDecorator, DisplayNameDecorator, ValidatorDecorator);
+        ClassRegistry.AnnotationDecorators.add(StoreGeneratedPatternDecorator, DisplayNameDecorator, CustomDecorator, ValidatorDecorator);
 
         this.metadataAdapters = ClassRegistry.MetadataAdapters.get();
     }

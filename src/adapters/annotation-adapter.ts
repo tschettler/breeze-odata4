@@ -35,8 +35,8 @@ export class AnnotationAdapter implements MetadataAdapter {
             itemAnnotation.annotation
                 .forEach((annotation: Edm.Annotation) => { // term
                     const decorator = this.decorators
-                        .find(p => {
-                            return annotation.term.indexOf(`.${p.annotation}`) > -1;
+                        .find(d => {
+                            return annotation.term.indexOf(`.${d.annotation}`) > -1;
                         });
 
                     decorator.decorate(property || entityType, annotation);
