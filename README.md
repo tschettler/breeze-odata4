@@ -26,7 +26,7 @@ import { OData4DataService } from 'breeze-odata4';
 
 OData4DataService.register();
 config.initializeAdapterInstance('dataService', 'OData4', true);
-var manager = new EntityManager('/api/odata4');
+const manager = new EntityManager('/api/odata4');
 manager.fetchMetadata();
 
 ```

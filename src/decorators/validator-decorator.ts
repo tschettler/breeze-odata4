@@ -1,6 +1,8 @@
 import { DataType, DataTypeSymbol } from 'breeze-client';
-import { AnnotationDecorator } from './annotation-decorator';
 import { Edm } from 'ts-odatajs';
+
+import { AnnotationDecorator } from './annotation-decorator';
+import { getDataType } from '../utilities';
 
 export interface ExpressionWithValidators extends Edm.Base.Annotatable {
     validators?: any[];
@@ -8,21 +10,6 @@ export interface ExpressionWithValidators extends Edm.Base.Annotatable {
 
 export class ValidatorDecorator implements AnnotationDecorator {
     public annotation = 'Validator';
-
-    private dataTypeMap: { [key: string]: DataTypeSymbol } = {
-        'binary': DataType.Binary,
-        'bool': DataType.Boolean,
-        'date': DataType.DateTime,
-        'datetimeoffset': DataType.DateTimeOffset,
-        'decimal': DataType.Decimal,
-        // duration?
-        // enumMember?
-        'float': DataType.Double,
-        'guid': DataType.Guid,
-        'int': DataType.Int64,
-        'string': DataType.String
-        // timeOfDay?
-    };
 
     public decorate(expression: ExpressionWithValidators, annotation: Edm.Annotation): void {
         expression.validators = expression.validators || [];
@@ -42,12 +29,7 @@ export class ValidatorDecorator implements AnnotationDecorator {
             expression.validators.push(validator);
         }
 
-        const dataType = this.getDataType(keys[1]); // TODO: need to see if this still works with the interface
+        const dataType = getDataType(keys[1]); // TODO: need to see if this still works with the interface
         validator[prop] = dataType.parse(value, 'string');
-    }
-
-    private getDataType(key: string): DataTypeSymbol {
-        const dataType = this.dataTypeMap[key] || this.dataTypeMap.string;
-        return dataType;
     }
 }
