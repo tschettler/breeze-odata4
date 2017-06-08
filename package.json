@@ -1,6 +1,6 @@
 {
   "name": "breeze-odata4",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "Library to allow OData 4 support for breezejs",
   "main": "./lib/index.js",
   "typings": "./lib/index",
@@ -31,5 +31,7 @@
     "breeze-client": "^1.6.3",
     "ts-odatajs": "^4.0.2"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "typescript": "~2.3.3"
+  }
 }
