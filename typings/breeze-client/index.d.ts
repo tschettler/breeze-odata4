@@ -228,7 +228,7 @@ declare module "breeze-client"
         fetchMetadata(metadataStore: MetadataStore, dataService: DataService): Promise<any>;
         executeQuery(mappingContext: { getUrl: () => string; query: EntityQuery; dataService: DataService }): Promise<any>;
         saveChanges(saveContext: { resourceName: string; dataService: DataService }, saveBundle: SaveBundle): Promise<SaveResult>;
-        JsonResultsAdapter: JsonResultsAdapter;
+        jsonResultsAdapter: JsonResultsAdapter;
         _catchNoConnectionError(err: Error): any;
         _createChangeRequestInterceptor(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): {
             getRequest: <T>(request: T, entity: Entity, index: number) => T;
