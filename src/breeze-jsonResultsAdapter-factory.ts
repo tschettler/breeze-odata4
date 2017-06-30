@@ -1,4 +1,13 @@
-import { core, EntityQuery, EntityType, JsonResultsAdapter, MetadataStore, NodeContext, QueryContext, VisitNodeResult } from 'breeze-client';
+import {
+    core,
+    EntityQuery,
+    EntityType,
+    JsonResultsAdapter,
+    MetadataStore,
+    NodeContext,
+    QueryContext,
+    VisitNodeResult
+} from 'breeze-client';
 
 export function getJsonResultsAdapter(): JsonResultsAdapter {
     const adapter = new JsonResultsAdapter({
@@ -66,5 +75,7 @@ export function getJsonResultsAdapter(): JsonResultsAdapter {
             // EntityKey properties can be produced by EDMX models
             (propertyName === 'EntityKey' && workingNode.$type && core.stringStartsWith(workingNode.$type, 'System.Data'));
         result.ignore = false;
+
+        return result;
     }
 }
