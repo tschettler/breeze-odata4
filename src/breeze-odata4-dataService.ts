@@ -169,6 +169,13 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         url = url.replace('$inlinecount=none', '$count=false');
         url = url.replace(/substringof\(('[^']*')(,|%2C)\s*([^)]*\)?)\)/gi, 'contains($3$2$1)');
 
+        // Add query params if .withParameters was used
+        if (!core.isEmpty(mappingContext.query.parameters)) {
+            const paramString = this.toQueryString(mappingContext.query.parameters);
+            const sep = url.indexOf('?') < 0 ? '?' : '&';
+            url = url + sep + paramString;
+        }
+
         return new Promise<QueryResult>((resolve, reject) => {
             oData.read(
                 {
@@ -513,4 +520,19 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
             throw new Error(msg);
         }
     }
+
+    private toQueryString(payload: {}): string {
+        if (!payload) {
+            return '';
+        }
+
+        const result = Object.keys(payload)
+            .map(key => {
+                return `${encodeURIComponent(key)}=${encodeURIComponent(payload[key])}`;
+            })
+            .join('&');
+
+        return result;
+    }
+
 }
