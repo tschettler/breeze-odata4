@@ -3,9 +3,9 @@ import {
     EntityQuery,
     EntityType,
     JsonResultsAdapter,
+    MappingContext,
     MetadataStore,
     NodeContext,
-    QueryContext,
     VisitNodeResult
 } from 'breeze-client';
 
@@ -17,7 +17,7 @@ export function getJsonResultsAdapter(): JsonResultsAdapter {
 
     return adapter;
 
-    function visitNode(node: any, mappingContext: QueryContext, nodeContext: NodeContext): VisitNodeResult {
+    function visitNode(node: any, mappingContext: MappingContext, nodeContext: NodeContext): VisitNodeResult {
         const result: VisitNodeResult = {};
         const metadataStore = mappingContext.entityManager.metadataStore;
         const workingNode = node;
@@ -27,11 +27,16 @@ export function getJsonResultsAdapter(): JsonResultsAdapter {
             return result;
         }
 
+        let entityType: EntityType;
         let entityTypeName: string;
         if (nodeContext.nodeType === 'root') {
             if (mappingContext.query) {
-                const resourceName = (<EntityQuery>mappingContext.query).resourceName;
-                entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
+                const eq = mappingContext.query as EntityQuery;
+                if (eq.resultEntityType) {
+                    entityType = eq.resultEntityType;
+                } else {
+                    entityTypeName = metadataStore.getEntityTypeNameForResourceName(eq.resourceName);
+                }
             } else {
                 // convert from #Namespace.EntityType to EntityType:#Namespace
                 nodeODataType = node['@odata.type'];
@@ -41,15 +46,15 @@ export function getJsonResultsAdapter(): JsonResultsAdapter {
             entityTypeName = nodeContext.navigationProperty.entityTypeName;
         }
 
-        const et = entityTypeName && <EntityType>metadataStore.getEntityType(entityTypeName, true);
+        entityType = entityType || entityTypeName && <EntityType>metadataStore.getEntityType(entityTypeName, true);
         // OData response doesn't distinguish a projection from a whole entity.
         // We'll assume that whole-entity data would have at least as many properties  (<=)
         // as the EntityType has mapped properties on the basis that
         // most projections remove properties rather than add them.
         // If not, assume it's a projection and do NOT treat as an entity
-        if (et /*&& et._mappedPropertiesCount <= Object.keys(node).length - 1*/) {
-            // if (et && et._mappedPropertiesCount === Object.keys(node).length - 1) { // OLD
-            result.entityType = et;
+        if (entityType /*&& entityType._mappedPropertiesCount <= Object.keys(node).length - 1*/) {
+            // if (et && entityType._mappedPropertiesCount === Object.keys(node).length - 1) { // OLD
+            result.entityType = entityType;
             /*var uriKey = metadata.uri || metadata.id;
                 if (uriKey) {
                     // Strip baseUri to make uriKey a relative uri
