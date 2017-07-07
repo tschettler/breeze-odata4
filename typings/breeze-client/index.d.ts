@@ -226,7 +226,7 @@ declare module "breeze-client"
         checkForRecomposition(interfaceInitializedArgs: { interfaceName: string; isDefault: boolean }): void;
         initialize(): void;
         fetchMetadata(metadataStore: MetadataStore, dataService: DataService): Promise<any>;
-        executeQuery(mappingContext: { getUrl: () => string; query: EntityQuery; dataService: DataService }): Promise<any>;
+        executeQuery(mappingContext: MappingContext): Promise<any>;
         saveChanges(saveContext: { resourceName: string; dataService: DataService }, saveBundle: SaveBundle): Promise<SaveResult>;
         jsonResultsAdapter: JsonResultsAdapter;
         _catchNoConnectionError(err: Error): any;
@@ -246,13 +246,13 @@ declare module "breeze-client"
         extractResults: (data: {}) => {};
         extractSaveResults: (data: {}) => any[];
         extractKeyMappings: (data: {}) => KeyMapping[];
-        visitNode: (node: {}, queryContext: QueryContext, nodeContext: NodeContext) => VisitNodeResult;
+        visitNode: (node: {}, queryContext: MappingContext, nodeContext: NodeContext) => VisitNodeResult;
         constructor(config: {
             name: string;
             extractResults?: (data: {}) => {};
             extractSaveResults?: (data: {}) => any[];
             extractKeyMappings?: (data: {}) => KeyMapping[];
-            visitNode: (node: {}, queryContext: QueryContext, nodeContext: NodeContext) => VisitNodeResult;
+            visitNode: (node: {}, queryContext: MappingContext, nodeContext: NodeContext) => VisitNodeResult;
         });
     }
 
@@ -264,12 +264,26 @@ declare module "breeze-client"
         extraMetadata?: { [key: string]: any; }
     }
 
-    export interface QueryContext {
+    export interface MappingContext {
         url: string;
         query: EntityQuery | string;
         entityManager: EntityManager;
         dataService: DataService;
-        queryOptions: QueryOptions;
+        mergeOptions: MergeOptions;
+        refMap: {};
+        deferredFns: any[];
+        rawValueFn: (rawEntity: any, dp: any) => any;
+        jsonResultsAdapter: JsonResultsAdapter;
+        metadataStore: MetadataStore;
+        getUrl(): string;
+        processDeferred(): void;
+        visitAndMerge(nodes: any[], nodeContext: NodeContext): any[];
+    }
+
+    export interface MergeOptions {
+        mergeStrategy: MergeStrategySymbol;
+        noTracking: boolean;
+        includeDeleted: boolean;
     }
 
     export interface NodeContext {
