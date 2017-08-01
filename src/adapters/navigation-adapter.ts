@@ -108,6 +108,7 @@ export class NavigationAdapter implements MetadataAdapter {
 
     private setAssociations(schema: Edm.Schema) {
         const assoc: EdmExtra.Association[] = [];
+        // tslint:disable-next-line:forin
         for (const key in this.associations) {
             assoc.push(this.associations[key]);
         }

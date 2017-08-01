@@ -70,8 +70,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     }
 
     public _createChangeRequestInterceptor(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): {
-        getRequest: (request: Batch.ChangeRequest, entity: Entity, index: number) => Batch.ChangeRequest;
-        done: (requests: Object[]) => void
+        getRequest: <T>(request: T, entity: Entity, index: number) => T;
+        done: (requests: Object[]) => void;
     } {
         return this.innerAdapter._createChangeRequestInterceptor(saveContext, saveBundle);
     }

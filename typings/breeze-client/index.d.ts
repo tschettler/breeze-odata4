@@ -196,11 +196,18 @@ declare module "breeze-client"
         hasServerMetadata: boolean;
         serviceName: string;
         uriBuilderName: string;
+        uriBuilder: UriBuilder;
         jsonResultsAdapter: JsonResultsAdapter;
         useJsonp: boolean;
         constructor(config: DataServiceOptions);
         qualifyUrl(suffix: string): string;
         using(config: DataServiceOptions): DataService;
+    }
+
+    export interface UriBuilder {
+        name: string;
+        initialize(): void;
+        buildUri(entityQuery: EntityQuery, metadataStore: MetadataStore);
     }
 
     export interface DataServiceSaveContext {
@@ -599,14 +606,19 @@ declare module "breeze-client"
 
     export class EntityQuery {
         entityManager: EntityManager;
-        orderByClause: OrderByClause;
-        parameters: Object;
         queryOptions: QueryOptions;
         resourceName: string;
+        fromEntityType: EntityType;
+        wherePredicate: Predicate;
+        orderByClause: OrderByClause;
+        selectClause: SelectClause;
         resultEntityType: EntityType;
         skipCount: number;
         takeCount: number;
-        wherePredicate: Predicate;
+        expandClause: ExpandClause;
+        parameters: Object;
+        inlineCountEnabled: boolean;
+        noTrackingEnabled: boolean;
 
         constructor(resourceName?: string);
         /** Create query from an expression tree */
@@ -656,7 +668,31 @@ declare module "breeze-client"
         toJSON(): string;
     }
 
+    export interface SelectClause {
+        propertyPaths: string[];
+        toFunction(config: {}): (entity: Entity) => {};
+        toJSONExt(context: {}): string[];
+        validate(entityType: EntityType): void;
+    }
+
+    export interface ExpandClause {
+        propertyPaths: string[];
+        toJSONExt(context: {}): string[];
+    }
+
     export interface OrderByClause {
+        items: OrderByItem[];
+        getComparer(entityType: EntityType): (entity1: Entity, entity2: Entity) =>  -1 | 0 | 1;
+        toFunction(config: {}): (entity: Entity) => {};
+        toJSONExt(context: {}): string[];
+        validate(entityType: EntityType): void;
+    }
+
+    export interface OrderByItem {
+        propertyPath: string;
+        isDesc: boolean;
+        getComparer(entityType: EntityType): (entity1: Entity, entity2: Entity) => -1 | 0 | 1;
+        validate(entityType: EntityType): void;    
     }
 
     export class EntityStateSymbol extends core.EnumSymbol {
@@ -706,11 +742,13 @@ declare module "breeze-client"
 
         addProperty(property: IProperty): void;
         addValidator(validator: Validator, property?: IProperty): void;
+        clientPropertyPathToServer(propertyPath: string, delimiter?: string): string;
         createEntity(initialValues?: Object): Entity;
         getCtor(): Function;
         getDataProperty(propertyName: string): DataProperty;
         getNavigationProperty(propertyName: string): NavigationProperty;
         getProperties(): IProperty[];
+        getPropertiesOnPath(propertyPath: string, useServerName: boolean, throwIfNotFound?: boolean): IProperty;
         getProperty(propertyPath: string, throwIfNotFound?: boolean): IProperty;
         getPropertyNames(): string[];
         getSelfAndSubtypes(): EntityType[];
@@ -892,9 +930,10 @@ declare module "breeze-client"
         or: PredicateMethod;
 
         toFunction(): Function;
+        toODataFragment(context: {}): string;
         toString(): string;
         validate(entityType: EntityType): void;
-
+        visit(context: {}, visitor: PredicateVisitor): string;
         toJSON(): string;
     }
 
@@ -905,6 +944,17 @@ declare module "breeze-client"
         (property: string, operator: FilterQueryOpSymbol, value: any, valueIsLiteral?: boolean): Predicate;
         (property: string, filterop: FilterQueryOpSymbol, property2: string, filterop2: FilterQueryOpSymbol, value: any): Predicate;  // for any/all clauses
         (property: string, filterop: string, property2: string, filterop2: string, value: any): Predicate;  // for any/all clauses
+    }
+
+    export interface PredicateVisitor {
+        passthruPredicate(): string;
+        unaryPredicate(context: {}): string;
+        binaryPredicate(context: {}): string;
+        andOrPredicate(context: {}): string;
+        anyAllPredicate(context: {}): string;
+        litExpr(): any;
+        propExpr(context: {}): string;
+        fnExpr(context: {}): string;
     }
 
     export class QueryOptions {
