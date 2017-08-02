@@ -748,7 +748,7 @@ declare module "breeze-client"
         getDataProperty(propertyName: string): DataProperty;
         getNavigationProperty(propertyName: string): NavigationProperty;
         getProperties(): IProperty[];
-        getPropertiesOnPath(propertyPath: string, useServerName: boolean, throwIfNotFound?: boolean): IProperty;
+        getPropertiesOnPath(propertyPath: string | string[], useServerName: boolean, throwIfNotFound?: boolean): IProperty[];
         getProperty(propertyPath: string, throwIfNotFound?: boolean): IProperty;
         getPropertyNames(): string[];
         getSelfAndSubtypes(): EntityType[];

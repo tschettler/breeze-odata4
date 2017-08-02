@@ -1,4 +1,21 @@
-import { EntityQuery, EntityType, MetadataStore, UriBuilder, Predicate, OrderByClause, SelectClause, ExpandClause } from 'breeze-client';
+import { EntityQuery, EntityType, MetadataStore, UriBuilder, Predicate, OrderByClause, SelectClause, ExpandClause, IProperty } from 'breeze-client';
+
+export interface QueryOptionsBase {
+  expand?: ExpandOptions[];
+  filter?: string;
+  select?: string[];
+}
+
+export interface QueryOptions extends QueryOptionsBase {
+  count?: boolean;
+  orderby?: string;
+  skip?: number;
+  top?: number;
+}
+
+export interface ExpandOptions extends QueryOptionsBase {
+  name: string;
+}
 
 export class OData4UriBuilder implements UriBuilder {
   private entityType: EntityType;
@@ -15,27 +32,66 @@ export class OData4UriBuilder implements UriBuilder {
       entityType = new EntityType(metadataStore);
     }
 
-    const queryOptions = {};
-    queryOptions['$filter'] = this.toWhereODataFragment(entityQuery.wherePredicate);
-    queryOptions['$orderby'] = this.toOrderByODataFragment(entityQuery.orderByClause);
+    const queryOptions: QueryOptions = {};
+
+    if (entityQuery.inlineCountEnabled) {
+      queryOptions.count = true;
+    }
 
     if (entityQuery.skipCount) {
-      queryOptions['$skip'] = entityQuery.skipCount;
+      queryOptions.skip = entityQuery.skipCount;
     }
 
     if (entityQuery.takeCount != null) {
-      queryOptions['$top'] = entityQuery.takeCount;
+      queryOptions.top = entityQuery.takeCount;
     }
 
-    queryOptions['$expand'] = this.toExpandODataFragment(entityQuery.expandClause);
+    queryOptions.expand = this.toExpandOptions(entityQuery.expandClause);
+
+    queryOptions['$filter'] = this.toWhereODataFragment(entityQuery.wherePredicate);
+
+
+    queryOptions['$orderby'] = this.toOrderByODataFragment(entityQuery.orderByClause);
     queryOptions['$select'] = this.toSelectODataFragment(entityQuery.selectClause);
 
-    if (entityQuery.inlineCountEnabled) {
-      queryOptions['$count'] = true;
-    }
 
     const qoText = this.toQueryOptionsString(queryOptions);
     return entityQuery.resourceName + qoText;
+  }
+
+  private toExpandOptions(expandClause: ExpandClause): ExpandOptions[] {
+    if (!expandClause) {
+      return undefined;
+    };
+
+    const result: ExpandOptions[] = [];
+
+    expandClause.propertyPaths.forEach(pp => {
+      const props = this.entityType.getPropertiesOnPath(pp, false, true);
+
+      const rootProperty = props.shift().name;
+      let rootExpand = result.find(e => e.name === rootProperty);
+
+      if (!rootExpand) {
+        rootExpand = { name: props.shift().name, expand: [] };
+        result.push(rootExpand);
+      }
+
+      let workingExpandOptions = rootExpand;
+      props.forEach((value: IProperty) => {
+        const propName = value.name;
+        let currentExpand = workingExpandOptions.expand.find(e => e.name === propName);
+
+        if (!currentExpand) {
+          currentExpand = { name: propName, expand: [] };
+          workingExpandOptions.expand.push(currentExpand);
+        }
+
+        workingExpandOptions = currentExpand;
+      });
+    });
+
+    return result;
   }
 
   private toWhereODataFragment(wherePredicate: Predicate) {
