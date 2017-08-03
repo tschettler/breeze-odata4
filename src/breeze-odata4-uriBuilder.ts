@@ -20,6 +20,8 @@ export interface ExpandOptions extends QueryOptionsBase {
 export class OData4UriBuilder implements UriBuilder {
   private entityType: EntityType;
 
+  private queryOptions: QueryOptions = {};
+
   public name = 'odata4';
 
   public initialize(): void { }
@@ -32,66 +34,81 @@ export class OData4UriBuilder implements UriBuilder {
       entityType = new EntityType(metadataStore);
     }
 
-    const queryOptions: QueryOptions = {};
-
     if (entityQuery.inlineCountEnabled) {
-      queryOptions.count = true;
+      this.queryOptions.count = true;
     }
 
     if (entityQuery.skipCount) {
-      queryOptions.skip = entityQuery.skipCount;
+      this.queryOptions.skip = entityQuery.skipCount;
     }
 
     if (entityQuery.takeCount != null) {
-      queryOptions.top = entityQuery.takeCount;
+      this.queryOptions.top = entityQuery.takeCount;
     }
 
-    queryOptions.expand = this.toExpandOptions(entityQuery.expandClause);
+    this.addExpandOptions(entityQuery.expandClause);
 
-    queryOptions['$filter'] = this.toWhereODataFragment(entityQuery.wherePredicate);
+    this.addSelectOptions(entityQuery.selectClause);
 
-
-    queryOptions['$orderby'] = this.toOrderByODataFragment(entityQuery.orderByClause);
-    queryOptions['$select'] = this.toSelectODataFragment(entityQuery.selectClause);
+    this.queryOptions['$filter'] = this.toWhereODataFragment(entityQuery.wherePredicate);
 
 
-    const qoText = this.toQueryOptionsString(queryOptions);
+    this.queryOptions['$orderby'] = this.toOrderByODataFragment(entityQuery.orderByClause);
+
+
+    const qoText = this.toQueryOptionsString(this.queryOptions);
     return entityQuery.resourceName + qoText;
   }
 
-  private toExpandOptions(expandClause: ExpandClause): ExpandOptions[] {
+
+  private getQueryOptions(rootOptions: QueryOptionsBase, propertyPath: IProperty[]): QueryOptionsBase {
+    const path = [].concat(propertyPath);
+    const rootProperty = path.shift().name;
+
+    if (!path.length) {
+      return rootOptions;
+    }
+
+    let nextExpand = rootOptions.expand.find(e => e.name === rootProperty);
+    if (!nextExpand) {
+      nextExpand = { name: rootProperty, expand: [] };
+      rootOptions.expand.push(nextExpand);
+    }
+
+    return this.getQueryOptions(nextExpand, path);
+  }
+
+  private addExpandOptions(expandClause: ExpandClause) {
     if (!expandClause) {
-      return undefined;
+      return;
     };
 
-    const result: ExpandOptions[] = [];
-
+    // no validate on expand clauses currently.
+    // expandClause.validate(entityType);
     expandClause.propertyPaths.forEach(pp => {
       const props = this.entityType.getPropertiesOnPath(pp, false, true);
+      const workingOptions = this.getQueryOptions(this.queryOptions, props);
 
-      const rootProperty = props.shift().name;
-      let rootExpand = result.find(e => e.name === rootProperty);
-
-      if (!rootExpand) {
-        rootExpand = { name: props.shift().name, expand: [] };
-        result.push(rootExpand);
-      }
-
-      let workingExpandOptions = rootExpand;
-      props.forEach((value: IProperty) => {
-        const propName = value.name;
-        let currentExpand = workingExpandOptions.expand.find(e => e.name === propName);
-
-        if (!currentExpand) {
-          currentExpand = { name: propName, expand: [] };
-          workingExpandOptions.expand.push(currentExpand);
-        }
-
-        workingExpandOptions = currentExpand;
-      });
+      const expandOptions = { name: props.pop().name, expand: [] };
+      workingOptions.expand.push(expandOptions);
     });
+  }
 
-    return result;
+  private addSelectOptions(selectClause: SelectClause): void {
+    const result = [];
+    if (!selectClause) {
+      return;
+    }
+
+    selectClause.validate(this.entityType);
+
+    selectClause.propertyPaths.forEach(pp => {
+      const props = this.entityType.getPropertiesOnPath(pp, false, true);
+      const workingOptions = this.getQueryOptions(this.queryOptions, props);
+
+      workingOptions.select = workingOptions.select || [];
+      workingOptions.select.push(props.pop().name);
+    });
   }
 
   private toWhereODataFragment(wherePredicate: Predicate) {
@@ -114,30 +131,6 @@ export class OData4UriBuilder implements UriBuilder {
     });
     // should return something like CompanyName,Address/City desc
     return strings.join(',');
-  }
-
-  private toSelectODataFragment(selectClause: SelectClause) {
-    if (!selectClause) {
-      return undefined;
-    };
-    selectClause.validate(this.entityType);
-    const frag = selectClause.propertyPaths.map(pp => {
-      return this.entityType.clientPropertyPathToServer(pp, '/');
-    }).join(',');
-
-    return frag;
-  }
-
-  private toExpandODataFragment(expandClause: ExpandClause) {
-    if (!expandClause) {
-      return undefined;
-    };
-    // no validate on expand clauses currently.
-    // expandClause.validate(entityType);
-    const frag = expandClause.propertyPaths.map(pp => {
-      return this.entityType.clientPropertyPathToServer(pp, '/');
-    }).join(',');
-    return frag;
   }
 
   private toQueryOptionsString(queryOptions) {
