@@ -384,21 +384,19 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         const entityType = aspect.entity.entityType;
         const resourceName = entityType.defaultResourceName;
         const kps = entityType.keyProperties;
-        let uriKey = resourceName + '(';
-        if (kps.length === 1) {
-            uriKey = uriKey + this.fmtProperty(kps[0], aspect) + ')';
-        } else {
-            let delim = '';
-            kps.forEach(kp => {
-                uriKey = uriKey + delim + kp.nameOnServer + '=' + this.fmtProperty(kp, aspect);
-                delim = ',';
+
+        const uriKeyValue = kps.length === 1
+            ? this.fmtProperty(kps[0], aspect)
+            : kps.map(kp => {
+                return `${kp.nameOnServer}=${this.fmtProperty(kp, aspect)}`;
             });
-            uriKey = uriKey + ')';
-        }
+
+        const uriKey = `${resourceName}(${uriKeyValue})`;
+
         return uriKey;
     }
 
-    private fmtProperty(prop: DataProperty, aspect: EntityAspect) {
+    private fmtProperty(prop: DataProperty, aspect: EntityAspect): any {
         return prop.dataType.fmtOData(aspect.getPropertyValue(prop.name));
     }
 
