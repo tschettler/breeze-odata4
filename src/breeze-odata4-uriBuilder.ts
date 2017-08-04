@@ -1,4 +1,15 @@
-import { EntityQuery, EntityType, MetadataStore, UriBuilder, Predicate, OrderByClause, SelectClause, ExpandClause, IProperty } from 'breeze-client';
+import {
+  core,
+  EntityQuery,
+  EntityType,
+  ExpandClause,
+  IProperty,
+  MetadataStore,
+  OrderByClause,
+  Predicate,
+  SelectClause,
+  UriBuilder,
+} from 'breeze-client';
 
 export interface QueryOptionsBase {
   expand?: ExpandOptions[];
@@ -46,24 +57,33 @@ export class OData4UriBuilder implements UriBuilder {
       this.queryOptions.top = entityQuery.takeCount;
     }
 
-    this.addExpandOptions(entityQuery.expandClause);
+    this.addExpandOption(entityQuery.expandClause);
 
-    this.addSelectOptions(entityQuery.selectClause);
+    this.addSelectOption(entityQuery.selectClause);
 
-    this.queryOptions['$filter'] = this.toWhereODataFragment(entityQuery.wherePredicate);
+    this.queryOptions.filter = this.toWhereODataFragment(entityQuery.wherePredicate);
 
-
-    this.queryOptions['$orderby'] = this.toOrderByODataFragment(entityQuery.orderByClause);
-
+    this.queryOptions.orderby = this.toOrderByODataFragment(entityQuery.orderByClause);
 
     const qoText = this.toQueryOptionsString(this.queryOptions);
+
+    entityQuery.resourceName = this.getResource(entityQuery);
+
     return entityQuery.resourceName + qoText;
   }
 
+  private getResource(entityQuery: EntityQuery): string {
+    let resource = entityQuery.resourceName;
+    if (!core.isEmpty(entityQuery.parameters)) {
+      resource = this.formatString(resource, entityQuery.parameters);
+    }
+
+    return resource;
+  }
 
   private getQueryOptions(rootOptions: QueryOptionsBase, propertyPath: IProperty[]): QueryOptionsBase {
-    const path = [].concat(propertyPath);
-    const rootProperty = path.shift().name;
+    const path: IProperty[] = [].concat(propertyPath);
+    const rootProperty = path.shift().nameOnServer;
 
     if (!path.length) {
       return rootOptions;
@@ -78,7 +98,7 @@ export class OData4UriBuilder implements UriBuilder {
     return this.getQueryOptions(nextExpand, path);
   }
 
-  private addExpandOptions(expandClause: ExpandClause) {
+  private addExpandOption(expandClause: ExpandClause): void {
     if (!expandClause) {
       return;
     };
@@ -89,12 +109,12 @@ export class OData4UriBuilder implements UriBuilder {
       const props = this.entityType.getPropertiesOnPath(pp, false, true);
       const workingOptions = this.getQueryOptions(this.queryOptions, props);
 
-      const expandOptions = { name: props.pop().name, expand: [] };
+      const expandOptions = { name: props.pop().nameOnServer, expand: [] };
       workingOptions.expand.push(expandOptions);
     });
   }
 
-  private addSelectOptions(selectClause: SelectClause): void {
+  private addSelectOption(selectClause: SelectClause): void {
     const result = [];
     if (!selectClause) {
       return;
@@ -107,7 +127,7 @@ export class OData4UriBuilder implements UriBuilder {
       const workingOptions = this.getQueryOptions(this.queryOptions, props);
 
       workingOptions.select = workingOptions.select || [];
-      workingOptions.select.push(props.pop().name);
+      workingOptions.select.push(props.pop().nameOnServer);
     });
   }
 
@@ -120,26 +140,30 @@ export class OData4UriBuilder implements UriBuilder {
     return wherePredicate.toODataFragment({ entityType: this.entityType });
   }
 
-  private toOrderByODataFragment(orderByClause: OrderByClause) {
+  private toOrderByODataFragment(orderByClause: OrderByClause): string {
     if (!orderByClause) {
       return undefined;
     };
 
     orderByClause.validate(this.entityType);
-    const strings = orderByClause.items.map(item => {
-      return this.entityType.clientPropertyPathToServer(item.propertyPath, '/') + (item.isDesc ? ' desc' : '');
+    const orderBy = orderByClause.items.map(item => {
+      const propertyPath = this.entityType.clientPropertyPathToServer(item.propertyPath, '/');
+      const direction = item.isDesc ? ' desc' : '';
+      return propertyPath + direction;
     });
+
     // should return something like CompanyName,Address/City desc
-    return strings.join(',');
+    return orderBy.toString();
   }
 
   private toQueryOptionsString(queryOptions) {
     const qoStrings = [];
-    // tslint:disable-next-line:forin
-    for (const qoName in queryOptions) {
+    for (const qoName of queryOptions) {
       const qoValue = queryOptions[qoName];
       if (qoValue !== undefined) {
-        if (qoValue instanceof Array) {
+        if (qoName === 'expand') {
+          qoStrings.push(this.getExpandString(qoValue));
+        } else if (qoValue instanceof Array) {
           qoValue.forEach(qov => {
             qoStrings.push(qoName + '=' + encodeURIComponent(qov));
           });
@@ -154,5 +178,73 @@ export class OData4UriBuilder implements UriBuilder {
     } else {
       return '';
     }
+  }
+
+  private getSelectString(select: string[]): string {
+    const key = '$select';
+    if (!(select && select.length)) {
+      return null;
+    }
+
+    return `${key}=${select}`;
+  }
+
+  private getFilterString(filter: string): string {
+    const key = '$filter';
+    if (!filter) {
+      return null;
+    }
+
+    return `${key}=${encodeURIComponent(filter)}`;
+  }
+
+  private getExpandString(options: ExpandOptions[]): string {
+    const key = '$expand';
+
+    const expandStrings = options.map(option => {
+      const subOptions: string[] = [
+        this.getFilterString(option.filter),
+        this.getSelectString(option.select),
+        this.getExpandString(option.expand)
+      ].filter(s => !!s);
+
+      if (!subOptions.length) {
+        return option.name;
+      }
+
+      return `${option.name}(${subOptions.join(';')})`
+    });
+
+    const result = `${key}=${expandStrings}`;
+
+    return result;
+  }
+
+  private formatString(format: string, params: {}) {
+    const props = Object.keys(params);
+
+    const args = props.map(prop => ({ key: prop, value: params[prop] }));
+
+    const result = args.reduce((formattedString: string, arg: any, index: number) => {
+      const key = arg.key;
+      let value = arg.value;
+
+      if (value == null) {
+        value = '';
+      }
+
+      const reg = new RegExp(`\\{${key}\\}`, 'gm');
+
+      const newString = formattedString.replace(reg, value);
+
+      if (newString !== formattedString) {
+        // remove used parameter
+        delete params[key];
+      }
+
+      return newString;
+    }, format);
+
+    return result;
   }
 }
