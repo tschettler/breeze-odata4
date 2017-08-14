@@ -321,31 +321,17 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         const query = mappingContext.query as EntityQuery;
         let url = this.getAbsoluteUrl(mappingContext.dataService, mappingContext.getUrl());
 
-        /**
-         *  The syntax for getting the count of a collection has changed with v4
-         *  http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part2-url-conventions.html#_Inlinecount_System_Query
-         */
-        url = url.replace('$inlinecount=allpages', '$count=true');
-        url = url.replace('$inlinecount=none', '$count=false');
         url = url.replace(/substringof\(('[^']*')(,|%2C)\s*([^)]*\)?)\)/gi, 'contains($3$2$1)');
 
         // Add query params if .withParameters was used
-        if (!core.isEmpty(query.parameters)) {
-            const newUrl = this.formatString(url, query.parameters);
-
-            if (newUrl !== url) {
-                return newUrl;
-            }
-
-            const paramString = this.toQueryString(query.parameters);
-            const sep = url.indexOf('?') < 0 ? '?' : '&';
-            url = url + sep + paramString;
-        }
+        const paramString = this.toQueryString(query.parameters);
+        const sep = url.indexOf('?') < 0 ? '?' : '&';
+        url = url + sep + paramString;
 
         return url;
     }
 
-    private transformValue(prop: DataProperty, val: any) {
+    private transformValue(prop: DataProperty, val: any): any {
         if (prop.isUnmapped) {
             return undefined;
         }
@@ -361,10 +347,10 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         return val;
     }
 
-    private updateDeleteMergeRequest(request: Batch.ChangeRequest, aspect: EntityAspect, routePrefix: string) {
+    private updateDeleteMergeRequest(request: Batch.ChangeRequest, aspect: EntityAspect, routePrefix: string): void {
         let uriKey;
         const extraMetadata = aspect.extraMetadata;
-        if (extraMetadata == null) {
+        if (!extraMetadata) {
             uriKey = this.getUriKey(aspect);
             aspect.extraMetadata = {
                 uriKey: uriKey
@@ -544,39 +530,6 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                 return `${encodeURIComponent(key)}=${encodeURIComponent(payload[key])}`;
             })
             .join('&');
-
-        return result;
-    }
-
-    private formatString(format: string, ...args: any[]) {
-        if (format == null) {
-            return null;
-        }
-
-        // check if string format arguments are in the form of an array
-        if (args[0] instanceof Array) {
-            args = args[0];
-        }
-
-        // allows for named placeholders by passing in an object
-        if (Object.prototype.toString.call(args[0]) === '[object Object]') {
-            const obj = args[0];
-            const props = Object.keys(obj);
-
-            args = props.map(prop => ({ key: prop, value: obj[prop] }));
-        }
-
-        const result = args.reduce((formattedString: string, arg: any, index: number) => {
-            const key = arg && arg.key || index;
-            let value = arg && arg.hasOwnProperty('value') ? arg.value : arg;
-            if (value == null) {
-                value = '';
-            }
-
-            const reg = new RegExp(`\\{${key}\\}`, 'gm');
-
-            return formattedString.replace(reg, value);
-        }, format);
 
         return result;
     }
