@@ -165,10 +165,10 @@ export class OData4UriBuilder implements UriBuilder {
           qoStrings.push(this.getExpandString(qoValue));
         } else if (qoValue instanceof Array) {
           qoValue.forEach(qov => {
-            qoStrings.push(qoName + '=' + encodeURIComponent(qov));
+            qoStrings.push(`$${qoName}=${encodeURIComponent(qov)}`);
           });
         } else {
-          qoStrings.push(qoName + '=' + encodeURIComponent(qoValue));
+          qoStrings.push(`$${qoName}=${encodeURIComponent(qoValue)}`);
         }
       }
     }
