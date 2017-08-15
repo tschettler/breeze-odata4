@@ -161,14 +161,10 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
 
     public executeQuery(mappingContext: MappingContext): Promise<QueryResult> {
         const query = mappingContext.query as EntityQuery;
-        const url = this.getUrl(mappingContext);
 
+        const request = this.getRequest(mappingContext);
         return new Promise<QueryResult>((resolve, reject) => {
-            oData.read(
-                {
-                    requestUri: url,
-                    headers: this.headers
-                },
+            oData.request(request,
                 (data: any, response: any) => {
                     let inlineCount: number;
                     if (data['@odata.count']) {
@@ -179,7 +175,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                     resolve({ results: data.value, query: query, inlineCount: inlineCount, httpResponse: response });
                 },
                 (error: Object) => {
-                    const err = this.createError(error, url);
+                    const err = this.createError(error, request.requestUri);
                     reject(err);
                 }
             );
@@ -317,18 +313,49 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         return batchRequest;
     }
 
+    private getRequest(mappingContext: MappingContext): {
+        method: string;
+        requestUri: string;
+        data?: any;
+        headers?: any;
+    } {
+        const query = mappingContext.query as EntityQuery;
+        const method = query.parameters['$method'] || 'GET';
+
+        let request = { method: method, requestUri: this.getUrl(mappingContext) }
+        if (method === 'GET') {
+            request = Object.assign({}, request, { requestUri: this.addQueryString(request.requestUri, query.parameters) });
+        } else if (query.parameters) {
+            request = Object.assign({}, request, { data: this.getData(query.parameters) });
+        }
+
+        return request;
+    }
+
     private getUrl(mappingContext: MappingContext): string {
         const query = mappingContext.query as EntityQuery;
-        let url = this.getAbsoluteUrl(mappingContext.dataService, mappingContext.getUrl());
-
-        url = url.replace(/substringof\(('[^']*')(,|%2C)\s*([^)]*\)?)\)/gi, 'contains($3$2$1)');
-
-        // Add query params if .withParameters was used
-        const paramString = this.toQueryString(query.parameters);
-        const sep = url.indexOf('?') < 0 ? '?' : '&';
-        url = url + sep + paramString;
+        const url = this.getAbsoluteUrl(mappingContext.dataService, mappingContext.getUrl());
 
         return url;
+    }
+
+    private addQueryString(url: string, parameters: Object): string {
+        // Add query params if .withParameters was used
+        const queryString = this.toQueryString(parameters);
+        if (!queryString) {
+            return url;
+        }
+
+        const sep = url.indexOf('?') < 0 ? '?' : '&';
+        url += sep + queryString;
+
+        return url;
+    }
+
+    private getData(parameters: Object): any {
+        const encodeData = typeof (parameters) === 'object';
+
+        const result = encodeData ? JSON.stringify(parameters) : parameters;
     }
 
     private transformValue(prop: DataProperty, val: any): any {
@@ -522,7 +549,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
 
     private toQueryString(payload: {}): string {
         if (!payload) {
-            return '';
+            return null;
         }
 
         const result = Object.keys(payload)
