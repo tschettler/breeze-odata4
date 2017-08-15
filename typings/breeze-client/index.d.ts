@@ -933,7 +933,7 @@ declare module "breeze-client"
         toODataFragment(context: {}): string;
         toString(): string;
         validate(entityType: EntityType): void;
-        visit(context: {}, visitor: PredicateVisitor): string;
+        visit(context: {}, visitor: PredicateVisitor): any;
         toJSON(): string;
     }
 
@@ -947,14 +947,19 @@ declare module "breeze-client"
     }
 
     export interface PredicateVisitor {
-        passthruPredicate(): string;
-        unaryPredicate(context: {}): string;
-        binaryPredicate(context: {}): string;
-        andOrPredicate(context: {}): string;
-        anyAllPredicate(context: {}): string;
-        litExpr(): any;
-        propExpr(context: {}): string;
-        fnExpr(context: {}): string;
+        passthruPredicate(this: any): string;
+        unaryPredicate(this: any, context: PredicateContext): string;
+        binaryPredicate(this: any, context: PredicateContext): string;
+        andOrPredicate(this: any, context: PredicateContext): string;
+        anyAllPredicate(this: any, context: PredicateContext): string;
+        litExpr(this: any): any;
+        propExpr(this: any, context: PredicateContext): string;
+        fnExpr(this: any, context: PredicateContext): string;
+    }
+
+    export interface PredicateContext {
+        entityType: EntityType;
+        prefix?: string;
     }
 
     export class QueryOptions {
