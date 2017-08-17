@@ -9,7 +9,9 @@ import {
   Predicate,
   SelectClause,
   UriBuilder,
+  config,
 } from 'breeze-client';
+import { OData4PredicateVisitor } from './breeze-odata4-predicateVisitor';
 
 export interface QueryOptionsBase {
   expand?: ExpandOptions[];
@@ -29,15 +31,19 @@ export interface ExpandOptions extends QueryOptionsBase {
 }
 
 export class OData4UriBuilder implements UriBuilder {
-  private entityType: EntityType;
+  public name = 'OData4';
 
-  private queryOptions: QueryOptions = {};
+  public static register() {
+    config.registerAdapter('uriBuilder', OData4UriBuilder);
+  }
 
-  public name = 'odata4';
-
-  public initialize(): void { }
+  public initialize(): void {
+    OData4PredicateVisitor.register();
+  }
 
   public buildUri(entityQuery: EntityQuery, metadataStore: MetadataStore) {
+    const queryOptions: QueryOptions = { expand: [] };
+
     // force entityType validation;
     let entityType = (<any>entityQuery)._getFromEntityType(metadataStore, false);
     if (!entityType) {
@@ -46,26 +52,26 @@ export class OData4UriBuilder implements UriBuilder {
     }
 
     if (entityQuery.inlineCountEnabled) {
-      this.queryOptions.count = true;
+      queryOptions.count = true;
     }
 
     if (entityQuery.skipCount) {
-      this.queryOptions.skip = entityQuery.skipCount;
+      queryOptions.skip = entityQuery.skipCount;
     }
 
     if (entityQuery.takeCount != null) {
-      this.queryOptions.top = entityQuery.takeCount;
+      queryOptions.top = entityQuery.takeCount;
     }
 
-    this.addExpandOption(entityQuery.expandClause);
+    this.addExpandOption(entityType, queryOptions, entityQuery.expandClause);
 
-    this.addSelectOption(entityQuery.selectClause);
+    this.addSelectOption(entityType, queryOptions, entityQuery.selectClause);
 
-    this.queryOptions.filter = this.toWhereODataFragment(entityQuery.wherePredicate);
+    queryOptions.filter = this.toWhereODataFragment(entityType, entityQuery.wherePredicate);
 
-    this.queryOptions.orderby = this.toOrderByODataFragment(entityQuery.orderByClause);
+    queryOptions.orderby = this.toOrderByODataFragment(entityType, entityQuery.orderByClause);
 
-    const qoText = this.toQueryOptionsString(this.queryOptions);
+    const qoText = this.toQueryOptionsString(queryOptions);
 
     entityQuery.resourceName = this.getResource(entityQuery);
 
@@ -98,7 +104,7 @@ export class OData4UriBuilder implements UriBuilder {
     return this.getQueryOptions(nextExpand, path);
   }
 
-  private addExpandOption(expandClause: ExpandClause): void {
+  private addExpandOption(entityType: EntityType, queryOptions: QueryOptions, expandClause: ExpandClause): void {
     if (!expandClause) {
       return;
     };
@@ -106,48 +112,48 @@ export class OData4UriBuilder implements UriBuilder {
     // no validate on expand clauses currently.
     // expandClause.validate(entityType);
     expandClause.propertyPaths.forEach(pp => {
-      const props = this.entityType.getPropertiesOnPath(pp, false, true);
-      const workingOptions = this.getQueryOptions(this.queryOptions, props);
+      const props = entityType.getPropertiesOnPath(pp, false, true);
+      const workingOptions = this.getQueryOptions(queryOptions, props);
 
       const expandOptions = { name: props.pop().nameOnServer, expand: [] };
       workingOptions.expand.push(expandOptions);
     });
   }
 
-  private addSelectOption(selectClause: SelectClause): void {
+  private addSelectOption(entityType: EntityType, queryOptions: QueryOptions, selectClause: SelectClause): void {
     const result = [];
     if (!selectClause) {
       return;
     }
 
-    selectClause.validate(this.entityType);
+    selectClause.validate(entityType);
 
     selectClause.propertyPaths.forEach(pp => {
-      const props = this.entityType.getPropertiesOnPath(pp, false, true);
-      const workingOptions = this.getQueryOptions(this.queryOptions, props);
+      const props = entityType.getPropertiesOnPath(pp, false, true);
+      const workingOptions = this.getQueryOptions(queryOptions, props);
 
       workingOptions.select = workingOptions.select || [];
       workingOptions.select.push(props.pop().nameOnServer);
     });
   }
 
-  private toWhereODataFragment(wherePredicate: Predicate) {
+  private toWhereODataFragment(entityType: EntityType, wherePredicate: Predicate) {
     if (!wherePredicate) {
       return undefined;
     };
 
     // validation occurs inside of the toODataFragment call here.
-    return wherePredicate.toODataFragment({ entityType: this.entityType });
+    return wherePredicate.toODataFragment({ entityType: entityType });
   }
 
-  private toOrderByODataFragment(orderByClause: OrderByClause): string {
+  private toOrderByODataFragment(entityType: EntityType, orderByClause: OrderByClause): string {
     if (!orderByClause) {
       return undefined;
     };
 
-    orderByClause.validate(this.entityType);
+    orderByClause.validate(entityType);
     const orderBy = orderByClause.items.map(item => {
-      const propertyPath = this.entityType.clientPropertyPathToServer(item.propertyPath, '/');
+      const propertyPath = entityType.clientPropertyPathToServer(item.propertyPath, '/');
       const direction = item.isDesc ? ' desc' : '';
       return propertyPath + direction;
     });
@@ -158,11 +164,13 @@ export class OData4UriBuilder implements UriBuilder {
 
   private toQueryOptionsString(queryOptions) {
     const qoStrings = [];
-    for (const qoName of queryOptions) {
+    for (const qoName of Object.getOwnPropertyNames(queryOptions)) {
       const qoValue = queryOptions[qoName];
       if (qoValue !== undefined) {
         if (qoName === 'expand') {
           qoStrings.push(this.getExpandString(qoValue));
+        } else if (qoName === 'select') {
+          qoStrings.push(this.getSelectString(qoValue));
         } else if (qoValue instanceof Array) {
           qoValue.forEach(qov => {
             qoStrings.push(`$${qoName}=${encodeURIComponent(qov)}`);
@@ -174,7 +182,7 @@ export class OData4UriBuilder implements UriBuilder {
     }
 
     if (qoStrings.length > 0) {
-      return '?' + qoStrings.join('&');
+      return '?' + qoStrings.filter(s => !!s).join('&');
     } else {
       return '';
     }
@@ -215,7 +223,7 @@ export class OData4UriBuilder implements UriBuilder {
       return `${option.name}(${subOptions.join(';')})`
     });
 
-    const result = `${key}=${expandStrings}`;
+    const result = expandStrings.length ? `${key}=${expandStrings}` : null;
 
     return result;
   }
