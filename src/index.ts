@@ -1,5 +1,7 @@
 /// <reference path="../typings/breeze-client/index.d.ts" />
 export { OData4DataService } from './breeze-odata4-dataService';
+export { OData4PredicateVisitor } from './breeze-odata4-predicateVisitor';
+export { OData4UriBuilder } from './breeze-odata4-uriBuilder';
 export { ClassRegistry, ClassRepository, Type } from './class-registry';
 export { getDataType} from './utilities';
 export { MetadataAdapter } from './adapters/metadata-adapter';

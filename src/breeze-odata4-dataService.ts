@@ -99,7 +99,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         if (window && serviceName.startsWith('//')) {
             // no protocol; make it absolute
             const loc = window.location;
-            base = `${loc.protocol}//${loc.host}${core.stringStartsWith(serviceName, '/') ? '' : '/'}{base}`;
+            base = `${loc.protocol}//${loc.host}${core.stringStartsWith(serviceName, '/') ? '' : '/'}${base}`;
         }
 
         return base + url;
@@ -320,13 +320,20 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         headers?: any;
     } {
         const query = mappingContext.query as EntityQuery;
-        const method = query.parameters['$method'] || 'GET';
+        let method = 'GET';
+        let request = { method: method, requestUri: this.getUrl(mappingContext) };
 
-        let request = { method: method, requestUri: this.getUrl(mappingContext) }
+        if (!query.parameters) {
+            return request;
+        }
+
+        method = query.parameters['$method'] || method;
+        delete query.parameters['$method'];
+
         if (method === 'GET') {
             request = Object.assign({}, request, { requestUri: this.addQueryString(request.requestUri, query.parameters) });
-        } else if (query.parameters) {
-            request = Object.assign({}, request, { data: this.getData(query.parameters) });
+        } else {
+            request = Object.assign({}, request, { method: method, data: query.parameters['$data'] || query.parameters });
         }
 
         return request;
@@ -350,12 +357,6 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         url += sep + queryString;
 
         return url;
-    }
-
-    private getData(parameters: Object): any {
-        const encodeData = typeof (parameters) === 'object';
-
-        const result = encodeData ? JSON.stringify(parameters) : parameters;
     }
 
     private transformValue(prop: DataProperty, val: any): any {
