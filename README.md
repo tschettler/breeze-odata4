@@ -22,10 +22,13 @@
 
 ```js
 import { config, EntityManager } from "breeze-client";
-import { OData4DataService } from 'breeze-odata4';
+import { OData4DataService, OData4UriBuilder } from 'breeze-odata4';
 
+OData4UriBuilder.register();
 OData4DataService.register();
+config.initializeAdapterInstance('uriBuilder', 'OData4', true);
 config.initializeAdapterInstance('dataService', 'OData4', true);
+
 const manager = new EntityManager('/api/odata4');
 manager.fetchMetadata();
 

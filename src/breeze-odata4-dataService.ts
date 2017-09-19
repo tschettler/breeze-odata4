@@ -70,8 +70,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     }
 
     public _createChangeRequestInterceptor(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): {
-        getRequest: (request: Batch.ChangeRequest, entity: Entity, index: number) => Batch.ChangeRequest;
-        done: (requests: Object[]) => void
+        getRequest: <T>(request: T, entity: Entity, index: number) => T;
+        done: (requests: Object[]) => void;
     } {
         return this.innerAdapter._createChangeRequestInterceptor(saveContext, saveBundle);
     }
@@ -99,7 +99,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         if (window && serviceName.startsWith('//')) {
             // no protocol; make it absolute
             const loc = window.location;
-            base = `${loc.protocol}//${loc.host}${core.stringStartsWith(serviceName, '/') ? '' : '/'}{base}`;
+            base = `${loc.protocol}//${loc.host}${core.stringStartsWith(serviceName, '/') ? '' : '/'}${base}`;
         }
 
         return base + url;
@@ -123,7 +123,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                     // data.dataServices.schema is an array of schemas. with properties of
                     // entityContainer[], association[], entityType[], and namespace.
                     if (!data || !data.dataServices) {
-                        const error = new Error('Metadata query failed for: ' + url);
+                        const error = new Error(`Metadata query failed for: ${url}`);
                         return reject(error);
                     }
 
@@ -140,7 +140,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                         try {
                             metadataStore.importMetadata(csdlMetadata);
                         } catch (e) {
-                            reject(new Error('Metadata query failed for ' + url + '; Unable to process returned metadata: ' + e.message));
+                            reject(new Error(`Metadata query failed for ${url}; Unable to process returned metadata: ${e.message}`));
                         }
 
                         metadataStore.addDataService(dataService);
@@ -151,7 +151,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                 },
                 (error: Error) => {
                     const err = this.createError(error, url);
-                    err.message = 'Metadata query failed for: ' + url + '; ' + (err.message || '');
+                    err.message = `Metadata query failed for: ${url}; ${(err.message || '')}`;
                     reject(err);
                 },
                 oData.metadataHandler
@@ -161,14 +161,10 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
 
     public executeQuery(mappingContext: MappingContext): Promise<QueryResult> {
         const query = mappingContext.query as EntityQuery;
-        const url = this.getUrl(mappingContext);
 
+        const request = this.getRequest(mappingContext);
         return new Promise<QueryResult>((resolve, reject) => {
-            oData.read(
-                {
-                    requestUri: url,
-                    headers: this.headers
-                },
+            oData.request(request,
                 (data: any, response: any) => {
                     let inlineCount: number;
                     if (data['@odata.count']) {
@@ -179,7 +175,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                     resolve({ results: data.value, query: query, inlineCount: inlineCount, httpResponse: response });
                 },
                 (error: Object) => {
-                    const err = this.createError(error, url);
+                    const err = this.createError(error, request.requestUri);
                     reject(err);
                 }
             );
@@ -190,7 +186,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         const adapter = saveContext.adapter = this;
 
         saveContext.routePrefix = this.getAbsoluteUrl(saveContext.dataService, '');
-        const url = saveContext.routePrefix + '$batch';
+        const url = `${saveContext.routePrefix}$batch`;
 
         const requestData = this.createChangeRequests(saveContext, saveBundle);
         const tempKeys = saveContext.tempKeys;
@@ -317,35 +313,53 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         return batchRequest;
     }
 
+    private getRequest(mappingContext: MappingContext): {
+        method: string;
+        requestUri: string;
+        data?: any;
+        headers?: any;
+    } {
+        const query = mappingContext.query as EntityQuery;
+        let method = 'GET';
+        let request = { method: method, requestUri: this.getUrl(mappingContext) };
+
+        if (!query.parameters) {
+            return request;
+        }
+
+        method = query.parameters['$method'] || method;
+        delete query.parameters['$method'];
+
+        if (method === 'GET') {
+            request = Object.assign({}, request, { requestUri: this.addQueryString(request.requestUri, query.parameters) });
+        } else {
+            request = Object.assign({}, request, { method: method, data: query.parameters['$data'] || query.parameters });
+        }
+
+        return request;
+    }
+
     private getUrl(mappingContext: MappingContext): string {
         const query = mappingContext.query as EntityQuery;
-        let url = this.getAbsoluteUrl(mappingContext.dataService, mappingContext.getUrl());
-
-        /**
-         *  The syntax for getting the count of a collection has changed with v4
-         *  http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part2-url-conventions.html#_Inlinecount_System_Query
-         */
-        url = url.replace('$inlinecount=allpages', '$count=true');
-        url = url.replace('$inlinecount=none', '$count=false');
-        url = url.replace(/substringof\(('[^']*')(,|%2C)\s*([^)]*\)?)\)/gi, 'contains($3$2$1)');
-
-        // Add query params if .withParameters was used
-        if (!core.isEmpty(query.parameters)) {
-            const newUrl = this.formatString(url, query.parameters);
-
-            if (newUrl !== url) {
-                return newUrl;
-            }
-
-            const paramString = this.toQueryString(query.parameters);
-            const sep = url.indexOf('?') < 0 ? '?' : '&';
-            url = url + sep + paramString;
-        }
+        const url = this.getAbsoluteUrl(mappingContext.dataService, mappingContext.getUrl());
 
         return url;
     }
 
-    private transformValue(prop: DataProperty, val: any) {
+    private addQueryString(url: string, parameters: Object): string {
+        // Add query params if .withParameters was used
+        const queryString = this.toQueryString(parameters);
+        if (!queryString) {
+            return url;
+        }
+
+        const sep = url.indexOf('?') < 0 ? '?' : '&';
+        url += sep + queryString;
+
+        return url;
+    }
+
+    private transformValue(prop: DataProperty, val: any): any {
         if (prop.isUnmapped) {
             return undefined;
         }
@@ -361,10 +375,10 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         return val;
     }
 
-    private updateDeleteMergeRequest(request: Batch.ChangeRequest, aspect: EntityAspect, routePrefix: string) {
+    private updateDeleteMergeRequest(request: Batch.ChangeRequest, aspect: EntityAspect, routePrefix: string): void {
         let uriKey;
         const extraMetadata = aspect.extraMetadata;
-        if (extraMetadata == null) {
+        if (!extraMetadata) {
             uriKey = this.getUriKey(aspect);
             aspect.extraMetadata = {
                 uriKey: uriKey
@@ -384,21 +398,19 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         const entityType = aspect.entity.entityType;
         const resourceName = entityType.defaultResourceName;
         const kps = entityType.keyProperties;
-        let uriKey = resourceName + '(';
-        if (kps.length === 1) {
-            uriKey = uriKey + this.fmtProperty(kps[0], aspect) + ')';
-        } else {
-            let delim = '';
-            kps.forEach(kp => {
-                uriKey = uriKey + delim + kp.nameOnServer + '=' + this.fmtProperty(kp, aspect);
-                delim = ',';
+
+        const uriKeyValue = kps.length === 1
+            ? this.fmtProperty(kps[0], aspect)
+            : kps.map(kp => {
+                return `${kp.nameOnServer}=${this.fmtProperty(kp, aspect)}`;
             });
-            uriKey = uriKey + ')';
-        }
+
+        const uriKey = `${resourceName}(${uriKeyValue})`;
+
         return uriKey;
     }
 
-    private fmtProperty(prop: DataProperty, aspect: EntityAspect) {
+    private fmtProperty(prop: DataProperty, aspect: EntityAspect): any {
         return prop.dataType.fmtOData(aspect.getPropertyValue(prop.name));
     }
 
@@ -538,7 +550,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
 
     private toQueryString(payload: {}): string {
         if (!payload) {
-            return '';
+            return null;
         }
 
         const result = Object.keys(payload)
@@ -546,39 +558,6 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                 return `${encodeURIComponent(key)}=${encodeURIComponent(payload[key])}`;
             })
             .join('&');
-
-        return result;
-    }
-
-    private formatString(format: string, ...args: any[]) {
-        if (format == null) {
-            return null;
-        }
-
-        // check if string format arguments are in the form of an array
-        if (args[0] instanceof Array) {
-            args = args[0];
-        }
-
-        // allows for named placeholders by passing in an object
-        if (Object.prototype.toString.call(args[0]) === '[object Object]') {
-            const obj = args[0];
-            const props = Object.keys(obj);
-
-            args = props.map(prop => ({ key: prop, value: obj[prop] }));
-        }
-
-        const result = args.reduce((formattedString: string, arg: any, index: number) => {
-            const key = arg && arg.key || index;
-            let value = arg && arg.hasOwnProperty('value') ? arg.value : arg;
-            if (value == null) {
-                value = '';
-            }
-
-            const reg = new RegExp(`\\{${key}\\}`, 'gm');
-
-            return formattedString.replace(reg, value);
-        }, format);
 
         return result;
     }
