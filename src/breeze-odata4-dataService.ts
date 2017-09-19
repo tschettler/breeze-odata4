@@ -123,7 +123,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                     // data.dataServices.schema is an array of schemas. with properties of
                     // entityContainer[], association[], entityType[], and namespace.
                     if (!data || !data.dataServices) {
-                        const error = new Error('Metadata query failed for: ' + url);
+                        const error = new Error(`Metadata query failed for: ${url}`);
                         return reject(error);
                     }
 
@@ -140,7 +140,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                         try {
                             metadataStore.importMetadata(csdlMetadata);
                         } catch (e) {
-                            reject(new Error('Metadata query failed for ' + url + '; Unable to process returned metadata: ' + e.message));
+                            reject(new Error(`Metadata query failed for ${url}; Unable to process returned metadata: ${e.message}`));
                         }
 
                         metadataStore.addDataService(dataService);
@@ -151,7 +151,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                 },
                 (error: Error) => {
                     const err = this.createError(error, url);
-                    err.message = 'Metadata query failed for: ' + url + '; ' + (err.message || '');
+                    err.message = `Metadata query failed for: ${url}; ${(err.message || '')}`;
                     reject(err);
                 },
                 oData.metadataHandler
@@ -186,7 +186,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         const adapter = saveContext.adapter = this;
 
         saveContext.routePrefix = this.getAbsoluteUrl(saveContext.dataService, '');
-        const url = saveContext.routePrefix + '$batch';
+        const url = `${saveContext.routePrefix}$batch`;
 
         const requestData = this.createChangeRequests(saveContext, saveBundle);
         const tempKeys = saveContext.tempKeys;
