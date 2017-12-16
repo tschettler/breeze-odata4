@@ -167,7 +167,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
             oData.request(request,
                 (data: any, response: any) => {
                     let inlineCount: number;
-                    if (data['@odata.count']) {
+                    if (data && data['@odata.count']) {
                         // OData can return data['@odata.count'] as a string
                         inlineCount = Number(data['@odata.count']);
                     }
