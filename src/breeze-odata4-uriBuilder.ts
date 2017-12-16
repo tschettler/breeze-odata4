@@ -163,7 +163,7 @@ export class OData4UriBuilder implements UriBuilder {
   }
 
   private toQueryOptionsString(queryOptions) {
-    const qoStrings = [];
+    let qoStrings = [];
     for (const qoName of Object.getOwnPropertyNames(queryOptions)) {
       const qoValue = queryOptions[qoName];
       if (qoValue !== undefined) {
@@ -181,8 +181,9 @@ export class OData4UriBuilder implements UriBuilder {
       }
     }
 
+    qoStrings = qoStrings.filter(s => !!s);
     if (qoStrings.length > 0) {
-      return '?' + qoStrings.filter(s => !!s).join('&');
+      return '?' + qoStrings.join('&');
     } else {
       return '';
     }
