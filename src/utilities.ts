@@ -1,4 +1,5 @@
 import { DataTypeSymbol, DataType } from 'breeze-client';
+import { oData, Edm } from 'ts-odatajs';
 
 const dataTypeMap: { [key: string]: DataTypeSymbol } = {
     binary: DataType.Binary,
@@ -18,4 +19,12 @@ const dataTypeMap: { [key: string]: DataTypeSymbol } = {
 export function getDataType(key: string): DataTypeSymbol {
     const dataType = dataTypeMap[key] || dataTypeMap.string;
     return dataType;
+}
+
+export function lookupAction(name: string, metadata: any): Edm.Action {
+    return oData.utils.lookupInMetadata(name, metadata, 'action');
+}
+
+export function lookupFunction(name: string, metadata: any): Edm.Function {
+    return oData.utils.lookupInMetadata(name, metadata, 'function');
 }
