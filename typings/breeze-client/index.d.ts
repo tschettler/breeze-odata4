@@ -145,6 +145,7 @@ declare module "breeze-client"
         validators: Validator[];
         addProperty(dataProperty: DataProperty): ComplexType;
         getProperties(): DataProperty[];
+        createInstance(initialValues?: Object): ComplexObject;        
     }
 
     export class DataProperty implements IProperty {
