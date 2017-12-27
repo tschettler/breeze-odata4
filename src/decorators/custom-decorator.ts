@@ -1,3 +1,4 @@
+import { core } from 'breeze-client';
 import { Edm } from 'ts-odatajs';
 
 import { AnnotationDecorator } from './annotation-decorator';
@@ -12,7 +13,10 @@ export class CustomDecorator implements AnnotationDecorator {
 
     public decorate(expression: ExpressionWithCustom, annotation: Edm.Annotation): void {
         const keys = Object.keys(annotation);
-        const value = annotation[keys[1]]; // assuming value is second key
+        core.arrayRemoveItem(keys, 'term', false);
+
+        const valueKey = keys[0];
+        const value = annotation[valueKey];
 
         const termParts = annotation.term.split('.');
         const startIndex = termParts.indexOf(this.annotation);
@@ -23,7 +27,7 @@ export class CustomDecorator implements AnnotationDecorator {
             return;
         }
 
-        const dataType = getDataType(keys[1]); // TODO: need to see if this still works with the interface
+        const dataType = getDataType(valueKey);
         const customValue = dataType.parse(value, 'string');
 
         expression.custom = expression.custom instanceof Object ? expression.custom : {};

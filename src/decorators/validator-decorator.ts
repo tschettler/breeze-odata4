@@ -1,4 +1,4 @@
-import { DataType, DataTypeSymbol } from 'breeze-client';
+import { core, DataType, DataTypeSymbol } from 'breeze-client';
 import { Edm } from 'ts-odatajs';
 
 import { AnnotationDecorator } from './annotation-decorator';
@@ -15,7 +15,11 @@ export class ValidatorDecorator implements AnnotationDecorator {
         expression.validators = expression.validators || [];
 
         const keys = Object.keys(annotation);
-        const value = annotation[keys[1]]; // assuming value is second key
+        core.arrayRemoveItem(keys, 'term', false);
+
+        const valueKey = keys[0];
+        const value = annotation[valueKey];
+
         const nameAndProp = annotation.term.replace(/^.*Validator\./, '').split('.');
         const name = nameAndProp.shift();
         const prop = nameAndProp.shift();
@@ -29,7 +33,7 @@ export class ValidatorDecorator implements AnnotationDecorator {
             expression.validators.push(validator);
         }
 
-        const dataType = getDataType(keys[1]); // TODO: need to see if this still works with the interface
+        const dataType = getDataType(valueKey);
         validator[prop] = dataType.parse(value, 'string');
     }
 }
