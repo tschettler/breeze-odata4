@@ -183,12 +183,15 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
             oData.request(request,
                 (data: any, response: any) => {
                     let inlineCount: number;
-                    if (data && data['@odata.count']) {
+                    let results: any;
+
+                    if (data) {
                         // OData can return data['@odata.count'] as a string
                         inlineCount = Number(data['@odata.count']);
+                        results = data.value;
                     }
 
-                    resolve({ results: data.value, query: query, inlineCount: inlineCount, httpResponse: response });
+                    resolve({ results: results, query: query, inlineCount: inlineCount, httpResponse: response });
                 },
                 (error: Object) => {
                     const err = this.createError(error, request.requestUri);
