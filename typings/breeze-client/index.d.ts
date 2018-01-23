@@ -352,6 +352,9 @@ declare module "breeze-client"
     export var DataType: DataType;
 
     export class EntityActionSymbol extends core.EnumSymbol {
+        isAttach?: boolean;
+        isDetach?: boolean;
+        isModification?: boolean;
     }
     export interface EntityAction extends core.IEnum {
         AcceptChanges: EntityActionSymbol;
@@ -783,6 +786,7 @@ declare module "breeze-client"
     export var FetchStrategy: FetchStrategy;
 
     export class FilterQueryOpSymbol extends core.EnumSymbol {
+        operator: string;
     }
     export interface FilterQueryOp extends core.IEnum {
         Contains: FilterQueryOpSymbol;

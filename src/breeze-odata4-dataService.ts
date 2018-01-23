@@ -467,11 +467,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
             return undefined;
         }
 
-        if (prop.dataType === DataType.DateTimeOffset) {
-            // The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
-            // from other dateTimes. This fix compensates before the save.
-            val = val && new Date(val.getTime() - (val.getTimezoneOffset() * 60000));
-        } else if (prop.dataType.quoteJsonOData) {
+        if (prop.dataType.quoteJsonOData) {
             val = val != null ? val.toString() : val;
         }
 
