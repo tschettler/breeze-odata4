@@ -578,6 +578,14 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         DataType.DateTimeOffset.fmtOData = fmtDateTimeOffset;
         DataType.Time.fmtOData = fmtTime;
         DataType.Guid.fmtOData = fmtGuid;
+        DataType.Duration = DataType.Time;
+
+        // TODO: This may need to be cleaned up later
+        DataType.TimeOfDay = DataType.addSymbol({
+            defaultValue: '00:00',
+            parse: DataType.String.parse,
+            fmtOData: DataType.String.fmtOData,
+        });
 
         function fmtFloat(val: any): any {
             if (val === null) {

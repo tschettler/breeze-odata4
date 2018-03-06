@@ -10,16 +10,17 @@ export interface InvokableEntry {
 const dataTypeMap: { [key: string]: DataTypeSymbol } = {
     binary: DataType.Binary,
     bool: DataType.Boolean,
-    date: DataType.DateTime,
+    date: DataType.DateTimeOffset,
     datetimeoffset: DataType.DateTimeOffset,
     decimal: DataType.Decimal,
-    // duration?
+    duration: DataType.Duration,
     // enumMember?
     float: DataType.Double,
     guid: DataType.Guid,
     int: DataType.Int64,
-    string: DataType.String
-    // timeOfDay?
+    string: DataType.String,
+    single: DataType.Single,
+    timeofday: DataType.TimeOfDay
 };
 
 export function getDataType(key: string): DataTypeSymbol {

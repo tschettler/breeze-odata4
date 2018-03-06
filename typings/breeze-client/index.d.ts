@@ -349,7 +349,7 @@ declare module "breeze-client"
         parseRawValue?: (val: any) => any;
     }
 
-    export interface DataType extends core.IEnum {
+    export interface DataType extends core.Enum {
         Binary: DataTypeSymbol;
         Boolean: DataTypeSymbol;
         Byte: DataTypeSymbol;
@@ -357,6 +357,7 @@ declare module "breeze-client"
         DateTimeOffset: DataTypeSymbol;
         Decimal: DataTypeSymbol;
         Double: DataTypeSymbol;
+        Duration: DataTypeSymbol; /* OData 4 */
         Guid: DataTypeSymbol;
         Int16: DataTypeSymbol;
         Int32: DataTypeSymbol;
@@ -364,10 +365,12 @@ declare module "breeze-client"
         Single: DataTypeSymbol;
         String: DataTypeSymbol;
         Time: DataTypeSymbol;
+        TimeOfDay: DataTypeSymbol; /* OData 4 */
         Undefined: DataTypeSymbol;
 
         constants: { nextNumber: number, nextNumberIncrement: number, stringPrefix: string };
         
+        addSymbol(propertiesObj?: any): DataTypeSymbol;
         fromEdmDataType(typeName: string): DataTypeSymbol;
         fromValue(val: any): DataTypeSymbol;
         getComparableFn(dataType: DataTypeSymbol): (value: any) => any;
