@@ -41,9 +41,7 @@ import {
     getActions,
     getEdmTypeFromTypeName,
     getFunctions,
-    InvokableEntry,
-    lookupAction,
-    lookupFunction
+    InvokableEntry
 } from './utilities';
 
 // Seems crazy, but this is the only way I can find to do the inheritance
@@ -433,8 +431,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         const binding = urlParts[0];
         const invokableName = urlParts.pop().replace(/\([^\)]*\)/, '');
 
-        const actionConfig = lookupAction(invokableName, this.metadata);
-        const functionConfig = lookupFunction(invokableName, this.metadata);
+        const actionConfig = oData.utils.lookupAction(invokableName, this.metadata);
+        const functionConfig = oData.utils.lookupFunction(invokableName, this.metadata);
 
         return actionConfig || functionConfig;
     }

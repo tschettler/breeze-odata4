@@ -27,14 +27,6 @@ export function getDataType(key: string): DataTypeSymbol {
     return dataType;
 }
 
-export function lookupAction(name: string, metadata: Edmx.Edmx): Edm.Action {
-    return oData.utils.lookupInMetadata(name, metadata, 'action');
-}
-
-export function lookupFunction(name: string, metadata: Edmx.Edmx): Edm.Function {
-    return oData.utils.lookupInMetadata(name, metadata, 'function');
-}
-
 export function getEdmTypeFromTypeName(metadata: Edmx.Edmx, typeName: string): Edm.ComplexType | Edm.EntityType {
     const bindingTypeName = oData.utils.getCollectionType(typeName) || typeName;
     const entityType = oData.utils.lookupEntityType(bindingTypeName, metadata);

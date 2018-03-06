@@ -12,9 +12,7 @@ export {
     getDataType,
     getEdmTypeFromTypeName,
     getFunctions,
-    getInvokableUrl,
-    lookupAction,
-    lookupFunction
+    getInvokableUrl
 } from './utilities';
 export { MetadataAdapter } from './adapters/metadata-adapter';
 export { AnnotationAdapter } from './adapters/annotation-adapter';
