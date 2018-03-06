@@ -110,7 +110,9 @@ export function getInvokableUrl(metadata: Edmx.Edmx, metadataStore: MetadataStor
         const bindingEdmType = getEdmTypeFromTypeName(metadata, bindingParameter.type);
         const breezeType = adaptEntityType(metadataStore, bindingEdmType);
 
-        boundPart = `${breezeType.defaultResourceName}/`;
+        if (breezeType) {
+            boundPart = `${breezeType.defaultResourceName}/`;
+        }
     }
 
     const url = `${boundPart}${namespace}.${config.name}`;
