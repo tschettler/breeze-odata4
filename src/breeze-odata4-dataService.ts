@@ -64,6 +64,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         'OData-Version': '4.0'
     };
 
+    public metadataAcceptHeader = 'application/json;odata.metadata=full';
+
     public metadata: Edmx.Edmx;
 
     public jsonResultsAdapter: JsonResultsAdapter = getJsonResultsAdapter();
@@ -124,11 +126,9 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         const url = this.getAbsoluteUrl(dataService, '$metadata');
 
         return new Promise((resolve, reject) => {
-            // OData.read(url,
             oData.read({
                 requestUri: url,
-                // headers: { 'Accept': 'application/json'}
-                headers: { Accept: 'application/json;odata.metadata=full' }
+                headers: { Accept: this.metadataAcceptHeader }
             },
                 (data: Edmx.Edmx, response: any) => {
                     // data.dataServices.schema is an array of schemas. with properties of
