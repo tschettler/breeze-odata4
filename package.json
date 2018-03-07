@@ -35,6 +35,6 @@
     "ts-odatajs": "^4.0.3"
   },
   "devDependencies": {
-    "typescript": "~2.3.3"
+    "typescript": "^2.7.2"
   }
 }
