@@ -19,30 +19,22 @@ import {
     MetadataStore,
     QueryResult,
     SaveBundle,
-    SaveResult
+    SaveResult,
+    Validator,
 } from 'breeze-client';
 import { Batch, Edm, Edmx, oData } from 'ts-odatajs';
 
+import { AnnotationAdapter } from './adapters/annotation-adapter';
+import { MetadataAdapter } from './adapters/metadata-adapter';
+import { NavigationAdapter } from './adapters/navigation-adapter';
 import { getJsonResultsAdapter } from './breeze-jsonResultsAdapter-factory';
 import { ClassRegistry } from './class-registry';
-import { ODataError } from './odata-error';
-
-import { MetadataAdapter } from './adapters/metadata-adapter';
-import { AnnotationAdapter } from './adapters/annotation-adapter';
-import { NavigationAdapter } from './adapters/navigation-adapter';
-
-import { AnnotationDecorator } from './decorators/annotation-decorator';
 import { CustomDecorator } from './decorators/custom-decorator';
 import { DisplayNameDecorator } from './decorators/display-name-decorator';
 import { StoreGeneratedPatternDecorator } from './decorators/store-generated-pattern-decorator';
 import { ValidatorDecorator } from './decorators/validator-decorator';
-import {
-    adaptStructuralType,
-    getActions,
-    getEdmTypeFromTypeName,
-    getFunctions,
-    InvokableEntry
-} from './utilities';
+import { ODataError } from './odata-error';
+import { adaptStructuralType, getActions, getEdmTypeFromTypeName, getFunctions, InvokableEntry } from './utilities';
 
 // Seems crazy, but this is the only way I can find to do the inheritance
 export class ProxyDataService { }
@@ -580,11 +572,20 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         DataType.Guid.fmtOData = fmtGuid;
         DataType.Duration = DataType.Time;
 
+         // TODO: This may need to be cleaned up later
+         DataType.Stream = DataType.addSymbol({
+            defaultValue: '',
+            parse: DataType.String.parse,
+            fmtOData: DataType.String.fmtOData,
+            validatorCtor: Validator.string
+        });
+
         // TODO: This may need to be cleaned up later
         DataType.TimeOfDay = DataType.addSymbol({
             defaultValue: '00:00',
             parse: DataType.String.parse,
             fmtOData: DataType.String.fmtOData,
+            validatorCtor: Validator.string
         });
 
         function fmtFloat(val: any): any {

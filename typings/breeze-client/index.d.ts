@@ -328,7 +328,7 @@ declare module "breeze-client"
         isNumeric?: boolean;
         quoteJsonOData?: boolean;
 
-        validatorCtor: (context: any) => Validator;
+        validatorCtor: (context?: any) => Validator;
 
         /** Function to convert a value from string to this DataType.  Note that this will be called each time a property is changed, so make it fast. */
         parse?: (val: any, sourceTypeName?: string) => any;
@@ -363,6 +363,7 @@ declare module "breeze-client"
         Int32: DataTypeSymbol;
         Int64: DataTypeSymbol;
         Single: DataTypeSymbol;
+        Stream: DataTypeSymbol; /* OData 4 */
         String: DataTypeSymbol;
         Time: DataTypeSymbol;
         TimeOfDay: DataTypeSymbol; /* OData 4 */
