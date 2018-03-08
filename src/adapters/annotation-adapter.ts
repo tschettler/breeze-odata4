@@ -2,10 +2,23 @@ import { MetadataAdapter } from './metadata-adapter';
 import { AnnotationDecorator } from '../decorators/annotation-decorator';
 import { Edm, oData, Edmx } from 'ts-odatajs';
 import { ClassRegistry } from '../class-registry';
+import { schema } from 'ts-odatajs/lib/odata/metadata';
+import { decodeBase64 } from 'ts-odatajs/lib/utils';
 
 export class AnnotationAdapter implements MetadataAdapter {
     private metadata: Edmx.DataServices;
     public decorators: AnnotationDecorator[] = [];
+
+    private edmTypes: { [key: string]: string[] } = {
+        action: ['parameter'],
+        complexType: ['property', 'navigationProperty'],
+        entityContainer: ['actionImport', 'entitySet', 'functionImport', 'singleton'],
+        entityType: ['property', 'navigationProperty'],
+        enumType: ['member'],
+        function: ['parameter'],
+        term: [],
+        typeDefinition: []
+    };
 
     constructor() {
         this.decorators = ClassRegistry.AnnotationDecorators.get();
@@ -21,16 +34,11 @@ export class AnnotationAdapter implements MetadataAdapter {
         const annotations: Edm.Annotations[] = schema.annotations || [];
 
         annotations.forEach((itemAnnotation: Edm.Annotations) => {
-            const targetSplit = itemAnnotation.target.split('/');
-            const entityTypeName = targetSplit[0];
-            const propertyName = targetSplit[1];
-            const entityType = oData.utils.lookupEntityType(entityTypeName, this.metadata.schema);
+            const annotatableType = this.getAnnotatableType(schema, itemAnnotation.target);
 
-            if (entityType === null) {
-                throw new Error(`Could not find entity with type name ${entityTypeName}`);
+            if (annotatableType === null) {
+                throw new Error(`Could not find element with type name ${itemAnnotation.target}`);
             }
-
-            const property = this.getProperty(entityType, propertyName);
 
             itemAnnotation.annotation
                 .forEach((annotation: Edm.Annotation) => { // term
@@ -39,21 +47,70 @@ export class AnnotationAdapter implements MetadataAdapter {
                             return annotation.term.indexOf(`.${d.annotation}`) > -1;
                         });
 
-                    decorator.decorate(property || entityType, annotation);
+                    if (!decorator) {
+                        return;
+                    }
+
+                    decorator.decorate(annotatableType, annotation);
                 });
         });
     }
 
-    private getProperty(entityType: Edm.EntityType, propertyName: string): Edm.Base.NamedExpression {
-        if (!propertyName) {
-            return null;
+    private getAnnotatableType(schema: Edm.Schema, target: string): Edm.Base.Annotatable {
+        const targetSplit = target.split('/');
+        const typeName = targetSplit[0];
+        const propertyName = targetSplit[1];
+
+        let result: Edm.Base.Annotatable;
+        let kind: string;
+        // tslint:disable-next-line:forin
+        for (const edmType in this.edmTypes) {
+            kind = edmType;
+
+            const schemaProperty = schema[kind];
+
+            if (!schemaProperty) {
+                continue;
+            } else if (schemaProperty instanceof Array) {
+                result = oData.utils.lookupInMetadata(typeName, this.metadata.schema, kind);
+            } else if (`${schema.namespace}.${(<Edm.Base.NamedExpression>schemaProperty).name}` === typeName) {
+                result = schemaProperty;
+            }
+            if (result) {
+                break;
+            }
         }
 
-        const properties: Edm.Base.NamedExpression[] = entityType.property.concat(entityType.navigationProperty);
-        const property = properties.find((prop: any) => {
-            return prop.name === propertyName;
+        if (!propertyName) {
+            return result;
+        }
+
+        const baseType = result;
+        result = null;
+        const properties = this.edmTypes[kind];
+
+        properties.forEach(p => {
+            if (result) {
+                return;
+            }
+            let item: Edm.Base.NamedExpression;
+            const typeProperty = baseType[p];
+
+            if (!typeProperty) {
+                return;
+            }
+
+            if (typeProperty instanceof Array) {
+                item = (<Edm.Base.NamedExpression[]>typeProperty).find(e => e.name === propertyName);
+            } else if (item.name === propertyName) {
+                item = typeProperty;
+            }
+
+            if (item) {
+                result = <Edm.Base.Annotatable>item;
+            }
         });
 
-        return property;
+        return result;
     }
 }
