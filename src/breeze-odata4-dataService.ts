@@ -103,8 +103,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         // If no protocol, turn base into an absolute URI
         if (window && serviceName.startsWith('//')) {
             // no protocol; make it absolute
-            const loc = window.location;
-            base = `${loc.protocol}//${loc.host}${core.stringStartsWith(serviceName, '/') ? '' : '/'}${base}`;
+            base = `${location.origin}${core.stringStartsWith(serviceName, '/') ? '' : '/'}${base}`;
         }
 
         return base + url;
