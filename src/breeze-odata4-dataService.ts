@@ -41,7 +41,9 @@ import {
     getActions,
     getEdmTypeFromTypeName,
     getFunctions,
-    InvokableEntry
+    InvokableEntry,
+    lookupAction,
+    lookupFunction
 } from './utilities';
 
 // Seems crazy, but this is the only way I can find to do the inheritance
@@ -63,8 +65,6 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     public headers = {
         'OData-Version': '4.0'
     };
-
-    public metadataAcceptHeader = 'application/json;odata.metadata=full';
 
     public metadata: Edmx.Edmx;
 
@@ -126,9 +126,11 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         const url = this.getAbsoluteUrl(dataService, '$metadata');
 
         return new Promise((resolve, reject) => {
+            // OData.read(url,
             oData.read({
                 requestUri: url,
-                headers: { Accept: this.metadataAcceptHeader }
+                // headers: { 'Accept': 'application/json'}
+                headers: { Accept: 'application/json;odata.metadata=full' }
             },
                 (data: Edmx.Edmx, response: any) => {
                     // data.dataServices.schema is an array of schemas. with properties of
@@ -431,8 +433,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         const binding = urlParts[0];
         const invokableName = urlParts.pop().replace(/\([^\)]*\)/, '');
 
-        const actionConfig = oData.utils.lookupAction(invokableName, this.metadata);
-        const functionConfig = oData.utils.lookupFunction(invokableName, this.metadata);
+        const actionConfig = lookupAction(invokableName, this.metadata);
+        const functionConfig = lookupFunction(invokableName, this.metadata);
 
         return actionConfig || functionConfig;
     }
@@ -578,14 +580,6 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         DataType.DateTimeOffset.fmtOData = fmtDateTimeOffset;
         DataType.Time.fmtOData = fmtTime;
         DataType.Guid.fmtOData = fmtGuid;
-        DataType.Duration = DataType.Time;
-
-        // TODO: This may need to be cleaned up later
-        DataType.TimeOfDay = DataType.addSymbol({
-            defaultValue: '00:00',
-            parse: DataType.String.parse,
-            fmtOData: DataType.String.fmtOData,
-        });
 
         function fmtFloat(val: any): any {
             if (val === null) {

@@ -10,22 +10,29 @@ export interface InvokableEntry {
 const dataTypeMap: { [key: string]: DataTypeSymbol } = {
     binary: DataType.Binary,
     bool: DataType.Boolean,
-    date: DataType.DateTimeOffset,
+    date: DataType.DateTime,
     datetimeoffset: DataType.DateTimeOffset,
     decimal: DataType.Decimal,
-    duration: DataType.Duration,
+    // duration?
     // enumMember?
     float: DataType.Double,
     guid: DataType.Guid,
     int: DataType.Int64,
-    string: DataType.String,
-    single: DataType.Single,
-    timeofday: DataType.TimeOfDay
+    string: DataType.String
+    // timeOfDay?
 };
 
 export function getDataType(key: string): DataTypeSymbol {
     const dataType = dataTypeMap[key] || dataTypeMap.string;
     return dataType;
+}
+
+export function lookupAction(name: string, metadata: Edmx.Edmx): Edm.Action {
+    return oData.utils.lookupInMetadata(name, metadata, 'action');
+}
+
+export function lookupFunction(name: string, metadata: Edmx.Edmx): Edm.Function {
+    return oData.utils.lookupInMetadata(name, metadata, 'function');
 }
 
 export function getEdmTypeFromTypeName(metadata: Edmx.Edmx, typeName: string): Edm.ComplexType | Edm.EntityType {
@@ -111,9 +118,7 @@ export function getInvokableUrl(metadata: Edmx.Edmx, metadataStore: MetadataStor
         const bindingEdmType = getEdmTypeFromTypeName(metadata, bindingParameter.type);
         const breezeType = adaptEntityType(metadataStore, bindingEdmType);
 
-        if (breezeType) {
-            boundPart = `${breezeType.defaultResourceName}/`;
-        }
+        boundPart = `${breezeType.defaultResourceName}/`;
     }
 
     const url = `${boundPart}${namespace}.${config.name}`;
