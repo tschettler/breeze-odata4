@@ -34,6 +34,10 @@
     "breeze-client": "^1.7.0",
     "ts-odatajs": "^4.0.3"
   },
+  "peerDependencies": {
+    "breeze-client": "^1.7.0",
+    "ts-odatajs": "^4.0.3"
+  },
   "devDependencies": {
     "typescript": "^2.7.2"
   }
