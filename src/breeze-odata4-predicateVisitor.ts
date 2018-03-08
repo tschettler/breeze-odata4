@@ -1,5 +1,5 @@
+import { Predicate, PredicateContext, PredicateVisitor } from 'breeze-client';
 
-import { PredicateContext, PredicateVisitor, Predicate } from 'breeze-client';
 
 export class OData4PredicateVisitor implements PredicateVisitor {
     public static register(): void {
