@@ -1,8 +1,8 @@
 import { core } from 'breeze-client';
 import { Edm } from 'ts-odatajs';
 
-import { AnnotationDecorator } from './annotation-decorator';
 import { getDataType } from '../utilities';
+import { AnnotationDecorator } from './annotation-decorator';
 
 export interface ExpressionWithCustom extends Edm.Base.Annotatable {
     custom?: any;

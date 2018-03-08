@@ -1,5 +1,5 @@
-
 import { Edm } from 'ts-odatajs';
+
 
 export interface AnnotationDecorator {
     annotation: string;

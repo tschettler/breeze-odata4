@@ -1,4 +1,5 @@
 import {
+  config,
   core,
   EntityQuery,
   EntityType,
@@ -8,9 +9,9 @@ import {
   OrderByClause,
   Predicate,
   SelectClause,
-  UriBuilder,
-  config,
+  UriBuilder
 } from 'breeze-client';
+
 import { OData4PredicateVisitor } from './breeze-odata4-predicateVisitor';
 
 export interface QueryOptionsBase {

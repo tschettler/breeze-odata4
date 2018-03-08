@@ -1,9 +1,8 @@
-import { MetadataAdapter } from './metadata-adapter';
-import { AnnotationDecorator } from '../decorators/annotation-decorator';
-import { Edm, oData, Edmx } from 'ts-odatajs';
+import { Edm, Edmx, oData } from 'ts-odatajs';
+
 import { ClassRegistry } from '../class-registry';
-import { schema } from 'ts-odatajs/lib/odata/metadata';
-import { decodeBase64 } from 'ts-odatajs/lib/utils';
+import { AnnotationDecorator } from '../decorators/annotation-decorator';
+import { MetadataAdapter } from './metadata-adapter';
 
 export class AnnotationAdapter implements MetadataAdapter {
     private metadata: Edmx.DataServices;
