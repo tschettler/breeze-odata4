@@ -7,7 +7,9 @@ export interface ExpressionWithDisplayName extends Edm.Base.Annotatable {
 }
 
 export class DisplayNameDecorator implements AnnotationDecorator {
-    public annotation = 'DisplayName';
+    public canDecorate(annotation: Edm.Annotation): boolean {
+        return annotation.term === 'Org.OData.Display.V1.DisplayName' || /.\.DisplayName$/.test(annotation.term);
+    }
 
     public decorate(expression: ExpressionWithDisplayName, annotation: Edm.Annotation): void {
         const value = annotation.string;

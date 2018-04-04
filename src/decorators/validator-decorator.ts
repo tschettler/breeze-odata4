@@ -8,8 +8,11 @@ export interface ExpressionWithValidators extends Edm.Base.Annotatable {
     validators?: any[];
 }
 
+const ValidatorTerm = 'Validator';
 export class ValidatorDecorator implements AnnotationDecorator {
-    public annotation = 'Validator';
+    public canDecorate(annotation: Edm.Annotation): boolean {
+        return annotation.term.indexOf(`.${ValidatorTerm}`) > -1;
+    }
 
     public decorate(expression: ExpressionWithValidators, annotation: Edm.Annotation): void {
         expression.validators = expression.validators || [];
