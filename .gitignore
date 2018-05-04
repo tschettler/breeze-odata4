@@ -11,3 +11,4 @@ Thumbs.db
 *.map
 *.d.ts
 !typings/**/*.d.ts
+.vscode/

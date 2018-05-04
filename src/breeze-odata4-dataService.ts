@@ -20,7 +20,7 @@ import {
     QueryResult,
     SaveBundle,
     SaveResult,
-    Validator,
+    Validator
 } from 'breeze-client';
 import { Batch, Edm, Edmx, oData } from 'ts-odatajs';
 
@@ -52,7 +52,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
 
     public name = 'OData4';
 
-    public headers = {
+    public headers: { [name: string]: string } = {
         'OData-Version': '4.0'
     };
 
@@ -119,7 +119,10 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         return new Promise((resolve, reject) => {
             oData.read({
                 requestUri: url,
-                headers: { Accept: this.metadataAcceptHeader }
+                headers: Object.assign(
+                    { Accept: this.metadataAcceptHeader },
+                    this.headers
+                )
             },
                 (data: Edmx.Edmx, response: any) => {
                     // data.dataServices.schema is an array of schemas. with properties of
@@ -278,7 +281,13 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
             const aspect = entity.entityAspect;
             id = id + 1; // we are deliberately skipping id=0 because Content-ID = 0 seems to be ignored.
             let request: Batch.ChangeRequest = {
-                headers: { 'Content-ID': id.toString(), 'Content-Type': 'application/json;IEEE754Compatible=true' },
+                headers: Object.assign(
+                    {
+                        'Content-ID': id.toString(),
+                        'Content-Type': 'application/json;IEEE754Compatible=true'
+                    },
+                    this.headers
+                ),
                 requestUri: null,
                 method: null
             };
@@ -330,7 +339,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     } {
         const query = mappingContext.query as EntityQuery;
         let method = 'GET';
-        let request = { method: method, requestUri: this.getUrl(mappingContext) };
+        let request = { method: method, requestUri: this.getUrl(mappingContext), headers: Object.assign({}, this.headers) };
 
         if (!query.parameters) {
             return request;
@@ -571,8 +580,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         DataType.Guid.fmtOData = fmtGuid;
         DataType.Duration = DataType.Time;
 
-         // TODO: This may need to be cleaned up later
-         DataType.Stream = DataType.addSymbol({
+        // TODO: This may need to be cleaned up later
+        DataType.Stream = DataType.addSymbol({
             defaultValue: '',
             parse: DataType.String.parse,
             fmtOData: DataType.String.fmtOData,
