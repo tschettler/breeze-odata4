@@ -120,8 +120,9 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
             oData.read({
                 requestUri: url,
                 headers: Object.assign(
-                    { Accept: this.metadataAcceptHeader },
-                    this.headers
+                    {},
+                    this.headers,
+                    { Accept: this.metadataAcceptHeader }
                 )
             },
                 (data: Edmx.Edmx, response: any) => {
