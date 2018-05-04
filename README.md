@@ -35,6 +35,10 @@ manager.fetchMetadata();
 ```
 Now we can utilize breeze to query against an OData 4 API.
 
+## Samples
+
+Samples can be found in the samples repo: https://github.com/tschettler/breeze-odata4-samples
+
 ## Typings
 
 This library is currently referencing its own version of breeze-client typings, since the current typings available on DefinitelyTyped and within the breeze-client npm package are incomplete/outdated.
