@@ -1,0 +1,9 @@
+language: nodejs
+node_js:
+- "10"
+
+install:
+- npm install
+
+script:
+- npm run build
