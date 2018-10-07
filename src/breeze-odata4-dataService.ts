@@ -22,7 +22,7 @@ import {
     SaveResult,
     Validator
 } from 'breeze-client';
-import { Batch, Edm, Edmx, oData } from 'ts-odatajs';
+import { Batch, Edm, Edmx, HttpOData, oData } from 'ts-odatajs';
 
 import { AnnotationAdapter } from './adapters/annotation-adapter';
 import { MetadataAdapter } from './adapters/metadata-adapter';
@@ -210,7 +210,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                 method: 'POST',
                 data: requestData
             },
-                (data: Batch.BatchResponse, response: any) => {
+                (data: Batch.BatchResponse, response: HttpOData.Response) => {
                     const entities: Entity[] = [];
                     const keyMappings: KeyMapping[] = [];
                     const saveResult: SaveResult = { entities: entities, keyMappings: keyMappings, XHR: null };
@@ -332,15 +332,14 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     }
 
     // TODO: Refactor to a request factory
-    private getRequest(mappingContext: MappingContext): {
-        method: string;
-        requestUri: string;
-        data?: any;
-        headers?: any;
-    } {
+    private getRequest(mappingContext: MappingContext): HttpOData.Request {
         const query = mappingContext.query as EntityQuery;
         let method = 'GET';
-        let request = { method: method, requestUri: this.getUrl(mappingContext), headers: Object.assign({}, this.headers) };
+        let request: HttpOData.Request = {
+            method: method,
+            requestUri: this.getUrl(mappingContext),
+            headers: Object.assign({}, this.headers)
+        };
 
         if (!query.parameters) {
             return request;
