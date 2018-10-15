@@ -8,8 +8,12 @@ export interface ExpressionWithCustom extends Edm.Base.Annotatable {
     custom?: any;
 }
 
+const CustomTerm = 'Custom';
+
 export class CustomDecorator implements AnnotationDecorator {
-    public annotation = 'Custom';
+    public canDecorate(annotation: Edm.Annotation): boolean {
+        return /.\.Custom\./.test(annotation.term);
+    }
 
     public decorate(expression: ExpressionWithCustom, annotation: Edm.Annotation): void {
         const keys = Object.keys(annotation);
@@ -19,7 +23,7 @@ export class CustomDecorator implements AnnotationDecorator {
         const value = annotation[valueKey];
 
         const termParts = annotation.term.split('.');
-        const startIndex = termParts.indexOf(this.annotation);
+        const startIndex = termParts.indexOf(CustomTerm);
 
         const customPath = termParts.slice(startIndex + 1);
 
