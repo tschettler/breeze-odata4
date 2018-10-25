@@ -34,6 +34,7 @@ import { DisplayNameDecorator } from './decorators/display-name-decorator';
 import { StoreGeneratedPatternDecorator } from './decorators/store-generated-pattern-decorator';
 import { ValidatorDecorator } from './decorators/validator-decorator';
 import { ODataError } from './odata-error';
+import { ODataHttpClient } from './odata-http-client';
 import { adaptStructuralType, getActions, getEdmTypeFromTypeName, getFunctions, InvokableEntry } from './utilities';
 
 // Seems crazy, but this is the only way I can find to do the inheritance
@@ -59,6 +60,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     public metadataAcceptHeader = 'application/json;odata.metadata=full';
 
     public metadata: Edmx.Edmx;
+
+    public httpClient: ODataHttpClient;
 
     public jsonResultsAdapter: JsonResultsAdapter = getJsonResultsAdapter();
 
@@ -111,7 +114,6 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
 
     public fetchMetadata(metadataStore: MetadataStore, dataService: DataService): Promise<Edmx.DataServices> {
 
-        const associations = {};
 
         const serviceName = dataService.serviceName;
         const url = this.getAbsoluteUrl(dataService, '$metadata');
@@ -163,7 +165,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                     err.message = `Metadata query failed for: ${url}; ${(err.message || '')}`;
                     reject(err);
                 },
-                oData.metadataHandler
+                oData.metadataHandler,
+                this.httpClient
             );
         });
     }
@@ -189,13 +192,15 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                 (error: Object) => {
                     const err = this.createError(error, request.requestUri);
                     reject(err);
-                }
+                },
+                null,
+                this.httpClient
             );
         });
     }
 
     public saveChanges(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): Promise<SaveResult> {
-        const adapter = saveContext.adapter = this;
+        saveContext.adapter = this;
 
         saveContext.routePrefix = this.getAbsoluteUrl(saveContext.dataService, '');
         const url = `${saveContext.routePrefix}$batch`;
@@ -206,8 +211,9 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
 
         return new Promise<SaveResult>((resolve, reject) => {
             oData.request({
-                requestUri: url,
                 method: 'POST',
+                requestUri: url,
+                headers: Object.assign({}, this.headers),
                 data: requestData
             },
                 (data: Batch.BatchResponse, response: HttpOData.Response) => {
@@ -264,7 +270,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                 }, err => {
                     const error = this.createError(err, url);
                     reject(error);
-                }, oData.batch.batchHandler, undefined, this.metadata);
+                }, oData.batch.batchHandler, this.httpClient, this.metadata);
         });
     }
 

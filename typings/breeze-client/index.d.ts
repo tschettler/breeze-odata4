@@ -431,6 +431,8 @@ declare module "breeze-client"
         loadNavigationProperty(navigationProperty: string, callback?: Function, errorCallback?: Function): Promise<QueryResult>;
         loadNavigationProperty(navigationProperty: NavigationProperty, callback?: Function, errorCallback?: Function): Promise<QueryResult>;
 
+        markNavigationPropertyAsLoaded(navigationProperty: string): void;
+        
         rejectChanges(): void;
 
         removeValidationError(validator: Validator): void;

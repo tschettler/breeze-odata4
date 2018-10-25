@@ -3,6 +3,7 @@ export { OData4DataService } from './breeze-odata4-dataService';
 export { OData4PredicateVisitor } from './breeze-odata4-predicateVisitor';
 export { OData4UriBuilder } from './breeze-odata4-uriBuilder';
 export { ClassRegistry, ClassRepository, Type } from './class-registry';
+export { ODataHttpClient } from './odata-http-client';
 export {
     InvokableEntry,
     adaptComplexType,
