@@ -211,8 +211,9 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
 
         return new Promise<SaveResult>((resolve, reject) => {
             oData.request({
-                requestUri: url,
                 method: 'POST',
+                requestUri: url,
+                headers: Object.assign({}, this.headers),
                 data: requestData
             },
                 (data: Batch.BatchResponse, response: HttpOData.Response) => {
