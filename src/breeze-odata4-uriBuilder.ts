@@ -108,7 +108,7 @@ export class OData4UriBuilder implements UriBuilder {
   private addExpandOption(entityType: EntityType, queryOptions: QueryOptions, expandClause: ExpandClause): void {
     if (!expandClause) {
       return;
-    };
+    }
 
     // no validate on expand clauses currently.
     // expandClause.validate(entityType);
@@ -141,7 +141,7 @@ export class OData4UriBuilder implements UriBuilder {
   private toWhereODataFragment(entityType: EntityType, wherePredicate: Predicate) {
     if (!wherePredicate) {
       return undefined;
-    };
+    }
 
     // validation occurs inside of the toODataFragment call here.
     return wherePredicate.toODataFragment({ entityType: entityType });
@@ -150,7 +150,7 @@ export class OData4UriBuilder implements UriBuilder {
   private toOrderByODataFragment(entityType: EntityType, orderByClause: OrderByClause): string {
     if (!orderByClause) {
       return undefined;
-    };
+    }
 
     orderByClause.validate(entityType);
     const orderBy = orderByClause.items.map(item => {
@@ -222,7 +222,7 @@ export class OData4UriBuilder implements UriBuilder {
         return option.name;
       }
 
-      return `${option.name}(${subOptions.join(';')})`
+      return `${option.name}(${subOptions.join(';')})`;
     });
 
     const result = expandStrings.length ? `${key}=${expandStrings}` : null;

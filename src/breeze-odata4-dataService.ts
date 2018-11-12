@@ -140,7 +140,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                     const csdlMetadata = this.metadata.dataServices;
 
                     this.metadataAdapters.forEach(a => {
-                        oData.utils.forEachSchema(csdlMetadata, a.adapt.bind(a))
+                        oData.utils.forEachSchema(csdlMetadata, a.adapt.bind(a));
                     });
 
                     // might have been fetched by another query
@@ -357,7 +357,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         if (method === 'GET') {
             request = Object.assign({}, request, { requestUri: this.addQueryString(request.requestUri, query.parameters) });
         } else {
-            const data = query.parameters['$data'] ? this.getData(mappingContext, query.parameters['$data']) : query.parameters
+            const data = query.parameters['$data'] ? this.getData(mappingContext, query.parameters['$data']) : query.parameters;
             request = Object.assign({}, request, { method: method, data: data });
         }
 
@@ -380,16 +380,16 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         }
 
         // check if action exists
-        const config = this.getInvokableConfig((<EntityQuery>mappingContext.query).resourceName);
-        const actionEntry = this.actions.find(e => e.config === config);
+        const invokeConfig = this.getInvokableConfig((<EntityQuery>mappingContext.query).resourceName);
+        const actionEntry = this.actions.find(e => e.config === invokeConfig);
 
         if (!actionEntry) {
             return data;
         }
 
-        const paramIndex = config.isBound ? 1 : 0;
+        const paramIndex = invokeConfig.isBound ? 1 : 0;
 
-        const param = config.parameter.find((p, idx) => {
+        const param = invokeConfig.parameter.find((p, idx) => {
             if (idx < paramIndex || p.type.startsWith('Edm.')) {
                 return false;
             }
@@ -485,7 +485,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
             uriKey = this.getUriKey(aspect);
             aspect.extraMetadata = {
                 uriKey: uriKey
-            }
+            };
         } else {
             uriKey = extraMetadata['uriKey'] || this.getUriKey(aspect);
             if (extraMetadata['etag']) {

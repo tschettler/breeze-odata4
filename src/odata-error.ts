@@ -8,7 +8,7 @@ export class ODataError extends Error {
         super(message);
     }
 
-    public toString() {
+    public toString () {
         return this.name + ': ' + this.message;
     }
 }
