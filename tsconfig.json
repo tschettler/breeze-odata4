@@ -3,7 +3,6 @@
   "compilerOptions": {
     "outDir": "./lib",
     "baseUrl": "",
-    "rootDir": "./src",
     "sourceMap": true,
     "declaration": false,
     "emitDecoratorMetadata": true,
@@ -18,10 +17,8 @@
       "dom"
     ],
     "typeRoots": [
+      "node_modules/@types",
       "typings"
-    ],
-    "types": [
-      "breeze-client"
     ]
   },
   "include": [
@@ -29,6 +26,6 @@
     "typings/**/*.d.ts"
   ],
   "exclude": [
-    "node_modules"
+    "**/*.spec.ts"
   ]
 }
