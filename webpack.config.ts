@@ -1,9 +1,10 @@
-import * as path from 'path';
 import { Configuration } from 'webpack';
+import * as nodeExternals from 'webpack-node-externals';
 
 const config: Configuration = {
-  entry: './src/index.ts',
   devtool: 'inline-source-map',
+  entry: './src/index.ts',
+  externals: [nodeExternals()], // in order to ignore all modules in node_modules folder
   mode: 'development',
   module: {
     rules: [
@@ -17,10 +18,7 @@ const config: Configuration = {
   resolve: {
     extensions: ['.ts', '.js']
   },
-  output: {
-    filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist')
-  }
+  target: 'node', // in order to ignore built-in modules like path, fs, etc.
 };
 
 export default config;
