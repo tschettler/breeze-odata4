@@ -9,7 +9,7 @@
     "/typings"
   ],
   "scripts": {
-    "build": "tsc -d",
+    "build": "tsc && tsc -m es6 --outDir lib-esm",
     "build:prod": "webpack -p --config webpack.prod.ts",
     "prepublish": "npm run test&& npm run build:prod",
     "pretest": "clear",
