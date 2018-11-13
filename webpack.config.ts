@@ -3,7 +3,9 @@ import * as nodeExternals from 'webpack-node-externals';
 
 const config: Configuration = {
   devtool: 'inline-source-map',
-  entry: './src/index.ts',
+  entry: {
+    'breeze-odata4': './src/index.ts',
+  },
   externals: [nodeExternals()], // in order to ignore all modules in node_modules folder
   mode: 'development',
   module: {
@@ -15,10 +17,13 @@ const config: Configuration = {
       }
     ]
   },
+  optimization: {
+    minimize: process.env.NODE_ENV === 'production'
+  },
   resolve: {
     extensions: ['.ts', '.js']
   },
-  target: 'node', // in order to ignore built-in modules like path, fs, etc.
+  target: 'web' // in order to ignore built-in modules like path, fs, etc.
 };
 
 export default config;
