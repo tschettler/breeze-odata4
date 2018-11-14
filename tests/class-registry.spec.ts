@@ -16,8 +16,8 @@ describe('ClassRegistry', () => {
   
     it('should allow retrieving annotation decorators', () => {
       ClassRegistry.AnnotationDecorators.add(DisplayNameDecorator);
-      expect(ClassRegistry.AnnotationDecorators.get()[0]).toEqual(
-        jasmine.any(DisplayNameDecorator)
+      expect(ClassRegistry.AnnotationDecorators.get()).toContainEqual(
+        expect.any(DisplayNameDecorator)
       );
     });
   
