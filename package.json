@@ -2,25 +2,15 @@
   "name": "breeze-odata4",
   "version": "0.9.14",
   "description": "Library to allow OData 4 support for breezejs",
-  "main": "./lib/index.js",
-  "typings": "./lib/index",
-  "files": [
-    "/lib",
-    "/typings"
-  ],
-  "scripts": {
-    "build": "tsc && tsc -m es6 --outDir lib-esm",
-    "build:prod": "webpack --config webpack.prod.ts",
-    "prepublish": "npm run test&& npm run build:prod",
-    "pretest": "clear",
-    "start": "npm test -- --watch",
-    "test": "jest",
-    "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
-    "lint": "tslint --project tsconfig.json **/*.ts"
-  },
+  "author": "Travis Schettler",
+  "homepage": "https://github.com/tschettler/breeze-odata4#readme",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tschettler/breeze-odata4.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tschettler/breeze-odata4/issues"
   },
   "keywords": [
     "breeze",
@@ -30,12 +20,27 @@
     "odata4",
     "typescript"
   ],
-  "author": "Travis Schettler",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/tschettler/breeze-odata4/issues"
+  "main": "dist/breeze-odata4.umd.js",
+  "module": "dist/breeze-odata4.es5.js",
+  "typings": "dist/types/index",
+  "files": [
+    "/dist",
+    "/typings"
+  ],
+  "engines": {
+    "node": ">=6.0.0"
   },
-  "homepage": "https://github.com/tschettler/breeze-odata4#readme",
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "tsc --module commonjs && rollup -c rollup.config.ts",
+    "prepublish": "npm run test&& npm run build:prod",
+    "pretest": "clear",
+    "start": "rollup -c rollup.config.ts -w",
+    "test:watch": "jest --watch",
+    "test": "jest",
+    "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
+    "lint": "tslint --project tsconfig.json **/*.ts"
+  },
   "jest": {
     "transform": {
       ".ts": "ts-jest"
@@ -74,16 +79,20 @@
   "devDependencies": {
     "@types/jest": "^23.3.9",
     "@types/node": "^10.12.5",
-    "@types/webpack": "^4.4.18",
+    "camelcase": "^5.0.0",
     "jest": "^23.6.0",
     "jest-config": "^23.6.0",
+    "rimraf": "^2.6.2",
+    "rollup": "^0.67.1",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-json": "^3.1.0",
+    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-sourcemaps": "^0.4.2",
+    "rollup-plugin-typescript2": "^0.18.0",
     "ts-jest": "^23.10.4",
     "ts-loader": "^5.3.0",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
-    "typescript": "^2.9.2",
-    "webpack": "^4.25.1",
-    "webpack-cli": "^3.1.2",
-    "webpack-node-externals": "^1.7.2"
+    "typescript": "^2.9.2"
   }
 }

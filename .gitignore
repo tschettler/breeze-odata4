@@ -12,4 +12,5 @@ Thumbs.db
 *.map
 *.d.ts
 !typings/**/*.d.ts
+.rpt2_cache
 .vscode/
