@@ -9,6 +9,6 @@ export class ODataError extends Error {
     }
 
     public toString () {
-        return this.name + ': ' + this.message;
+        return `${this.name}: ${this.message}`;
     }
 }
