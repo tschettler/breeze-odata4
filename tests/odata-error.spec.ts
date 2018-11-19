@@ -1,18 +1,18 @@
 import { ODataError } from '../src/odata-error';
 
 describe('ODataError', () => {
-  it('ctor should set message', () => {
+  it('should set message when constructor is called with message', () => {
     const message = 'test error message';
     const sut = new ODataError(message);
     expect(sut.message).toEqual(message);
   });
 
-  it('ctor should create instance of ODataError', () => {
+  it('should create instance of ODataError when constructor is called', () => {
     const sut = new ODataError();
     expect(sut).toBeInstanceOf(ODataError);
   });
 
-  it('toString should return name', () => {
+  it('should return name when toString is called', () => {
     const name = 'ODataError';
     const sut = new ODataError();
     sut.name = name;
@@ -20,7 +20,7 @@ describe('ODataError', () => {
     expect(result).toEqual(`${name}: `);
   });
 
-  it('toString with message set should return name and message', () => {
+  it('should return name and message when toString is called and message is set', () => {
     const name = 'ODataError';
     const message = 'test error message';
     const sut = new ODataError(message);
