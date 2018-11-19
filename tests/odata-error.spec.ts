@@ -1,4 +1,4 @@
-import { ODataError } from './../src/odata-error';
+import { ODataError } from '../src/odata-error';
 
 describe('ODataError', () => {
   it('ctor should set message', () => {
@@ -7,9 +7,9 @@ describe('ODataError', () => {
     expect(sut.message).toEqual(message);
   });
 
-  it('ctor should create instance of Error', () => {
-    const sut: ODataError = new ODataError();
-    expect(sut).toBeInstanceOf(Error);
+  it('ctor should create instance of ODataError', () => {
+    const sut = new ODataError();
+    expect(sut).toBeInstanceOf(ODataError);
   });
 
   it('toString should return name', () => {
@@ -17,7 +17,7 @@ describe('ODataError', () => {
     const sut = new ODataError();
     sut.name = name;
     const result = sut.toString();
-    expect(result).toEqual(name);
+    expect(result).toEqual(`${name}: `);
   });
 
   it('toString with message set should return name and message', () => {
