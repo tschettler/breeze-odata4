@@ -32,7 +32,7 @@
   },
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "tsc --module commonjs && rollup -c rollup.config.ts",
+    "build": "tsc --module commonjs --target es5 && rollup -c rollup.config.ts",
     "prepublish": "npm run test:prod&& npm run build",
     "pretest": "clear",
     "start": "rollup -c rollup.config.ts -w",
