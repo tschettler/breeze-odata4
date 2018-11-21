@@ -41,33 +41,6 @@
     "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
     "lint": "tslint --project tsconfig.json **/*.ts"
   },
-  "jest": {
-    "transform": {
-      ".ts": "ts-jest"
-    },
-    "testEnvironment": "node",
-    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|js)$",
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ],
-    "coveragePathIgnorePatterns": [
-      "/node_modules/",
-      "/tests/"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 0,
-        "functions": 0,
-        "lines": 0,
-        "statements": 0
-      }
-    },
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "src/**/*.{js,ts}"
-    ]
-  },
   "dependencies": {
     "breeze-client": "^1.7.0",
     "ts-odatajs": "^4.0.4"
@@ -93,6 +66,6 @@
     "ts-loader": "^5.3.0",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
-    "typescript": "^2.9.2"
+    "typescript": "^3.1.6"
   }
 }
