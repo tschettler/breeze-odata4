@@ -1,7 +1,7 @@
 import { core } from 'breeze-client';
 import { Edm } from 'ts-odatajs';
 
-import { getDataType } from '../utilities';
+import { Utilities } from '../utilities';
 import { AnnotationDecorator } from './annotation-decorator';
 
 export interface Publication {
@@ -36,7 +36,7 @@ export class PublicationDecorator implements AnnotationDecorator {
 
         const propName = annotation.term.replace(PublicationTerm, '');
 
-        const dataType = getDataType(valueKey);
+        const dataType = Utilities.getDataType(valueKey);
         const parsedValue = dataType.parse(value, 'string');
 
         expression.publication = expression.publication instanceof Object ? expression.publication : {};

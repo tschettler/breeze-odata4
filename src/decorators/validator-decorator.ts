@@ -1,7 +1,7 @@
 import { core } from 'breeze-client';
 import { Edm } from 'ts-odatajs';
 
-import { getDataType } from '../utilities';
+import { Utilities } from '../utilities';
 import { AnnotationDecorator } from './annotation-decorator';
 
 export interface ExpressionWithValidators extends Edm.Base.Annotatable {
@@ -36,7 +36,7 @@ export class ValidatorDecorator implements AnnotationDecorator {
             expression.validators.push(validator);
         }
 
-        const dataType = getDataType(valueKey);
+        const dataType = Utilities.getDataType(valueKey);
         validator[prop] = dataType.parse(value, 'string');
     }
 }

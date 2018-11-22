@@ -35,7 +35,7 @@ import { StoreGeneratedPatternDecorator } from './decorators/store-generated-pat
 import { ValidatorDecorator } from './decorators/validator-decorator';
 import { ODataError } from './odata-error';
 import { ODataHttpClient } from './odata-http-client';
-import { adaptStructuralType, getActions, getEdmTypeFromTypeName, getFunctions, InvokableEntry } from './utilities';
+import { Utilities, InvokableEntry } from './utilities';
 
 // Seems crazy, but this is the only way I can find to do the inheritance
 export class ProxyDataService { }
@@ -154,8 +154,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                         metadataStore.addDataService(dataService);
                     }
 
-                    this.actions = getActions(this.metadata, metadataStore);
-                    this.functions = getFunctions(this.metadata, metadataStore);
+                    this.actions = Utilities.getActions(this.metadata, metadataStore);
+                    this.functions = Utilities.getFunctions(this.metadata, metadataStore);
 
                     resolve(csdlMetadata);
 
@@ -401,12 +401,12 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
             return data;
         }
 
-        const edmType = getEdmTypeFromTypeName(this.metadata, param.type);
+        const edmType = Utilities.getEdmTypeFromTypeName(this.metadata, param.type);
         if (!edmType) {
             return data;
         }
 
-        const structuralType = adaptStructuralType(mappingContext.metadataStore, edmType);
+        const structuralType = Utilities.adaptStructuralType(mappingContext.metadataStore, edmType);
 
         if (structuralType instanceof EntityType) {
             data = (<EntityType>structuralType).createEntity(data);

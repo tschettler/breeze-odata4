@@ -1,7 +1,7 @@
 import { core } from 'breeze-client';
 import { Edm } from 'ts-odatajs';
 
-import { getDataType } from '../utilities';
+import { Utilities } from '../utilities';
 import { AnnotationDecorator } from './annotation-decorator';
 
 export interface ExpressionWithCustom extends Edm.Base.Annotatable {
@@ -31,7 +31,7 @@ export class CustomDecorator implements AnnotationDecorator {
             return;
         }
 
-        const dataType = getDataType(valueKey);
+        const dataType = Utilities.getDataType(valueKey);
         const customValue = dataType.parse(value, 'string');
 
         expression.custom = expression.custom instanceof Object ? expression.custom : {};
