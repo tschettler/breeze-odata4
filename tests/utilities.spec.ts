@@ -245,7 +245,7 @@ describe('Utilities', () => {
     });
 
     it('should return one item if schema contains one item', () => {
-      const item: Edm.Function = { name: 'TestAction' };
+      const item: Edm.Function = { name: 'TestFunction' };
       metadata.dataServices.schema[0].function = [item];
       const result = Utilities.getFunctions(metadata, metadataStore);
       expect(result).toHaveLength(1);
@@ -253,6 +253,35 @@ describe('Utilities', () => {
   });
 
   describe('getInvokableUrl', () => {
+    it('should return unbound path for unbound action', () => {
+      const item: Edm.Action = { name: 'TestAction' };
+      const result = Utilities.getInvokableUrl(metadata, metadataStore, item, schema.namespace);
+      expect(result).toEqual(`${schema.namespace}.${item.name}`);
+    });
 
+    it('should return bound path for bound action', () => {
+      const item: Edm.Action = {
+        name: 'TestAction',
+        isBound: 'true',
+        parameter: [<Edm.Parameter>{ type: `${schema.namespace}.${personEntityType.name}` }]
+      };
+      const result = Utilities.getInvokableUrl(metadata, metadataStore, item, schema.namespace);
+      const breezeType = Utilities.adaptEntityType(metadataStore, personEntityType);
+
+      expect(result).toEqual(`${breezeType.defaultResourceName}/${schema.namespace}.${item.name}`);
+    });
+
+    it('should return unbound path for bound action with no breeze type', () => {
+      const animalEntityType = <Edm.EntityType>{ name: 'Animal' };
+      schema.entityType.push(animalEntityType);
+      const item: Edm.Action = {
+        name: 'TestAction',
+        isBound: 'true',
+        parameter: [<Edm.Parameter>{ type: `${schema.namespace}.${animalEntityType.name}` }]
+      };
+      const result = Utilities.getInvokableUrl(metadata, metadataStore, item, schema.namespace);
+
+      expect(result).toEqual(`${schema.namespace}.${item.name}`);
+    });
   });
 });

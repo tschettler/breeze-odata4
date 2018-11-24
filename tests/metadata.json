@@ -3,6 +3,7 @@
         {
             "namespace": "UnitTesting",
             "shortName": "Person",
+            "defaultResourceName": "Person",
             "complexProperties": [],
             "dataProperties": [
                 {
