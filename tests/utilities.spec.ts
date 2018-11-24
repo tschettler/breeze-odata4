@@ -98,35 +98,53 @@ describe('Utilities', () => {
   });
 
   describe('getEdmTypeFromTypeName', () => {
-    it('should return entityType', () => {
-      const personEntityType: Edm.EntityType = {
-        name: 'Person'
-      };
-      const addressComplexType: Edm.ComplexType = {
-        name: 'Address'
-      };
-      const schema: Edm.Schema = {
-        namespace: 'UnitTesting',
-        entityContainer: {
-          name: 'Default',
-          entitySet: []
-        },
-        entityType: [
-          personEntityType
-        ],
-        complexType: [
-          addressComplexType
-        ]
-      };
-      const metadata: Edmx.Edmx = {
-        version: '4.0',
-        dataServices: {
-          schema: [schema]
-        }
-      };
 
+
+    const personEntityType: Edm.EntityType = {
+      name: 'Person'
+    };
+    const addressComplexType: Edm.ComplexType = {
+      name: 'Address'
+    };
+    const schema: Edm.Schema = {
+      namespace: 'UnitTesting',
+      entityContainer: {
+        name: 'Default',
+        entitySet: []
+      },
+      entityType: [
+        personEntityType
+      ],
+      complexType: [
+        addressComplexType
+      ]
+    };
+    const metadata: Edmx.Edmx = {
+      version: '4.0',
+      dataServices: {
+        schema: [schema]
+      }
+    };
+
+    it('should return the entityType for an entity type name', () => {
       const result = Utilities.getEdmTypeFromTypeName(metadata, `${schema.namespace}.${personEntityType.name}`);
       expect(result).toEqual(personEntityType);
     });
+
+    it('should return the correct complexType for a complex type name', () => {
+      const result = Utilities.getEdmTypeFromTypeName(metadata, `${schema.namespace}.${addressComplexType.name}`);
+      expect(result).toEqual(addressComplexType);
+    });
+
+    it('should return null if the type is not found', () => {
+      const result = Utilities.getEdmTypeFromTypeName(metadata, `${schema.namespace}.unknown`);
+      expect(result).toBeNull();
+    });
+
+    it('should return null if the name is not fully qualified', () => {
+      const result = Utilities.getEdmTypeFromTypeName(metadata, personEntityType.name);
+      expect(result).toBeNull();
+    });
+
   });
 });
