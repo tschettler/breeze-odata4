@@ -1,0 +1,26 @@
+{
+    "structuralTypes": [
+        {
+            "namespace": "UnitTesting",
+            "shortName": "Person",
+            "complexProperties": [],
+            "dataProperties": [
+                {
+                    "name": "personId",
+                    "isPartOfKey": true
+                },
+                {
+                    "name": "firstName"
+                }
+            ],
+            "navigationProperties": []
+        },
+        {
+            "isComplexType": true,
+            "namespace": "UnitTesting",
+            "shortName": "Address",
+            "complexProperties": [],
+            "dataProperties": []
+        }
+    ]
+}
