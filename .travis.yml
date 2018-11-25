@@ -1,9 +1,21 @@
-language: nodejs
-node_js:
-- "10"
+sudo: false
 
-install:
-- npm install
+os:
+  - linux
+  - osx
+
+language: node_js
+
+node_js:
+  - 'node'
+
+cache:
+  yarn: true
+  directories:
+    - node_modules
+
+notifications:
+  email: false
 
 script:
-- npm run build
+  - npm run prepublishOnly

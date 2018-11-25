@@ -31,15 +31,15 @@
     "node": ">=6.0.0"
   },
   "scripts": {
-    "prebuild": "rimraf dist",
     "build": "tsc --module commonjs --target es5 && rollup -c rollup.config.ts",
-    "prepublish": "npm run test:prod&& npm run build",
+    "lint": "tslint --project tsconfig.json",
+    "prebuild": "rimraf dist",
+    "prepublishOnly": "npm run test:prod && npm run build",
     "pretest": "clear",
     "start": "rollup -c rollup.config.ts -w",
-    "test:watch": "jest --watch",
     "test": "jest --verbose",
     "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
-    "lint": "tslint --project tsconfig.json **/*.ts"
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "breeze-client": "^1.7.0",
