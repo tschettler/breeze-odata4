@@ -37,7 +37,7 @@
     "pretest": "clear",
     "start": "rollup -c rollup.config.ts -w",
     "test:watch": "jest --watch",
-    "test": "jest",
+    "test": "jest --verbose",
     "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
     "lint": "tslint --project tsconfig.json **/*.ts"
   },
