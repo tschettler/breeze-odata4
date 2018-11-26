@@ -40,7 +40,7 @@ export class OData4UriBuilder implements UriBuilder {
   }
 
   public initialize(): void {
-    OData4PredicateVisitor.register();
+    OData4PredicateVisitor.initialize();
   }
 
   public buildUri(entityQuery: EntityQuery, metadataStore: MetadataStore) {
