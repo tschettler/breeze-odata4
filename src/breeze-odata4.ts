@@ -11,6 +11,7 @@ import {
   StoreGeneratedPatternDecorator,
   ValidatorDecorator
 } from './decorators/decorators';
+import { Utilities } from './utilities';
 
 export class BreezeOData4 {
   private static isConfigured = false;
@@ -52,7 +53,9 @@ export class BreezeOData4 {
     DataType.DateTimeOffset.fmtOData = fmtDateTimeOffset;
     DataType.Time.fmtOData = fmtTime;
     DataType.Guid.fmtOData = fmtGuid;
+
     DataType.Duration = DataType.Time;
+    Utilities.dataTypeMap.duration = DataType.Duration;
 
     // TODO: This may need to be cleaned up later
     DataType.Stream = DataType.addSymbol({
@@ -61,6 +64,7 @@ export class BreezeOData4 {
       fmtOData: DataType.String.fmtOData,
       validatorCtor: Validator.string
     });
+    Utilities.dataTypeMap.stream = DataType.Stream;
 
     // TODO: This may need to be cleaned up later
     DataType.TimeOfDay = DataType.addSymbol({
@@ -69,6 +73,7 @@ export class BreezeOData4 {
       fmtOData: DataType.String.fmtOData,
       validatorCtor: Validator.string
     });
+    Utilities.dataTypeMap.timeofday = DataType.TimeOfDay;
 
     function fmtFloat(val: any): any {
       if (val === null) {
