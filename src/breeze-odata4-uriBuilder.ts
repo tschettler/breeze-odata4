@@ -32,7 +32,8 @@ export interface ExpandOptions extends QueryOptionsBase {
 }
 
 export class OData4UriBuilder implements UriBuilder {
-  public name = 'OData4';
+  public static BreezeAdapterName = 'OData4';
+  public name = OData4UriBuilder.BreezeAdapterName;
 
   public static register() {
     config.registerAdapter('uriBuilder', OData4UriBuilder);

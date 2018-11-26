@@ -1,5 +1,7 @@
 /// <reference path="../typings/breeze-client/index.d.ts" />
 
+export { BreezeOData4 } from './breeze-odata4';
+export { JsonResultsAdapterFactory } from './breeze-jsonResultsAdapter-factory';
 export { OData4DataService } from './breeze-odata4-dataService';
 export { OData4PredicateVisitor } from './breeze-odata4-predicateVisitor';
 export { OData4UriBuilder } from './breeze-odata4-uriBuilder';
