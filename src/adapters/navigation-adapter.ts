@@ -1,6 +1,6 @@
 import { Edm, EdmExtra, Edmx, oData } from 'ts-odatajs';
 
-import { MetadataAdapter } from './metadata-adapter';
+import { MetadataAdapter } from './adapters';
 
 export class NavigationAdapter implements MetadataAdapter {
     private metadata: Edmx.DataServices;
