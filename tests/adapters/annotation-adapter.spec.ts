@@ -1,10 +1,8 @@
-import { AnnotationDecorator } from './../../dist/types/decorators/annotation-decorator.d';
 import { Edm, Edmx } from 'ts-odatajs';
 import { TargetNotFound } from './../../src/adapters/annotation-adapter';
-import { AnnotationAdapter } from '../../src/adapters/annotation-adapter';
+import { AnnotationAdapter } from '../../src/adapters/adapters';
 import { ClassRegistry } from '../../src/class-registry';
-import { DisplayNameDecorator } from '../../src/decorators/decorators';
-import { formatNumberWidth, EDM_BINARY } from 'ts-odatajs/lib/odata/odatautils';
+import { DisplayNameDecorator, AnnotationDecorator } from '../../src/decorators/decorators';
 
 let sut: AnnotationAdapter;
 let metadata: Edmx.Edmx;
