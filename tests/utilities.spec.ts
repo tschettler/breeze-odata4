@@ -88,7 +88,7 @@ describe('Utilities', () => {
       const type = 'duration';
 
       const result = Utilities.getDataType(type);
-      expect(result).toEqual(DataType.Duration);
+      expect(result).toEqual(DataType['Duration']);
     });
 
     it('should return DataType.Double for "float".', () => {
@@ -123,7 +123,7 @@ describe('Utilities', () => {
       const type = 'stream';
 
       const result = Utilities.getDataType(type);
-      expect(result).toEqual(DataType.Stream);
+      expect(result).toEqual(DataType['Stream']);
     });
 
     it('should return DataType.String for "string".', () => {
@@ -137,7 +137,7 @@ describe('Utilities', () => {
       const type = 'timeofday';
 
       const result = Utilities.getDataType(type);
-      expect(result).toEqual(DataType.TimeOfDay);
+      expect(result).toEqual(DataType['TimeOfDay']);
     });
   });
 
