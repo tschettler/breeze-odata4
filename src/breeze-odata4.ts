@@ -76,7 +76,7 @@ export class BreezeOData4 {
     Utilities.dataTypeMap.timeofday = DataType.TimeOfDay;
 
     function fmtFloat(val: any): any {
-      if (val === null) {
+      if (typeof val === 'undefined' || val === null) {
         return null;
       }
 
