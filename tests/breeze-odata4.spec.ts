@@ -1,11 +1,9 @@
 import { Utilities } from './../src/utilities';
-import { config, DataType, DataTypeSymbol } from 'breeze-client';
+import { config, DataType } from 'breeze-client';
 import { BreezeOData4 } from './../src/breeze-odata4';
 import { ClassRegistry } from '../src/class-registry';
-import { AnnotationAdapter } from '../src/adapters/adapters';
 import { OData4UriBuilder } from '../src/breeze-odata4-uriBuilder';
 import { OData4DataService } from '../src/breeze-odata4-dataService';
-import { AnnotationDecorator } from '../src/decorators/decorators';
 
 describe('BreezeOData4', () => {
   it('should register UriBuilder when configure is called', () => {
