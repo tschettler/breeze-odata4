@@ -32,7 +32,7 @@ export class JsonResultsAdapterFactory {
     let entityType: EntityType;
     let entityTypeName: string;
     if (nodeContext.nodeType === 'root') {
-      if (mappingContext.query) {
+      if (mappingContext.query instanceof EntityQuery) {
         const eq = mappingContext.query as EntityQuery;
         if (eq.resultEntityType) {
           entityType = eq.resultEntityType;
@@ -72,7 +72,7 @@ export class JsonResultsAdapterFactory {
 
     // OData v3 - projection arrays will be enclosed in a results array
     if (workingNode.results) {
-      (<any>result).node = workingNode.results;
+      result.node = workingNode.results;
     }
 
     const propertyName = nodeContext.propertyName;
@@ -81,7 +81,6 @@ export class JsonResultsAdapterFactory {
       propertyName === '__metadata' ||
       // EntityKey properties can be produced by EDMX models
       (propertyName === 'EntityKey' && workingNode.$type && core.stringStartsWith(workingNode.$type, 'System.Data'));
-    result.ignore = false;
 
     return result;
   }
