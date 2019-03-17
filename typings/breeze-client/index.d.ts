@@ -286,6 +286,7 @@ declare module "breeze-client"
 
     export interface VisitNodeResult {
         entityType?: EntityType;
+        node?: any;
         nodeId?: any;
         nodeRefId?: any;
         ignore?: boolean;
@@ -912,7 +913,9 @@ declare module "breeze-client"
     export class NavigationProperty implements IProperty {
         associationName: string;
         entityType: EntityType;
+        entityTypeName: string;
         foreignKeyNames: string[];
+        foreignKeyNamesOnServer: string[];
         inverse: NavigationProperty;
         isDataProperty: boolean;
         isNavigationProperty: boolean;
