@@ -93,7 +93,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     // only prefix with serviceName if not already on the url
     let base = core.stringStartsWith(url, serviceName) ? '' : serviceName;
     // If no protocol, turn base into an absolute URI
-    if (window && serviceName.startsWith('//')) {
+    if (typeof window !== 'undefined' && !serviceName.startsWith('//')) {
       // no protocol; make it absolute
       base = `${location.origin}${core.stringStartsWith(serviceName, '/') ? '' : '/'}${base}`;
     }

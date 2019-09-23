@@ -164,7 +164,7 @@ export class OData4UriBuilder implements UriBuilder {
     return orderBy.toString();
   }
 
-  private toQueryOptionsString(queryOptions) {
+  private toQueryOptionsString(queryOptions: QueryOptions) {
     let qoStrings = [];
     for (const qoName of Object.getOwnPropertyNames(queryOptions)) {
       const qoValue = queryOptions[qoName];
