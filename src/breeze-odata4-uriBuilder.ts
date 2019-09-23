@@ -32,14 +32,15 @@ export interface ExpandOptions extends QueryOptionsBase {
 }
 
 export class OData4UriBuilder implements UriBuilder {
-  public name = 'OData4';
+  public static BreezeAdapterName = 'OData4';
+  public name = OData4UriBuilder.BreezeAdapterName;
 
   public static register() {
     config.registerAdapter('uriBuilder', OData4UriBuilder);
   }
 
   public initialize(): void {
-    OData4PredicateVisitor.register();
+    OData4PredicateVisitor.initialize();
   }
 
   public buildUri(entityQuery: EntityQuery, metadataStore: MetadataStore) {
@@ -108,7 +109,7 @@ export class OData4UriBuilder implements UriBuilder {
   private addExpandOption(entityType: EntityType, queryOptions: QueryOptions, expandClause: ExpandClause): void {
     if (!expandClause) {
       return;
-    };
+    }
 
     // no validate on expand clauses currently.
     // expandClause.validate(entityType);
@@ -141,7 +142,7 @@ export class OData4UriBuilder implements UriBuilder {
   private toWhereODataFragment(entityType: EntityType, wherePredicate: Predicate) {
     if (!wherePredicate) {
       return undefined;
-    };
+    }
 
     // validation occurs inside of the toODataFragment call here.
     return wherePredicate.toODataFragment({ entityType: entityType });
@@ -150,7 +151,7 @@ export class OData4UriBuilder implements UriBuilder {
   private toOrderByODataFragment(entityType: EntityType, orderByClause: OrderByClause): string {
     if (!orderByClause) {
       return undefined;
-    };
+    }
 
     orderByClause.validate(entityType);
     const orderBy = orderByClause.items.map(item => {
@@ -163,7 +164,7 @@ export class OData4UriBuilder implements UriBuilder {
     return orderBy.toString();
   }
 
-  private toQueryOptionsString(queryOptions) {
+  private toQueryOptionsString(queryOptions: QueryOptions) {
     let qoStrings = [];
     for (const qoName of Object.getOwnPropertyNames(queryOptions)) {
       const qoValue = queryOptions[qoName];
@@ -222,7 +223,7 @@ export class OData4UriBuilder implements UriBuilder {
         return option.name;
       }
 
-      return `${option.name}(${subOptions.join(';')})`
+      return `${option.name}(${subOptions.join(';')})`;
     });
 
     const result = expandStrings.length ? `${key}=${expandStrings}` : null;

@@ -20,6 +20,6 @@ export class ClassRepository<T> {
 }
 
 export class ClassRegistry {
-    public static MetadataAdapters = new ClassRepository<MetadataAdapter>();
     public static AnnotationDecorators = new ClassRepository<AnnotationDecorator>();
+    public static MetadataAdapters = new ClassRepository<MetadataAdapter>();
 }

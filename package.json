@@ -2,21 +2,15 @@
   "name": "breeze-odata4",
   "version": "0.9.14",
   "description": "Library to allow OData 4 support for breezejs",
-  "main": "./lib/index.js",
-  "typings": "./lib/index",
-  "files": [
-    "/lib",
-    "/typings"
-  ],
-  "scripts": {
-    "build": "tsc -d",
-    "prepublish": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "tslint src/**/*.ts"
-  },
+  "author": "Travis Schettler",
+  "homepage": "https://github.com/tschettler/breeze-odata4#readme",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tschettler/breeze-odata4.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tschettler/breeze-odata4/issues"
   },
   "keywords": [
     "breeze",
@@ -26,12 +20,27 @@
     "odata4",
     "typescript"
   ],
-  "author": "Travis Schettler",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/tschettler/breeze-odata4/issues"
+  "main": "dist/breeze-odata4.umd.js",
+  "module": "dist/breeze-odata4.es5.js",
+  "typings": "dist/types/index",
+  "files": [
+    "/dist",
+    "/typings"
+  ],
+  "engines": {
+    "node": ">=6.0.0"
   },
-  "homepage": "https://github.com/tschettler/breeze-odata4#readme",
+  "scripts": {
+    "build": "tsc --module commonjs --target es5 && rollup -c rollup.config.ts",
+    "lint": "tslint --project tsconfig.json",
+    "prebuild": "rimraf dist",
+    "prepublishOnly": "npm run test:prod && npm run build",
+    "pretest": "clear",
+    "start": "rollup -c rollup.config.ts -w",
+    "test": "jest --verbose",
+    "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
+    "test:watch": "jest --watch"
+  },
   "dependencies": {
     "breeze-client": "^1.7.0",
     "ts-odatajs": "^4.0.4"
@@ -41,6 +50,22 @@
     "ts-odatajs": "^4.0.4"
   },
   "devDependencies": {
-    "typescript": "^2.7.2"
+    "@types/jest": "^23.3.9",
+    "@types/node": "^10.12.5",
+    "camelcase": "^5.0.0",
+    "jest": "^23.6.0",
+    "jest-config": "^23.6.0",
+    "rimraf": "^2.6.2",
+    "rollup": "^0.67.1",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-json": "^3.1.0",
+    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-sourcemaps": "^0.4.2",
+    "rollup-plugin-typescript2": "^0.18.0",
+    "ts-jest": "^23.10.4",
+    "ts-loader": "^5.3.0",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.11.0",
+    "typescript": "^3.1.6"
   }
 }

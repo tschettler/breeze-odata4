@@ -2,7 +2,7 @@ import { Predicate, PredicateContext, PredicateVisitor } from 'breeze-client';
 
 
 export class OData4PredicateVisitor implements PredicateVisitor {
-    public static register(): void {
+    public static initialize(): void {
         const visitor = new OData4PredicateVisitor();
         Predicate.prototype.toODataFragment = function (context) {
             return this.visit(context, visitor);

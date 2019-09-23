@@ -1,0 +1,61 @@
+{
+    "structuralTypes": [
+        {
+            "namespace": "UnitTesting",
+            "shortName": "Person",
+            "defaultResourceName": "Person",
+            "complexProperties": [],
+            "dataProperties": [
+                {
+                    "name": "personId",
+                    "isPartOfKey": true
+                },
+                {
+                    "name": "firstName"
+                }
+            ],
+            "navigationProperties": [
+                {
+                    "name": "id",
+                    "entityTypeName": "Identification:#UnitTesting"
+                },
+                {
+                    "name": "spouse",
+                    "entityTypeName": "Person:#UnitTesting"
+                }
+            ]
+        },
+        {
+            "namespace": "UnitTesting",
+            "shortName": "Identification",
+            "defaultResourceName": "Identification",
+            "complexProperties": [],
+            "dataProperties": [
+                {
+                    "name": "identificationId",
+                    "isPartOfKey": true
+                },
+                {
+                    "name": "idType"
+                }
+            ],
+            "navigationProperties": [
+                {
+                    "name": "person",
+                    "entityTypeName": "Person:#UnitTesting"
+                }
+            ]
+        },
+        {
+            "isComplexType": true,
+            "namespace": "UnitTesting",
+            "shortName": "Address",
+            "complexProperties": [],
+            "dataProperties": [
+                {
+                    "name": "address1"
+                }
+            ]
+        }
+    ]
+}

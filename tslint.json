@@ -1,4 +1,10 @@
 {
+  "linterOptions": {
+    "exclude": [
+      "node_modules/**/*.ts",
+      "typings/**/*.ts"
+    ]
+  },
   "rules": {
     "callable-types": true,
     "class-name": true,
@@ -66,9 +72,7 @@
       "single"
     ],
     "radix": true,
-    "semicolon": [
-      "always"
-    ],
+    "semicolon": true,
     "triple-equals": [
       true,
       "allow-null-check"
@@ -83,7 +87,6 @@
         "variable-declaration": "nospace"
       }
     ],
-    "typeof-compare": true,
     "unified-signatures": true,
     "variable-name": false,
     "whitespace": [

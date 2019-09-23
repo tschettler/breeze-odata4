@@ -6,9 +6,12 @@ export class ODataError extends Error {
 
     constructor(message?: string) {
         super(message);
+
+        // set the prototype explicitly
+        Object.setPrototypeOf(this, ODataError.prototype);
     }
 
-    public toString() {
-        return this.name + ': ' + this.message;
+    public toString = (): string => {
+        return `${this.name}: ${this.message}`;
     }
 }

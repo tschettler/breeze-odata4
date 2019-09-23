@@ -286,6 +286,7 @@ declare module "breeze-client"
 
     export interface VisitNodeResult {
         entityType?: EntityType;
+        node?: any;
         nodeId?: any;
         nodeRefId?: any;
         ignore?: boolean;
@@ -912,7 +913,9 @@ declare module "breeze-client"
     export class NavigationProperty implements IProperty {
         associationName: string;
         entityType: EntityType;
+        entityTypeName: string;
         foreignKeyNames: string[];
+        foreignKeyNamesOnServer: string[];
         inverse: NavigationProperty;
         isDataProperty: boolean;
         isNavigationProperty: boolean;
@@ -1211,7 +1214,7 @@ declare module "breeze-client"
         this method returns the "default" adapter for this interface. If there is no default adapter, then a null is returned.
         @returns {Function|null} Returns either a ctor function or null.
         **/
-        export function getAdapter(interfaceName: string, adapterName?: string): Function;
+        export function getAdapter(interfaceName: keyof AdapterInstancesConfig, adapterName?: string): Function;
         /**
         Returns the adapter instance corresponding to the specified interface and adapter names.
         @param interfaceName {String} The name of the interface.
@@ -1220,7 +1223,7 @@ declare module "breeze-client"
         no defaultInstance of this interface, then the first registered instance of this interface is returned.
         @return {an instance of the specified adapter}
         **/
-        export function getAdapterInstance(interfaceName: string, adapterName?: string): Object;
+        export function getAdapterInstance(interfaceName: keyof AdapterInstancesConfig, adapterName?: string): Object;
         /**
         Initializes a single adapter implementation. Initialization means either newing a instance of the
         specified interface and then calling "initialize" on it or simply calling "initialize" on the instance
@@ -1230,7 +1233,7 @@ declare module "breeze-client"
         @param isDefault=true {Boolean} - Whether to make this the default "adapter" for this interface.
         @return {an instance of the specified adapter}
         **/
-        export function initializeAdapterInstance(interfaceName: string, adapterName: string, isDefault?: boolean): Object;
+        export function initializeAdapterInstance(interfaceName: keyof AdapterInstancesConfig, adapterName: string, isDefault?: boolean): Object;
 
         export interface AdapterInstancesConfig {
             /** the name of a previously registered "ajax" adapter */
@@ -1257,7 +1260,7 @@ declare module "breeze-client"
         @param interfaceName {String} - one of the following interface names "ajax", "dataService" or "modelLibrary"
         @param adapterCtor {Function} - an ctor function that returns an instance of the specified interface.
         **/
-        export function registerAdapter(interfaceName: string, adapterCtor: Function): void;
+        export function registerAdapter(interfaceName: keyof AdapterInstancesConfig, adapterCtor: Function): void;
         export function registerFunction(fn: Function, fnName: string): void;
         export function registerType(ctor: Function, typeName: string): void;
         //static setProperties(config: Object): void; //deprecated

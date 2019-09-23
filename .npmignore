@@ -1,4 +1,5 @@
 # Node generated files
+coverage
 node_modules
 npm-debug.log
 
@@ -9,4 +10,5 @@ Thumbs.db
 # Ignored files
 *.ts
 !*.d.ts
+.rpt2_cache
 .travis.yml
