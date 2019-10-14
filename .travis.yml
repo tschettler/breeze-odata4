@@ -19,3 +19,6 @@ notifications:
 
 script:
   - npm run prepublishOnly
+after_success:
+  - npm run report-coverage
+  - npm run deploy-docs
