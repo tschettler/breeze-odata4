@@ -7,7 +7,7 @@ import { DisplayNameDecorator, AnnotationDecorator } from '../../src/decorators/
 let sut: AnnotationAdapter;
 let metadata: Edmx.Edmx;
 
-const MockDecorator = jest.fn<AnnotationDecorator>(() => ({
+const MockDecorator = jest.fn<AnnotationDecorator, []>(() => ({
   canDecorate: () => true,
   decorate: jest.fn()
 }));

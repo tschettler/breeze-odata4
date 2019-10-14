@@ -19,7 +19,7 @@ import { OData4DataService } from './../src/breeze-odata4-dataService';
 const metadataXml = fs.readFileSync(path.join(__dirname, './metadata.xml'), 'utf-8');
 jest.mock('../src/class-registry');
 
-const MockWebApiDataService = jest.fn<DataServiceAdapter>(() => ({
+const MockWebApiDataService = jest.fn<DataServiceAdapter, []>(() => (<any>{
     name: 'WebApi',
     _catchNoConnectionError: jest.fn(),
     _createChangeRequestInterceptor: jest.fn(),

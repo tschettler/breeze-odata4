@@ -1,9 +1,7 @@
 import { MetadataAdapter } from './adapters/metadata-adapter';
 import { AnnotationDecorator } from './decorators/annotation-decorator';
 
-export interface Type<T> {
-    new (): T;
-}
+export type Type<T> = new () => T;
 
 export class ClassRepository<T> {
     public types: Type<T>[] = [];
