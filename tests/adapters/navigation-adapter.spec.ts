@@ -1,9 +1,11 @@
-import { NavigationAdapter } from './../../src/adapters/adapters';
 import { Edm, Edmx } from 'ts-odatajs';
+
 import { EntityNotFound } from '../../src/adapters/navigation-adapter';
+import { NavigationAdapter } from './../../src/adapters/adapters';
 
 let metadata: Edmx.Edmx;
 let sut: NavigationAdapter;
+const metadataJson = require('../metadata.json');
 
 function getCategoryEntityType(): Edm.EntityType {
   return {
@@ -51,8 +53,9 @@ function getOneToManyEntityTypes(): Edm.EntityType[] {
   const productEntityType = getProductEntityType();
   const supplierEntityType = getSupplierEntityType();
 
-  productEntityType.navigationProperty = [{ name: 'Supplier', type: 'UnitTesting.Supplier' }];
-  supplierEntityType.navigationProperty = [{ name: 'Products', type: 'Collection(UnitTesting.Product)' }];
+  productEntityType.navigationProperty = [{ name: 'Supplier', type: 'UnitTesting.Supplier', partner: 'Products' }];
+  supplierEntityType.navigationProperty = [
+    { name: 'Products', type: 'Collection(UnitTesting.Product)', partner: 'Supplier' }];
 
   return [productEntityType, supplierEntityType];
 }
@@ -83,6 +86,8 @@ const schema: Edm.Schema = {
 describe('NavigationAdapter', () => {
   beforeEach(() => {
     sut = new NavigationAdapter();
+    NavigationAdapter.inferPartner = true;
+
     // delete schema.association;
     metadata = {
       version: '4.0',
@@ -90,6 +95,120 @@ describe('NavigationAdapter', () => {
         schema: [schema]
       }
     };
+  });
+
+  describe('with inferPartner = false', () => {
+    beforeEach(() => {
+      NavigationAdapter.inferPartner = false;
+    });
+
+    it('should add associations when adapt is called with a 1:1 entity relationship', () => {
+      schema.entityType = getOneToOneEntityTypes();
+
+      sut.adapt(metadata.dataServices);
+
+      expect(schema.association).toHaveLength(2);
+      expect(schema.association[0].name).toBe('Product_ProductDetail_ProductDetail_ProductDetailPartner');
+      expect(schema.association[0].end).toContainEqual(
+        expect.objectContaining({
+          multiplicity: '1',
+          role: 'Product_ProductDetail'
+        })
+      );
+
+      expect(schema.association[0].end).toContainEqual(
+        expect.objectContaining({
+          multiplicity: '1',
+          role: 'ProductDetail_ProductDetailPartner'
+        })
+      );
+    });
+
+    it('should add associations when adapt is called with a M:M entity relationship', () => {
+      schema.entityType = getManyToManyEntityTypes();
+
+      sut.adapt(metadata.dataServices);
+
+      expect(schema.association).toHaveLength(2);
+      expect(schema.association[0].name).toBe('Category_Products_Product_ProductsPartner');
+      expect(schema.association[0].end).toContainEqual(
+        expect.objectContaining({
+          multiplicity: '*',
+          role: 'Category_Products'
+        })
+      );
+
+      expect(schema.association[0].end).toContainEqual(
+        expect.objectContaining({
+          multiplicity: '1',
+          role: 'Product_ProductsPartner'
+        })
+      );
+
+      expect(schema.association[1].name).toBe('Product_Categories_Category_CategoriesPartner');
+      expect(schema.association[1].end).toContainEqual(
+        expect.objectContaining({
+          multiplicity: '*',
+          role: 'Product_Categories'
+        })
+      );
+
+      expect(schema.association[1].end).toContainEqual(
+        expect.objectContaining({
+          multiplicity: '1',
+          role: 'Category_CategoriesPartner'
+        })
+      );
+
+    });
+
+    it('should add associations when adapt is called with a 1:M entity relationship with missing first partner', () => {
+      schema.entityType = getOneToManyEntityTypes();
+      schema.entityType[0].navigationProperty[0].partner = null;
+
+      sut.adapt(metadata.dataServices);
+
+      expect(schema.association).toHaveLength(1);
+      expect(schema.association[0].name).toBe('Product_Supplier_Supplier_Products');
+
+      expect(schema.association[0].end).toContainEqual(
+        expect.objectContaining({
+          multiplicity: '1',
+          role: 'Product_Supplier'
+        })
+      );
+
+      expect(schema.association[0].end).toContainEqual(
+        expect.objectContaining({
+          multiplicity: '*',
+          role: 'Supplier_Products'
+        })
+      );
+    });
+
+    it('should add associations when adapt is called with a 1:M entity relationship with missing second partner', () => {
+      schema.entityType = getOneToManyEntityTypes();
+      schema.entityType[1].navigationProperty[0].partner = null;
+
+      sut.adapt(metadata.dataServices);
+
+      expect(schema.association).toHaveLength(1);
+      expect(schema.association[0].name).toBe('Product_Supplier_Supplier_Products');
+
+      expect(schema.association[0].end).toContainEqual(
+        expect.objectContaining({
+          multiplicity: '1',
+          role: 'Product_Supplier'
+        })
+      );
+
+      expect(schema.association[0].end).toContainEqual(
+        expect.objectContaining({
+          multiplicity: '*',
+          role: 'Supplier_Products'
+        })
+      );
+    });
   });
 
   it('should create instance of NavigationAdapter when constructor is called', () => {
@@ -162,18 +281,18 @@ describe('NavigationAdapter', () => {
     sut.adapt(metadata.dataServices);
 
     expect(schema.association).toHaveLength(1);
-    expect(schema.association[0].name).toBe('Product_ProductDetail');
+    expect(schema.association[0].name).toBe('Product_ProductDetail_ProductDetail_Product');
     expect(schema.association[0].end).toContainEqual(
       expect.objectContaining({
         multiplicity: '1',
-        role: 'Product_ProductDetail_Target'
+        role: 'ProductDetail_Product'
       })
     );
 
     expect(schema.association[0].end).toContainEqual(
       expect.objectContaining({
         multiplicity: '1',
-        role: 'Product_ProductDetail_Source'
+        role: 'Product_ProductDetail'
       })
     );
   });
@@ -184,18 +303,44 @@ describe('NavigationAdapter', () => {
     sut.adapt(metadata.dataServices);
 
     expect(schema.association).toHaveLength(1);
-    expect(schema.association[0].name).toBe('Product_Category');
+    expect(schema.association[0].name).toBe('Category_Products_Product_Categories');
     expect(schema.association[0].end).toContainEqual(
       expect.objectContaining({
         multiplicity: '*',
-        role: 'Product_Category_Target'
+        role: 'Product_Categories'
       })
     );
 
     expect(schema.association[0].end).toContainEqual(
       expect.objectContaining({
         multiplicity: '*',
-        role: 'Product_Category_Source'
+        role: 'Category_Products'
+      })
+    );
+  });
+
+  it('should add associations when adapt is called with a 1:M entity relationship with inconsistent naming', () => {
+    schema.entityType = getOneToManyEntityTypes();
+    schema.entityType[0].navigationProperty[0].name = 'Foo';
+    schema.entityType[0].navigationProperty[0].partner = null;
+    schema.entityType[1].navigationProperty[0].name = 'Bar';
+
+    sut.adapt(metadata.dataServices);
+
+    expect(schema.association).toHaveLength(1);
+    expect(schema.association[0].name).toBe('Product_Foo_Supplier_Bar');
+
+    expect(schema.association[0].end).toContainEqual(
+      expect.objectContaining({
+        multiplicity: '1',
+        role: 'Product_Foo'
+      })
+    );
+
+    expect(schema.association[0].end).toContainEqual(
+      expect.objectContaining({
+        multiplicity: '*',
+        role: 'Supplier_Bar'
       })
     );
   });
@@ -206,19 +351,19 @@ describe('NavigationAdapter', () => {
     sut.adapt(metadata.dataServices);
 
     expect(schema.association).toHaveLength(1);
-    expect(schema.association[0].name).toBe('Product_Supplier');
+    expect(schema.association[0].name).toBe('Product_Supplier_Supplier_Products');
 
     expect(schema.association[0].end).toContainEqual(
       expect.objectContaining({
         multiplicity: '1',
-        role: 'Product_Supplier_Target'
+        role: 'Product_Supplier'
       })
     );
 
     expect(schema.association[0].end).toContainEqual(
       expect.objectContaining({
         multiplicity: '*',
-        role: 'Product_Supplier_Source'
+        role: 'Supplier_Products'
       })
     );
   });
@@ -243,19 +388,19 @@ describe('NavigationAdapter', () => {
     sut.adapt(metadata.dataServices);
 
     expect(schema.association).toHaveLength(1);
-    expect(schema.association[0].name).toBe('Supplier_Supplier');
+    expect(schema.association[0].name).toBe('Supplier_RootSupplier_Supplier_RootSupplierPartner');
 
     expect(schema.association[0].end).toContainEqual(
       expect.objectContaining({
         multiplicity: '1',
-        role: 'Supplier_Supplier_Target'
+        role: 'Supplier_RootSupplier'
       })
     );
 
     expect(schema.association[0].end).toContainEqual(
       expect.objectContaining({
         multiplicity: '1',
-        role: 'Supplier_Supplier_Source'
+        role: 'Supplier_RootSupplierPartner'
       })
     );
   });
@@ -266,19 +411,19 @@ describe('NavigationAdapter', () => {
     sut.adapt(metadata.dataServices);
 
     expect(schema.association).toHaveLength(1);
-    expect(schema.association[0].name).toBe('Product_Supplier');
+    expect(schema.association[0].name).toBe('Product_Supplier_Supplier_Products');
 
     expect(schema.association[0].end).toContainEqual(
       expect.objectContaining({
         multiplicity: '1',
-        role: 'Product_Supplier_Target'
+        role: 'Product_Supplier'
       })
     );
 
     expect(schema.association[0].end).toContainEqual(
       expect.objectContaining({
         multiplicity: '*',
-        role: 'Product_Supplier_Source'
+        role: 'Supplier_Products'
       })
     );
   });

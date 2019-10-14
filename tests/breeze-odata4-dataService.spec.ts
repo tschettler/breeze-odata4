@@ -1,7 +1,23 @@
-import { config, DataServiceAdapter, JsonResultsAdapter, DataService, DataServiceOptions } from 'breeze-client';
-import { OData4DataService } from './../src/breeze-odata4-dataService';
-jest.mock('../src/class-registry');
+import {
+    config,
+    DataService,
+    DataServiceAdapter,
+    DataServiceOptions,
+    JsonResultsAdapter,
+    MetadataStore
+} from 'breeze-client';
+import * as fs from 'fs';
+import * as path from 'path';
+import { HttpOData } from 'ts-odatajs';
+
+import { NavigationAdapter } from '../src/adapters/adapters';
 import { ClassRegistry } from '../src/class-registry';
+import { ODataHttpClient } from '../src/odata-http-client';
+import { BreezeOData4 } from './../src/breeze-odata4';
+import { OData4DataService } from './../src/breeze-odata4-dataService';
+
+const metadataXml = fs.readFileSync(path.join(__dirname, './metadata.xml'), 'utf-8');
+jest.mock('../src/class-registry');
 
 const MockWebApiDataService = jest.fn<DataServiceAdapter>(() => ({
     name: 'WebApi',
@@ -48,13 +64,13 @@ describe('OData4DataService', () => {
     it('should call inner adapter when _catchNoConnectionError is called', () => {
         sut._catchNoConnectionError(null);
 
-        expect(innerAdapter._catchNoConnectionError).toHaveBeenCalledTimes(1);
+        expect((<any>innerAdapter)._catchNoConnectionError).toHaveBeenCalledTimes(1);
     });
 
     it('should call inner adapter when _createChangeRequestInterceptor is called', () => {
         sut._createChangeRequestInterceptor(null, null);
 
-        expect(innerAdapter._createChangeRequestInterceptor).toHaveBeenCalledTimes(1);
+        expect((<any>innerAdapter)._createChangeRequestInterceptor).toHaveBeenCalledTimes(1);
     });
 
     it('should call inner adapter checkForRecomposition', () => {
@@ -123,6 +139,41 @@ describe('OData4DataService', () => {
             expect(result).toEqual(url);
         });
 
+        it('should return correct url when window exists and url starts with http', () => {
+            const serviceName = 'http://TestService';
+            const opts: DataServiceOptions = {
+                serviceName: serviceName
+            };
+
+            global['window'] = {};
+            global['location'] = { origin: 'http://localhost' };
+
+            const ds = new DataService(opts);
+            const url = `${serviceName}/$metadata`;
+
+            const result = sut.getAbsoluteUrl(ds, url);
+
+            expect(result).toEqual(url);
+        });
+
+
+        it('should return correct url when window exists and url starts with https', () => {
+            const serviceName = 'https://TestService';
+            const opts: DataServiceOptions = {
+                serviceName: serviceName
+            };
+
+            global['window'] = {};
+            global['location'] = { origin: 'https://localhost' };
+
+            const ds = new DataService(opts);
+            const url = `${serviceName}/$metadata`;
+
+            const result = sut.getAbsoluteUrl(ds, url);
+
+            expect(result).toEqual(url);
+        });
+
         it('should return absolute url when window exists and url does not start with double slash', () => {
             const serviceName = 'TestService';
             const opts: DataServiceOptions = {
@@ -158,5 +209,41 @@ describe('OData4DataService', () => {
             expect(result).toEqual(`${location.origin}/${serviceName}/${url}`);
         });
 
+    });
+
+    describe('fetchMetadata', () => {
+        it('should get metadata', async () => {
+            const httpClient = new ODataHttpClient();
+            httpClient.request = (req, success, error) => {
+                const response = <HttpOData.Response>{
+                    headers: {
+                        'Content-Type': 'application/xml'
+                    },
+                    body: metadataXml,
+                    requestUri: req.requestUri,
+                    statusCode: '200',
+                    statusText: 'OK'
+                };
+                success(response);
+                return <HttpOData.RequestWithAbort>{};
+            };
+
+            delete global['window'];
+            global['location'] = { origin: 'http://localhost' };
+            (<any>ClassRegistry.MetadataAdapters.get).mockReturnValue([new NavigationAdapter()]);
+            BreezeOData4.configure();
+            const ds = new OData4DataService();
+            ds.initialize();
+            ds.httpClient = httpClient;
+
+            const metadataStore = new MetadataStore();
+            const dataService = new DataService({
+                serviceName: 'http://localhost',
+                hasServerMetadata: true
+            });
+
+            const result = await ds.fetchMetadata(metadataStore, dataService);
+            expect(result).toBeTruthy();
+        });
     });
 });

@@ -18,7 +18,8 @@ import {
   MetadataStore,
   QueryResult,
   SaveBundle,
-  SaveResult} from 'breeze-client';
+  SaveResult
+} from 'breeze-client';
 import { Batch, Edm, Edmx, HttpOData, oData } from 'ts-odatajs';
 
 import { MetadataAdapter } from './adapters/metadata-adapter';
@@ -26,10 +27,10 @@ import { JsonResultsAdapterFactory } from './breeze-jsonResultsAdapter-factory';
 import { ClassRegistry } from './class-registry';
 import { ODataError } from './odata-error';
 import { ODataHttpClient } from './odata-http-client';
-import { Utilities, InvokableEntry } from './utilities';
+import { InvokableEntry, Utilities } from './utilities';
 
 // Seems crazy, but this is the only way I can find to do the inheritance
-export class ProxyDataService {}
+export class ProxyDataService { }
 
 Object.setPrototypeOf(ProxyDataService.prototype, config.getAdapter('dataService', 'WebApi').prototype);
 
@@ -84,7 +85,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
   }
 
   public initialize(): void {
-    this.metadataAdapters = ClassRegistry.MetadataAdapters.get();
+    this.metadataAdapters = ClassRegistry.MetadataAdapters.get() || [];
     this.jsonResultsAdapter = JsonResultsAdapterFactory.create();
   }
 
@@ -93,7 +94,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     // only prefix with serviceName if not already on the url
     let base = core.stringStartsWith(url, serviceName) ? '' : serviceName;
     // If no protocol, turn base into an absolute URI
-    if (typeof window !== 'undefined' && !serviceName.startsWith('//')) {
+    if (typeof window !== 'undefined' && !serviceName.startsWith('//') && !serviceName.startsWith('http')) {
       // no protocol; make it absolute
       base = `${location.origin}${core.stringStartsWith(serviceName, '/') ? '' : '/'}${base}`;
     }
@@ -492,8 +493,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
       kps.length === 1
         ? this.fmtProperty(kps[0], aspect)
         : kps.map(kp => {
-            return `${kp.nameOnServer}=${this.fmtProperty(kp, aspect)}`;
-          });
+          return `${kp.nameOnServer}=${this.fmtProperty(kp, aspect)}`;
+        });
 
     const uriKey = `${resourceName}(${uriKeyValue})`;
 
@@ -509,16 +510,20 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     // this code is tricky so be careful changing the response.body parsing.
     const result = new ODataError();
     const response = error && (<Batch.FailedResponse>error).response;
+
+    result.message = error.message || error;
+    result.statusText = error.message || error;
+
     if (!response) {
       // in case DataJS returns 'No handler for this data'
-      result.message = error;
-      result.statusText = error;
       return result;
     }
 
-    result.message = response.statusText;
-    result.statusText = response.statusText;
-    result.status = Number(response.statusCode);
+    if (response.statusCode !== '200') {
+      result.message = response.statusText;
+      result.statusText = response.statusText;
+      result.status = Number(response.statusCode);
+    }
 
     // non std
     if (url) {
@@ -548,7 +553,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         if (msg.length > 0) {
           result.message = msg;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     this._catchNoConnectionError(result);

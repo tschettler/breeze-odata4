@@ -1,0 +1,44 @@
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+    <edmx:DataServices>
+        <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="OData4Test.Models">
+            <EntityType Name="Article">
+                <Key>
+                    <PropertyRef Name="Id"/>
+                </Key>
+                <Property Name="Id" Type="Edm.String" Nullable="false"/>
+                <Property Name="Title" Type="Edm.String"/>
+                <Property Name="CurrentRevId" Type="Edm.String"/>
+                <NavigationProperty Name="Revisions" Type="Collection(OData4Test.Models.Revision)"/>
+                <NavigationProperty Name="CurrentRev" Type="OData4Test.Models.Revision"/>
+            </EntityType>
+            <EntityType Name="Revision">
+                <Key>
+                    <PropertyRef Name="Id"/>
+                </Key>
+                <Property Name="Id" Type="Edm.String" Nullable="false"/>
+                <Property Name="ArticleId" Type="Edm.String"/>
+                <Property Name="Version" Type="Edm.String"/>
+                <Property Name="Content" Type="Edm.String"/>
+                <Property Name="PrevId" Type="Edm.String"/>
+                <NavigationProperty Name="Article" Type="OData4Test.Models.Article">
+                    <ReferentialConstraint Property="ArticleId" ReferencedProperty="Id"/>
+                </NavigationProperty>
+                <NavigationProperty Name="Prev" Type="OData4Test.Models.Revision"/>
+                <NavigationProperty Name="Next" Type="Collection(OData4Test.Models.Revision)"/>
+            </EntityType>
+        </Schema>
+        <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Default">
+            <EntityContainer Name="Container">
+                <EntitySet Name="Articles" EntityType="OData4Test.Models.Article">
+                    <NavigationPropertyBinding Path="CurrentRev" Target="Revisions"/>
+                    <NavigationPropertyBinding Path="Revisions" Target="Revisions"/>
+                </EntitySet>
+                <EntitySet Name="Revisions" EntityType="OData4Test.Models.Revision">
+                    <NavigationPropertyBinding Path="Article" Target="Articles"/>
+                    <NavigationPropertyBinding Path="Next" Target="Revisions"/>
+                    <NavigationPropertyBinding Path="Prev" Target="Revisions"/>
+                </EntitySet>
+            </EntityContainer>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>

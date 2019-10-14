@@ -1,17 +1,18 @@
 import { Edm, EdmExtra, Edmx, oData } from 'ts-odatajs';
 
 import { MetadataAdapter } from './adapters';
+import { AssociationEndpoint, AssociationSet } from '../models/models';
 
 export const EntityNotFound = 'Could not find entity with type name';
-const SourceSuffix = '_Source';
-const TargetSuffix = '_Target';
-const ConstrainMany = '*';
-const ConstrainOne = '1';
+const PartnerSuffix = 'Partner';
 
 export class NavigationAdapter implements MetadataAdapter {
+
+  public static inferPartner = true;
+
   private metadata: Edmx.DataServices;
   private entityContainer: Edm.EntityContainer;
-  private associations: { [key: string]: EdmExtra.Association } = {};
+  private associations: AssociationSet[] = [];
 
   public adapt(metadata: Edmx.DataServices): void {
     this.metadata = metadata;
@@ -22,7 +23,7 @@ export class NavigationAdapter implements MetadataAdapter {
   }
 
   public adaptSchema(schema: Edm.Schema): void {
-    this.associations = {};
+    this.associations = [];
 
     const entityTypes: Edm.EntityType[] = schema.entityType || [];
     entityTypes.forEach(e => this.adaptEntityType(schema, e));
@@ -34,130 +35,71 @@ export class NavigationAdapter implements MetadataAdapter {
     (entityType.navigationProperty || []).forEach(n => this.adaptNavigationProperty(schema, entityType.name, n));
   }
 
-  private adaptNavigationProperty(schema: Edm.Schema, entityTypeName: string, navProp: Edm.NavigationProperty): void {
+  private adaptNavigationProperty(schema: Edm.Schema, entityTypeName: string, navigationProperty: Edm.NavigationProperty): void {
     const namespace = schema.namespace;
-    const isCollection = oData.utils.isCollectionType(navProp.type);
-    const fullType = oData.utils.getCollectionType(navProp.type) || navProp.type;
-    const shortType = fullType.split('.').pop();
+    const navPropType = this.getUnderlyingEntityType(navigationProperty);
 
-    const sourceType = isCollection ? shortType : entityTypeName;
-    const targetType = isCollection ? entityTypeName : shortType;
-
-    const assoc = this.getAssociation(namespace, sourceType, targetType);
-
-    this.setMultiplicity(navProp, assoc.name, namespace);
-
-    this.setReferentialConstraint(navProp, assoc.name, namespace);
-
-    this.setNavigationRoles(navProp, assoc.name, namespace);
-  }
-
-  private setMultiplicity(navProp: Edm.NavigationProperty, assocName: string, namespace: string): void {
-    const assoc = this.associations[assocName];
-
-    const isCollection = oData.utils.isCollectionType(navProp.type);
-    const multiplicity = isCollection ? ConstrainMany : ConstrainOne;
-
-    const fullType = oData.utils.getCollectionType(navProp.type) || navProp.type;
-    assoc.end.filter(m => m.type === fullType).forEach(m => (m.multiplicity = multiplicity));
-  }
-
-  private setReferentialConstraint(navProp: Edm.NavigationProperty, assocName: string, namespace: string): void {
-    const assoc = this.associations[assocName];
-    if (assoc.referentialConstraint) {
-      return;
-    }
-
-    const constraintKeys: { [key: string]: Edm.PropertyRef[] } = {};
-    const result: EdmExtra.AssociationConstraint = {
-      dependent: {
-        propertyRef: null,
-        role: `${assoc.name}${SourceSuffix}`
-      },
-      principal: {
-        propertyRef: null,
-        role: `${assoc.name}${TargetSuffix}`
-      }
-    };
-
-    const constraint = (navProp.referentialConstraint || [])[0];
-    if (constraint) {
-      constraintKeys[`${assoc.name}${SourceSuffix}`] = [{ name: constraint.property }];
-      constraintKeys[`${assoc.name}${TargetSuffix}`] = [{ name: constraint.referencedProperty }];
-    } else {
-      assoc.end
-        .sort(e => Number(!e.role.endsWith(TargetSuffix)))
-        .forEach(e => {
-          const entityType = oData.utils.lookupEntityType(e.type, this.metadata.schema);
-          if (entityType === null) {
-            throw new Error(`${EntityNotFound} ${e.type}`);
-          }
-
-          const isTarget = e.role.endsWith(TargetSuffix);
-
-          let entityKeyRef = isTarget ? entityType.key.propertyRef : constraintKeys[`${assoc.name}${TargetSuffix}`];
-
-          if (entityType.key.propertyRef[0].name !== entityKeyRef[0].name) {
-            entityKeyRef = entityType.key.propertyRef;
-          }
-
-          constraintKeys[e.role] = entityKeyRef;
-        });
-    }
-
-    Object.keys(result).forEach(p => {
-      const member: EdmExtra.ConstraintMember = result[p];
-
-      member.propertyRef = constraintKeys[member.role];
+    const endpoint = new AssociationEndpoint({
+      containingEntityType: `${namespace}.${entityTypeName}`,
+      partnerEntityType: navPropType,
+      navigationProperty: navigationProperty
     });
 
-    assoc.referentialConstraint = result;
+    const partnerNavProp = this.tryGetPartnerNavigationProperty(endpoint);
+
+    const partnerEndpoint = new AssociationEndpoint({
+      containingEntityType: navPropType,
+      partnerEntityType: `${namespace}.${entityTypeName}`,
+      navigationProperty: partnerNavProp,
+      propertyName: !!partnerNavProp ? null : `${navigationProperty.name}${PartnerSuffix}`
+    });
+
+    this.setAssociationSet(namespace, endpoint, partnerEndpoint);
   }
 
-  private setNavigationRoles(navProp: Edm.NavigationProperty, assocName: string, namespace: string): void {
-    const assoc = this.associations[assocName];
+  private getUnderlyingEntityType(navigationProperty: Edm.NavigationProperty) {
+    const result = oData.utils.getCollectionType(navigationProperty.type) || navigationProperty.type;
 
-    const isCollection = oData.utils.isCollectionType(navProp.type);
-    navProp.relationship = `${namespace}.${assoc.name}`;
-    navProp.fromRole = assoc.name + (isCollection ? TargetSuffix : SourceSuffix);
-    navProp.toRole = assoc.name + (isCollection ? SourceSuffix : TargetSuffix);
+    return result;
   }
 
-  private getAssociation(namespace: string, firstType: string, secondType: string): EdmExtra.Association {
-    const assocName1 = `${firstType}_${secondType}`;
-    const assocName2 = `${secondType}_${firstType}`;
-    let assoc = this.associations[assocName1] || this.associations[assocName2];
+  private tryGetPartnerNavigationProperty(endpoint: AssociationEndpoint): Edm.NavigationProperty {
+    const navProp = endpoint.navigationProperty;
+    const navPropType = this.getUnderlyingEntityType(navProp);
+    const partnerEntityType = oData.utils.lookupEntityType(navPropType, this.metadata.schema);
 
-    if (assoc) {
-      return assoc;
+    if (partnerEntityType === null) {
+      throw new Error(`${EntityNotFound} ${navPropType}`);
     }
 
-    const fullSourceTypeName = `${namespace}.${firstType}`;
-    const fullTargetTypeName = `${namespace}.${secondType}`;
+    const partnerNameCandidates = [];
 
-    assoc = {
-      association: assocName1,
-      name: assocName1,
-      end: [
-        {
-          entitySet: this.getEntitySetNameByEntityType(fullSourceTypeName),
-          multiplicity: '*',
-          role: `${assocName1}${SourceSuffix}`,
-          type: fullSourceTypeName
-        },
-        {
-          entitySet: this.getEntitySetNameByEntityType(fullTargetTypeName),
-          multiplicity: '*',
-          role: `${assocName1}${TargetSuffix}`,
-          type: fullTargetTypeName
-        }
-      ],
-      referentialConstraint: null
-    };
+    if (navProp.partner) {
+      partnerNameCandidates.push(navProp.partner);
+    } else if (NavigationAdapter.inferPartner) {
+      const entitySetName = this.getEntitySetNameByEntityType(endpoint.containingEntityType);
+      partnerNameCandidates.push(endpoint.containingEntityShortName);
+      partnerNameCandidates.push(entitySetName);
+    }
 
-    this.associations[assoc.name] = assoc;
+    let partnerNavProp = partnerEntityType.navigationProperty
+      .find(n => n !== navProp
+        && partnerNameCandidates.includes(n.name)
+        && (!n.partner || n.partner === navProp.name));
 
-    return assoc;
+    if (!!partnerNavProp || !NavigationAdapter.inferPartner) {
+      // (partnerNavProp || <any>{}).partner = navProp.name;
+
+      return partnerNavProp;
+    }
+
+    // try to find the partner nav prop by type
+    partnerNavProp = partnerEntityType.navigationProperty
+      .find(n => n !== navProp
+        && this.navigationPropertyTypeMatches(n, endpoint.containingEntityType)
+        && (!n.partner || n.partner === navProp.name));
+
+    return partnerNavProp;
   }
 
   private getEntitySetNameByEntityType(entityType: string): string {
@@ -166,14 +108,124 @@ export class NavigationAdapter implements MetadataAdapter {
     return set && set.name;
   }
 
-  private setAssociations(schema: Edm.Schema): void {
-    const assoc: EdmExtra.Association[] = [];
-    // tslint:disable-next-line:forin
-    for (const key in this.associations) {
-      assoc.push(this.associations[key]);
+  private navigationPropertyTypeMatches(navigationProperty: Edm.NavigationProperty, type: string): boolean {
+    const navPropType = this.getUnderlyingEntityType(navigationProperty);
+    const result = navPropType === type;
+    return result;
+  }
+
+  private setAssociationSet(namespace: string,
+    endpoint: AssociationEndpoint,
+    partnerEndpoint: AssociationEndpoint): void {
+
+    // find related partial association
+    const assoc = this.associations.find(a => (a.containsProperty(partnerEndpoint.navigationProperty)
+      || a.containsProperty(endpoint.navigationProperty)));
+
+    const mappedEndpoints = [endpoint, partnerEndpoint].filter(e => assoc && assoc.containsProperty(e.navigationProperty));
+
+    if (mappedEndpoints.length === 2) {
+      // found existing association for the endpoints that is fully mapped, nothing more to do
+      return;
     }
 
-    schema.association = assoc;
-    this.entityContainer.associationSet = assoc;
+    const newAssoc = new AssociationSet(namespace, endpoint, partnerEndpoint);
+
+    if (assoc && !assoc.fullyMapped && newAssoc.fullyMapped) {
+      // existing association is incomplete, use new endpoints
+      assoc.endpoints = newAssoc.endpoints;
+    } else if (!assoc || newAssoc.fullyMapped) {
+      // no existing association, add new
+      this.associations.push(newAssoc);
+    }
+  }
+
+  private setAssociations(schema: Edm.Schema): void {
+    const associations = this.associations.map(a => this.processAssociation(a));
+    schema.association = associations;
+    this.entityContainer.associationSet = associations;
+  }
+
+  private getAssociationEndpoint(endpoint: AssociationEndpoint): EdmExtra.AssociationEndpoint {
+    const result: EdmExtra.AssociationEndpoint = {
+      entitySet: this.getEntitySetNameByEntityType(endpoint.partnerEntityType),
+      multiplicity: endpoint.multiplicity,
+      role: endpoint.role,
+      type: endpoint.partnerEntityType
+    };
+
+    return result;
+  }
+
+  public processAssociation(association: AssociationSet): EdmExtra.Association {
+    const result: EdmExtra.Association = {
+      association: association.associationName,
+      name: association.name,
+      end: association.endpoints.map(e => this.getAssociationEndpoint(e)),
+      referentialConstraint: this.getReferentialConstraint(association)
+    };
+
+    association.endpoints.forEach(e => {
+      if (!e.isMapped) {
+        return;
+      }
+
+      const partnerEndpoint = association.getPartnerEndpoint(e);
+      const navProp = e.navigationProperty;
+
+      navProp.relationship = association.associationName;
+      navProp.fromRole = partnerEndpoint.role;
+      navProp.toRole = e.role;
+    });
+
+    return result;
+  }
+
+  private getReferentialConstraint(association: AssociationSet): EdmExtra.AssociationConstraint {
+    const constraintKeys: { [key: string]: Edm.PropertyRef[] } = {};
+    const result: EdmExtra.AssociationConstraint = {
+      dependent: {
+        propertyRef: null,
+        role: null
+      },
+      principal: {
+        propertyRef: null,
+        role: null
+      }
+    };
+
+    let constraint: Edm.ReferentialConstraint = null;
+    association.endpoints.find(e => {
+      if (!e.isMapped) {
+        return false;
+      }
+
+      constraint = (e.navigationProperty.referentialConstraint || [])[0];
+
+      if (!constraint) {
+        return false;
+      }
+
+      const partnerEndpoint = association.getPartnerEndpoint(e);
+      result.principal.role = e.role;
+      result.dependent.role = partnerEndpoint.role;
+
+      return true;
+    });
+
+    if (!constraint) {
+      return null;
+    }
+
+    constraintKeys[result.dependent.role] = [{ name: constraint.property }];
+    constraintKeys[result.principal.role] = [{ name: constraint.referencedProperty }];
+
+    Object.keys(result).forEach(p => {
+      const member: EdmExtra.ConstraintMember = result[p];
+
+      member.propertyRef = constraintKeys[member.role];
+    });
+
+    return result;
   }
 }
