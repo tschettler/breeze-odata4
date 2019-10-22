@@ -3,11 +3,12 @@ import { Edm, oData } from 'ts-odatajs';
 export class AssociationEndpoint {
     private ConstrainMany = '*';
     private ConstrainOne = '1';
+    private _propertyName: string;
 
     public containingEntityType: string;
     public navigationProperty?: Edm.NavigationProperty;
     public partnerEntityType: string;
-    public propertyName?: string;
+    public referentialConstraint: Edm.ReferentialConstraint[] = [];
 
     public constructor(init?: Partial<AssociationEndpoint>) {
         Object.assign(this, init);
@@ -44,10 +45,24 @@ export class AssociationEndpoint {
         return result;
     }
 
-    public get role(): string {
-        const propertyName = this.isMapped ? this.navigationProperty.name : this.propertyName;
+    public get partnerEntityShortName(): string {
+        const result = this.partnerEntityType.split('.').pop();
 
-        const result = `${this.containingEntityShortName}_${propertyName}`;
+        return result;
+    }
+
+    public get propertyName(): string {
+        const result = this.isMapped ? this.navigationProperty.name : this._propertyName;
+
+        return result;
+    }
+
+    public set propertyName(value: string) {
+        this._propertyName = value;
+    }
+
+    public get role(): string {
+        const result = `${this.containingEntityShortName}_${this.propertyName}`;
 
         return result;
     }

@@ -86,6 +86,7 @@ const schema: Edm.Schema = {
 describe('NavigationAdapter', () => {
   beforeEach(() => {
     sut = new NavigationAdapter();
+    NavigationAdapter.inferConstraints = true;
     NavigationAdapter.inferPartner = true;
 
     // delete schema.association;
@@ -275,6 +276,17 @@ describe('NavigationAdapter', () => {
     }).toThrow(EntityNotFound);
   });
 
+  it('should throw Error when adapt is called with missing entityType and inferConstraints = false', () => {
+    NavigationAdapter.inferConstraints = false;
+    const entityType = getProductEntityType();
+    entityType.navigationProperty = [{ name: 'NotHere', type: 'UnitTesting.Nothing' }];
+    schema.entityType = [entityType];
+
+    expect(() => {
+      sut.adapt(metadata.dataServices);
+    }).toThrow(EntityNotFound);
+  });
+
   it('should add associations when adapt is called with a 1:1 entity relationship', () => {
     schema.entityType = getOneToOneEntityTypes();
 
@@ -368,8 +380,19 @@ describe('NavigationAdapter', () => {
     );
   });
 
+  it('should not override navigation property relationship', () => {
+    schema.entityType = getOneToManyEntityTypes();
+    const relationship = 'Test_Relationship';
+    const navProp = schema.entityType[1].navigationProperty[0];
+    navProp.relationship = relationship;
+    sut.adapt(metadata.dataServices);
+
+    expect(navProp.relationship).toBe(relationship);
+  });
+
   it('should add associations when adapt is called with a self-referencing constraint', () => {
     const entityType = getSupplierEntityType();
+
     entityType.property.push({ name: 'RootSupplierId', type: 'Edm.Int32' });
     entityType.navigationProperty = [
       {

@@ -214,6 +214,50 @@ describe('AssociationEndpoint', () => {
         });
     });
 
+
+    describe('partnerEntityShortName', () => {
+        it('should return entity short name', () => {
+            const nameespace = 'Test';
+            const entityName = 'Entity';
+
+            const props: Partial<AssociationEndpoint> = {
+                partnerEntityType: `${nameespace}.${entityName}`
+            };
+
+            const sut = new AssociationEndpoint(props);
+
+            const result = sut.partnerEntityShortName;
+
+            expect(result).toEqual(entityName);
+        });
+    });
+
+    describe('propertyName', () => {
+        it('should return navigation property name', () => {
+            const props: Partial<AssociationEndpoint> = {
+                navigationProperty: <Edm.NavigationProperty>{
+                    name: 'Item'
+                }
+            };
+
+            const sut = new AssociationEndpoint(props);
+
+            const result = sut.propertyName;
+
+            expect(result).toBe(props.navigationProperty.name);
+        });
+
+        it('should return set property name', () => {
+            const propertyName = 'Item';
+            const sut = new AssociationEndpoint();
+            sut.propertyName = propertyName;
+
+            const result = sut.propertyName;
+
+            expect(result).toBe(propertyName);
+        });
+    });
+
     describe('role', () => {
         it('should return role with property name with no navigation property', () => {
             const props: Partial<AssociationEndpoint> = {

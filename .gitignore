@@ -13,4 +13,4 @@ dist/
 *.d.ts
 !typings/**/*.d.ts
 .rpt2_cache
-.vscode/
+.vscode/settings.json

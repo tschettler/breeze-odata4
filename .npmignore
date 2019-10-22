@@ -12,3 +12,4 @@ Thumbs.db
 !*.d.ts
 .rpt2_cache
 .travis.yml
+.vscode/

@@ -1,13 +1,21 @@
 import { Edm, EdmExtra, Edmx, oData } from 'ts-odatajs';
 
-import { MetadataAdapter } from './adapters';
 import { AssociationEndpoint, AssociationSet } from '../models/models';
+import { MetadataAdapter } from './adapters';
 
 export const EntityNotFound = 'Could not find entity with type name';
 const PartnerSuffix = 'Partner';
 
 export class NavigationAdapter implements MetadataAdapter {
 
+  /** Determines whether referential constraints are inferred when not present.
+   * @default true
+   */
+  public static inferConstraints = true;
+
+  /** Determines whether to infer the partner when the partner attribute is not present.
+   * @default true
+   */
   public static inferPartner = true;
 
   private metadata: Edmx.DataServices;
@@ -45,6 +53,8 @@ export class NavigationAdapter implements MetadataAdapter {
       navigationProperty: navigationProperty
     });
 
+    this.trySetReferentialConstraint(endpoint);
+
     const partnerNavProp = this.tryGetPartnerNavigationProperty(endpoint);
 
     const partnerEndpoint = new AssociationEndpoint({
@@ -54,13 +64,63 @@ export class NavigationAdapter implements MetadataAdapter {
       propertyName: !!partnerNavProp ? null : `${navigationProperty.name}${PartnerSuffix}`
     });
 
+    this.trySetReferentialConstraint(partnerEndpoint);
+
     this.setAssociationSet(namespace, endpoint, partnerEndpoint);
   }
 
-  private getUnderlyingEntityType(navigationProperty: Edm.NavigationProperty) {
+  private getUnderlyingEntityType(navigationProperty: Edm.NavigationProperty): string {
     const result = oData.utils.getCollectionType(navigationProperty.type) || navigationProperty.type;
 
     return result;
+  }
+
+  private trySetReferentialConstraint(endpoint: AssociationEndpoint): void {
+    if (endpoint.isMapped && endpoint.navigationProperty.referentialConstraint) {
+      endpoint.referentialConstraint = endpoint.navigationProperty.referentialConstraint;
+      return;
+    }
+
+    if (endpoint.isCollection || !NavigationAdapter.inferConstraints) {
+      return;
+    }
+
+    const entityType = oData.utils.lookupEntityType(endpoint.containingEntityType, this.metadata.schema);
+    const partnerEntityType = oData.utils.lookupEntityType(endpoint.partnerEntityType, this.metadata.schema);
+
+    if (partnerEntityType === null) {
+      throw new Error(`${EntityNotFound} ${endpoint.partnerEntityType}`);
+    }
+
+    const entityName = endpoint.containingEntityShortName;
+    const partnerEntityName = endpoint.partnerEntityShortName;
+    const referentialConstraint: Edm.ReferentialConstraint[] = [];
+
+    partnerEntityType.key.propertyRef.forEach(r => {
+      const partnerKeyProp = partnerEntityType.property.find(p => p.name === r.name);
+      const keySuffix = r.name.replace(partnerEntityName, '');
+      const possibleFKs = r.name.toLowerCase() === `${entityName}Id`.toLowerCase()
+        // this could be true for a 1:1 relationship where the PK is also the FK
+        ? entityType.key.propertyRef.map(p => p.name.toLowerCase())
+        : [
+          `${endpoint.propertyName}${keySuffix}`.toLowerCase(),
+          `${endpoint.propertyName}Id`.toLowerCase(),
+          `${partnerEntityName}${keySuffix}`.toLowerCase(),
+          `${partnerEntityName}Id`.toLowerCase()
+        ].filter(p => !referentialConstraint.find(rc => rc.property.toLowerCase() === p));
+
+      const propsMatchingType = entityType.property.filter(p => p.type === partnerKeyProp.type);
+
+      const fkProp = possibleFKs
+        .map(fk => propsMatchingType.find(p => p.name.toLowerCase() === fk))
+        .find(p => !!p);
+
+      if (fkProp) {
+        referentialConstraint.push({ property: fkProp.name, referencedProperty: r.name });
+      }
+    });
+
+    endpoint.referentialConstraint = referentialConstraint;
   }
 
   private tryGetPartnerNavigationProperty(endpoint: AssociationEndpoint): Edm.NavigationProperty {
@@ -173,6 +233,10 @@ export class NavigationAdapter implements MetadataAdapter {
       const partnerEndpoint = association.getPartnerEndpoint(e);
       const navProp = e.navigationProperty;
 
+      if (!!navProp.relationship) {
+        return;
+      }
+
       navProp.relationship = association.associationName;
       navProp.fromRole = partnerEndpoint.role;
       navProp.toRole = e.role;
@@ -194,31 +258,21 @@ export class NavigationAdapter implements MetadataAdapter {
       }
     };
 
-    let constraint: Edm.ReferentialConstraint = null;
-    association.endpoints.find(e => {
-      if (!e.isMapped) {
-        return false;
-      }
+    // principal endpoint cannot be a collection
+    const principalEndpoint = association.endpoints[0].isCollection ? association.endpoints[1] : association.endpoints[0];
+    const dependentEndpoint = association.getPartnerEndpoint(principalEndpoint);
 
-      constraint = (e.navigationProperty.referentialConstraint || [])[0];
+    const constraint = principalEndpoint.referentialConstraint;
 
-      if (!constraint) {
-        return false;
-      }
-
-      const partnerEndpoint = association.getPartnerEndpoint(e);
-      result.principal.role = e.role;
-      result.dependent.role = partnerEndpoint.role;
-
-      return true;
-    });
-
-    if (!constraint) {
+    if (constraint.length === 0) {
       return null;
     }
 
-    constraintKeys[result.dependent.role] = [{ name: constraint.property }];
-    constraintKeys[result.principal.role] = [{ name: constraint.referencedProperty }];
+    result.principal.role = principalEndpoint.role;
+    result.dependent.role = dependentEndpoint.role;
+
+    constraintKeys[result.dependent.role] = constraint.map(p => ({ name: p.property }));
+    constraintKeys[result.principal.role] = constraint.map(p => ({ name: p.referencedProperty }));
 
     Object.keys(result).forEach(p => {
       const member: EdmExtra.ConstraintMember = result[p];
