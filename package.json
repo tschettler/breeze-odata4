@@ -34,7 +34,7 @@
     "build": "tsc --module commonjs --target es5 && rollup -c rollup.config.ts && typedoc src",
     "deploy-docs": "ts-node tools/gh-pages-publish",
     "lint": "tslint --project tsconfig.json",
-    "prebuild": "rimraf dist",
+    "prebuild": "rimraf dist docs",
     "prepublishOnly": "npm run test:prod && npm run build",
     "pretest": "clear",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
@@ -69,6 +69,6 @@
     "ts-node": "^8.4.1",
     "tslint": "^5.20.0",
     "typedoc": "^0.15.0",
-    "typescript": "^3.1.6"
+    "typescript": "~3.5.3"
   }
 }
