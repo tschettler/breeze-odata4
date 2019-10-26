@@ -8,15 +8,24 @@ const PartnerSuffix = 'Partner';
 
 export class NavigationAdapter implements MetadataAdapter {
 
-  /** Determines whether referential constraints are inferred when not present.
+  /** Determines whether to infer referential constraints when the referentialConstraint attribute is missing.
    * @default true
    */
   public static inferConstraints = true;
 
-  /** Determines whether to infer the partner when the partner attribute is not present.
+  /** Determines whether to infer the partner when the partner attribute is missing.
    * @default true
    */
   public static inferPartner = true;
+
+   /** Conventions used to infer foreign key properties.
+   */
+  public static foreignKeyConventions: ((endpoint: AssociationEndpoint, suffix: string) => string)[] = [
+    (endpoint, suffix) => `${endpoint.propertyName}${suffix}`.toLowerCase(),
+    (endpoint) => `${endpoint.propertyName}Id`.toLowerCase(),
+    (endpoint, suffix) => `${endpoint.partnerEntityShortName}${suffix}`.toLowerCase(),
+    (endpoint) => `${endpoint.partnerEntityShortName}Id`.toLowerCase()
+  ];
 
   private metadata: Edmx.DataServices;
   private entityContainer: Edm.EntityContainer;
@@ -96,20 +105,25 @@ export class NavigationAdapter implements MetadataAdapter {
     const partnerEntityName = endpoint.partnerEntityShortName;
     const referentialConstraint: Edm.ReferentialConstraint[] = [];
 
-    partnerEntityType.key.propertyRef.forEach(r => {
-      const partnerKeyProp = partnerEntityType.property.find(p => p.name === r.name);
-      const keySuffix = r.name.replace(partnerEntityName, '');
-      const possibleFKs = r.name.toLowerCase() === `${entityName}Id`.toLowerCase()
-        // this could be true for a 1:1 relationship where the PK is also the FK
-        ? entityType.key.propertyRef.map(p => p.name.toLowerCase())
-        : [
-          `${endpoint.propertyName}${keySuffix}`.toLowerCase(),
-          `${endpoint.propertyName}Id`.toLowerCase(),
-          `${partnerEntityName}${keySuffix}`.toLowerCase(),
-          `${partnerEntityName}Id`.toLowerCase()
-        ].filter(p => !referentialConstraint.find(rc => rc.property.toLowerCase() === p));
+    const entityKeys = this.getKeys(entityType);
+    const entityProperties = this.getProperties(entityType);
+    const partnerKeys = this.getKeys(partnerEntityType);
+    const partnerProperties = this.getProperties(partnerEntityType);
 
-      const propsMatchingType = entityType.property.filter(p => p.type === partnerKeyProp.type);
+    partnerKeys.forEach(r => {
+      const partnerKeyProp = partnerProperties.find(p => p.name === r.name);
+      const keySuffix = r.name.replace(partnerEntityName, '');
+      let possibleFKs: string[];
+      // this could be true for a 1:1 relationship where the PK is also the FK
+      if (r.name.toLowerCase() === `${entityName}Id`.toLowerCase()) {
+        possibleFKs = entityKeys.map(p => p.name.toLowerCase());
+      } else {
+        possibleFKs = NavigationAdapter.foreignKeyConventions
+          .map(func => func(endpoint, keySuffix))
+          .filter(p => !referentialConstraint.find(rc => rc.property.toLowerCase() === p));
+      }
+
+      const propsMatchingType = entityProperties.filter(p => p.type === partnerKeyProp.type);
 
       const fkProp = possibleFKs
         .map(fk => propsMatchingType.find(p => p.name.toLowerCase() === fk))
@@ -121,6 +135,50 @@ export class NavigationAdapter implements MetadataAdapter {
     });
 
     endpoint.referentialConstraint = referentialConstraint;
+  }
+
+  private getAllTypes(entityType: Edm.EntityType): Edm.EntityType[] {
+    const result = [entityType];
+    let currentType = entityType;
+    while (!!currentType.baseType) {
+      const baseType = currentType.baseType;
+      currentType = oData.utils.lookupEntityType(currentType.baseType, this.metadata.schema);
+
+      if (currentType === null) {
+        throw new Error(`${EntityNotFound} ${baseType}`);
+      }
+
+      result.push(currentType);
+    }
+
+    return result;
+  }
+
+  private getKeys(entityType: Edm.EntityType): Edm.PropertyRef[] {
+    const types = this.getAllTypes(entityType);
+
+    const result: Edm.PropertyRef[] = types
+      .reduce((a: Edm.PropertyRef[], b: Edm.EntityType) => a.concat((b.key && b.key.propertyRef) || []), []);
+
+    return result;
+  }
+
+  private getNavigationProperties(entityType: Edm.EntityType): Edm.NavigationProperty[] {
+    const types = this.getAllTypes(entityType);
+
+    const result: Edm.NavigationProperty[] = types
+      .reduce((a: Edm.NavigationProperty[], b: Edm.EntityType) => a.concat(b.navigationProperty || []), []);
+
+    return result;
+  }
+
+  private getProperties(entityType: Edm.EntityType): Edm.Property[] {
+    const types = this.getAllTypes(entityType);
+
+    const result: Edm.Property[] = types
+      .reduce((a: Edm.Property[], b: Edm.EntityType) => a.concat(b.property || []), []);
+
+    return result;
   }
 
   private tryGetPartnerNavigationProperty(endpoint: AssociationEndpoint): Edm.NavigationProperty {
@@ -142,7 +200,8 @@ export class NavigationAdapter implements MetadataAdapter {
       partnerNameCandidates.push(entitySetName);
     }
 
-    let partnerNavProp = partnerEntityType.navigationProperty
+    const partnerNavProperties = this.getNavigationProperties(partnerEntityType);
+    let partnerNavProp = partnerNavProperties
       .find(n => n !== navProp
         && partnerNameCandidates.includes(n.name)
         && (!n.partner || n.partner === navProp.name));
@@ -154,7 +213,7 @@ export class NavigationAdapter implements MetadataAdapter {
     }
 
     // try to find the partner nav prop by type
-    partnerNavProp = partnerEntityType.navigationProperty
+    partnerNavProp = partnerNavProperties
       .find(n => n !== navProp
         && this.navigationPropertyTypeMatches(n, endpoint.containingEntityType)
         && (!n.partner || n.partner === navProp.name));

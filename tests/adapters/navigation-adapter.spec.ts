@@ -7,6 +7,14 @@ let metadata: Edmx.Edmx;
 let sut: NavigationAdapter;
 const metadataJson = require('../metadata.json');
 
+function getBaseEntityType(): Edm.EntityType {
+  return {
+    name: 'Entity',
+    key: { propertyRef: [{ name: 'Id' }] },
+    property: [{ name: 'Id', type: 'Edm.Int32' }]
+  };
+}
+
 function getCategoryEntityType(): Edm.EntityType {
   return {
     name: 'Category',
@@ -276,6 +284,17 @@ describe('NavigationAdapter', () => {
     }).toThrow(EntityNotFound);
   });
 
+  it('should throw Error when adapt is called with missing base entityType', () => {
+    const entityTypes = getOneToOneEntityTypes();
+    entityTypes[0].baseType = `UnitTesting.NotHere`;
+
+    schema.entityType = entityTypes;
+
+    expect(() => {
+      sut.adapt(metadata.dataServices);
+    }).toThrow(EntityNotFound);
+  });
+
   it('should throw Error when adapt is called with missing entityType and inferConstraints = false', () => {
     NavigationAdapter.inferConstraints = false;
     const entityType = getProductEntityType();
@@ -290,6 +309,57 @@ describe('NavigationAdapter', () => {
   it('should add associations when adapt is called with a 1:1 entity relationship', () => {
     schema.entityType = getOneToOneEntityTypes();
 
+    sut.adapt(metadata.dataServices);
+
+    expect(schema.association).toHaveLength(1);
+    expect(schema.association[0].name).toBe('Product_ProductDetail_ProductDetail_Product');
+    expect(schema.association[0].end).toContainEqual(
+      expect.objectContaining({
+        multiplicity: '1',
+        role: 'ProductDetail_Product'
+      })
+    );
+
+    expect(schema.association[0].end).toContainEqual(
+      expect.objectContaining({
+        multiplicity: '1',
+        role: 'Product_ProductDetail'
+      })
+    );
+  });
+
+  it('should add associations when adapt is called with a 1:1 entity relationship with a base type', () => {
+    const baseType = getBaseEntityType();
+    schema.entityType = getOneToOneEntityTypes();
+    schema.entityType[0].baseType = `UnitTesting.${baseType.name}`;
+    schema.entityType.push(baseType);
+    sut.adapt(metadata.dataServices);
+
+    expect(schema.association).toHaveLength(1);
+    expect(schema.association[0].name).toBe('Product_ProductDetail_ProductDetail_Product');
+    expect(schema.association[0].end).toContainEqual(
+      expect.objectContaining({
+        multiplicity: '1',
+        role: 'ProductDetail_Product'
+      })
+    );
+
+    expect(schema.association[0].end).toContainEqual(
+      expect.objectContaining({
+        multiplicity: '1',
+        role: 'Product_ProductDetail'
+      })
+    );
+  });
+
+  it('should add associations when adapt is called with a 1:1 entity relationship with empty base type', () => {
+    const baseType = getBaseEntityType();
+    baseType.key = null;
+    baseType.property = null;
+    baseType.navigationProperty = null;
+    schema.entityType = getOneToOneEntityTypes();
+    schema.entityType[0].baseType = `UnitTesting.${baseType.name}`;
+    schema.entityType.push(baseType);
     sut.adapt(metadata.dataServices);
 
     expect(schema.association).toHaveLength(1);
