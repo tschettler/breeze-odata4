@@ -1,14 +1,12 @@
 # Node generated files
 coverage
-node_modules
-npm-debug.log
 
 # OS generated files
 Thumbs.db
-.DS_Store
 
 # Ignored files
 *.ts
 !*.d.ts
 .rpt2_cache
 .travis.yml
+.vscode/

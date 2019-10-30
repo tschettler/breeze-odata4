@@ -1,6 +1,6 @@
 import { Edm } from 'ts-odatajs';
-import { ExpressionWithPublication } from './../../dist/types/decorators/publication-decorator.d';
-import { PublicationDecorator } from './../../src/decorators/decorators';
+
+import { ExpressionWithPublication, PublicationDecorator } from './../../src/decorators/publication-decorator';
 
 let sut: PublicationDecorator;
 

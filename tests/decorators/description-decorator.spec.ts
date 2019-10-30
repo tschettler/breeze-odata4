@@ -1,6 +1,6 @@
-import { ExpressionWithDescription } from '../../dist/types/decorators/description-decorator';
-import { DescriptionDecorator } from '../../src/decorators/description-decorator';
 import { Edm } from 'ts-odatajs';
+
+import { DescriptionDecorator, ExpressionWithDescription } from '../../src/decorators/description-decorator';
 
 let sut: DescriptionDecorator;
 

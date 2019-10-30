@@ -1,61 +1,137 @@
 {
-    "structuralTypes": [
+    "schema": [
         {
-            "namespace": "UnitTesting",
-            "shortName": "Person",
-            "defaultResourceName": "Person",
-            "complexProperties": [],
-            "dataProperties": [
+            "namespace": "OData4Test.Models",
+            "entityType": [
                 {
-                    "name": "personId",
-                    "isPartOfKey": true
+                    "name": "Article",
+                    "key": {
+                        "propertyRef": [
+                            {
+                                "name": "Id"
+                            }
+                        ]
+                    },
+                    "property": [
+                        {
+                            "name": "Id",
+                            "type": "Edm.String",
+                            "nullable": "false"
+                        },
+                        {
+                            "name": "Title",
+                            "type": "Edm.String"
+                        },
+                        {
+                            "name": "CurrentRevId",
+                            "type": "Edm.String"
+                        }
+                    ],
+                    "navigationProperty": [
+                        {
+                            "name": "Revisions",
+                            "type": "Collection(OData4Test.Models.Revision)"
+                        },
+                        {
+                            "name": "CurrentRev",
+                            "type": "OData4Test.Models.Revision"
+                        }
+                    ]
                 },
                 {
-                    "name": "firstName"
-                }
-            ],
-            "navigationProperties": [
-                {
-                    "name": "id",
-                    "entityTypeName": "Identification:#UnitTesting"
-                },
-                {
-                    "name": "spouse",
-                    "entityTypeName": "Person:#UnitTesting"
+                    "name": "Revision",
+                    "key": {
+                        "propertyRef": [
+                            {
+                                "name": "Id"
+                            }
+                        ]
+                    },
+                    "property": [
+                        {
+                            "name": "Id",
+                            "type": "Edm.String",
+                            "nullable": "false"
+                        },
+                        {
+                            "name": "ArticleId",
+                            "type": "Edm.String"
+                        },
+                        {
+                            "name": "Version",
+                            "type": "Edm.String"
+                        },
+                        {
+                            "name": "Content",
+                            "type": "Edm.String"
+                        },
+                        {
+                            "name": "PrevId",
+                            "type": "Edm.String"
+                        }
+                    ],
+                    "navigationProperty": [
+                        {
+                            "name": "Article",
+                            "type": "OData4Test.Models.Article",
+                            "referentialConstraint": [
+                                {
+                                    "property": "ArticleId",
+                                    "referencedProperty": "Id"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Prev",
+                            "type": "OData4Test.Models.Revision"
+                        },
+                        {
+                            "name": "Next",
+                            "type": "Collection(OData4Test.Models.Revision)"
+                        }
+                    ]
                 }
             ]
         },
         {
-            "namespace": "UnitTesting",
-            "shortName": "Identification",
-            "defaultResourceName": "Identification",
-            "complexProperties": [],
-            "dataProperties": [
-                {
-                    "name": "identificationId",
-                    "isPartOfKey": true
-                },
-                {
-                    "name": "idType"
-                }
-            ],
-            "navigationProperties": [
-                {
-                    "name": "person",
-                    "entityTypeName": "Person:#UnitTesting"
-                }
-            ]
-        },
-        {
-            "isComplexType": true,
-            "namespace": "UnitTesting",
-            "shortName": "Address",
-            "complexProperties": [],
-            "dataProperties": [
-                {
-                    "name": "address1"
-                }
-            ]
+            "namespace": "Default",
+            "entityContainer": {
+                "name": "Container",
+                "entitySet": [
+                    {
+                        "name": "Articles",
+                        "entityType": "OData4Test.Models.Article",
+                        "navigationPropertyBinding": [
+                            {
+                                "path": "CurrentRev",
+                                "target": "Revisions"
+                            },
+                            {
+                                "path": "Revisions",
+                                "target": "Revisions"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Revisions",
+                        "entityType": "OData4Test.Models.Revision",
+                        "navigationPropertyBinding": [
+                            {
+                                "path": "Article",
+                                "target": "Articles"
+                            },
+                            {
+                                "path": "Next",
+                                "target": "Revisions"
+                            },
+                            {
+                                "path": "Prev",
+                                "target": "Revisions"
+                            }
+                        ]
+                    }
+                ]
+            }
         }
     ]
 }

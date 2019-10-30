@@ -359,6 +359,7 @@ declare module "breeze-client"
         Decimal: DataTypeSymbol;
         Double: DataTypeSymbol;
         Duration: DataTypeSymbol; /* OData 4 */
+        GeographyPoint: DataTypeSymbol; /* OData 4 */
         Guid: DataTypeSymbol;
         Int16: DataTypeSymbol;
         Int32: DataTypeSymbol;

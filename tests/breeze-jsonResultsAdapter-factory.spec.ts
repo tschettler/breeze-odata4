@@ -1,7 +1,8 @@
 import { EntityManager, EntityQuery, JsonResultsAdapter, MappingContext, MetadataStore, NodeContext } from 'breeze-client';
+
 import { JsonResultsAdapterFactory } from './../src/breeze-jsonResultsAdapter-factory';
 
-const jsonMetadata = require('./metadata.json');
+const jsonMetadata = require('./breeze_metadata.json');
 
 let metadataStore: MetadataStore;
 let entityManager: EntityManager;

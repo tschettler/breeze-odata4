@@ -1,6 +1,6 @@
 {
   "name": "breeze-odata4",
-  "version": "0.9.14",
+  "version": "1.0.0-rc.0",
   "description": "Library to allow OData 4 support for breezejs",
   "author": "Travis Schettler",
   "homepage": "https://github.com/tschettler/breeze-odata4#readme",
@@ -31,11 +31,13 @@
     "node": ">=6.0.0"
   },
   "scripts": {
-    "build": "tsc --module commonjs --target es5 && rollup -c rollup.config.ts",
+    "build": "tsc --module commonjs --target es5 && rollup -c rollup.config.ts && typedoc src",
+    "deploy-docs": "ts-node tools/gh-pages-publish",
     "lint": "tslint --project tsconfig.json",
-    "prebuild": "rimraf dist",
+    "prebuild": "rimraf dist docs",
     "prepublishOnly": "npm run test:prod && npm run build",
     "pretest": "clear",
+    "report-coverage": "cat ./coverage/lcov.info | coveralls",
     "start": "rollup -c rollup.config.ts -w",
     "test": "jest --verbose",
     "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
@@ -43,29 +45,33 @@
   },
   "dependencies": {
     "breeze-client": "^1.7.0",
-    "ts-odatajs": "^4.0.4"
+    "ts-odatajs": "^4.0.6"
   },
   "peerDependencies": {
     "breeze-client": "^1.7.0",
     "ts-odatajs": "^4.0.4"
   },
   "devDependencies": {
-    "@types/jest": "^23.3.9",
-    "@types/node": "^10.12.5",
+    "@types/jest": "^24.0.19",
+    "@types/node": "^12.11.2",
     "camelcase": "^5.0.0",
-    "jest": "^23.6.0",
-    "jest-config": "^23.6.0",
+    "coveralls": "^3.0.7",
+    "jest": "^24.9.0",
+    "jest-config": "^24.9.0",
+    "levelup": "^4.3.2",
     "rimraf": "^2.6.2",
-    "rollup": "^0.67.1",
-    "rollup-plugin-commonjs": "^9.2.0",
-    "rollup-plugin-json": "^3.1.0",
-    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup": "^1.25.1",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-json": "^4.0.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-sourcemaps": "^0.4.2",
-    "rollup-plugin-typescript2": "^0.18.0",
-    "ts-jest": "^23.10.4",
-    "ts-loader": "^5.3.0",
-    "ts-node": "^7.0.1",
-    "tslint": "^5.11.0",
-    "typescript": "^3.1.6"
+    "rollup-plugin-typescript2": "^0.24.3",
+    "ts-jest": "^24.1.0",
+    "ts-node": "^8.4.1",
+    "ts-odatajs": "^4.0.6",
+    "tslint": "^5.20.0",
+    "typedoc": "^0.15.0",
+    "typescript": "~3.5.3"
   }
 }

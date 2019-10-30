@@ -1,42 +1,35 @@
 module.exports = {
     transform: {
-        '.ts': 'ts-jest'
+        ".ts": "ts-jest"
     },
-    testEnvironment: 'node',
-    testRegex: '(/__tests__/.*|\\.(test|spec))\\.(ts|js)$',
+    testEnvironment: "node",
     testPathIgnorePatterns: [
-        "/node_modules/",
-        "/dist/"
+        "/dist/", 
+        "/node_modules/"
     ],
-    /*     moduleNameMapper: {
-            //"^breeze-client$": "<rootDir>/typings/breeze-client/index.d.ts"
-        },
-        modulePaths: [
-            "<rootDir>/typings/breeze-client"
-        ],
-        modulePathIgnorePatterns: [
-            "<rootDir>/node_modules/breeze-client",
-        ],
-    */
     moduleFileExtensions: [
-        'ts',
-        'js'
+        "ts",
+        "js",
+        "json",
+        "node"
     ],
     coveragePathIgnorePatterns: [
-        '/node_modules/',
-        '/tests/',
-        '/index.ts'
+        "/dist/",
+        "/node_modules/",
+        "/tests/",
+        "/index.ts"
     ],
     coverageThreshold: {
         global: {
-            branches: 0,
-            functions: 0,
-            lines: 0,
-            statements: 0
+            branches: 65,
+            functions: 80,
+            lines: 75,
+            statements: 75
         }
     },
     collectCoverage: true,
     collectCoverageFrom: [
-        'src/**/*.{js,ts}'
+        "src/**/*.{js,ts}",
+        "!**/node_modules/**"
     ]
 }

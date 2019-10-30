@@ -1,4 +1,4 @@
-# breeze-odata4 [![NPM version](https://badge.fury.io/js/breeze-odata4.svg)](https://npmjs.org/package/breeze-odata4) [![Build Status](https://travis-ci.org/tschettler/breeze-odata4.svg?branch=master)](https://travis-ci.org/tschettler/breeze-odata4)
+# breeze-odata4 [![NPM version](https://badge.fury.io/js/breeze-odata4.svg)](https://npmjs.org/package/breeze-odata4) [![Build Status](https://travis-ci.org/tschettler/breeze-odata4.svg?branch=master)](https://travis-ci.org/tschettler/breeze-odata4) [![Coverage Status](https://coveralls.io/repos/github/tschettler/breeze-odata4/badge.svg?branch=master)](https://coveralls.io/github/tschettler/breeze-odata4?branch=master)
 
 > A TypeScript library to enable querying an OData 4 API using [breezejs](http://www.getbreezenow.com/breezejs)
 

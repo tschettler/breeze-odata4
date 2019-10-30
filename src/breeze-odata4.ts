@@ -57,6 +57,14 @@ export class BreezeOData4 {
     DataType.Duration = DataType.Time;
     Utilities.dataTypeMap.duration = DataType.Duration;
 
+    DataType.GeographyPoint = DataType.addSymbol({
+      defaultValue: [0, 0],
+      parse: DataType.String.parse,
+      fmtOData: JSON.stringify,
+      validatorCtor: Validator.string
+    });
+    Utilities.dataTypeMap.geographypoint = DataType.GeographyPoint;
+
     // TODO: This may need to be cleaned up later
     DataType.Stream = DataType.addSymbol({
       defaultValue: '',
