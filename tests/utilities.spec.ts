@@ -1,11 +1,11 @@
 import { ComplexType, DataType, EntityType, MetadataStore } from 'breeze-client';
 import { Edm, Edmx } from 'ts-odatajs';
-
 import { Utilities } from '../src/utilities';
 import { BreezeOData4 } from './../src/breeze-odata4';
 
+
 describe('Utilities', () => {
-  BreezeOData4.configure(false);
+  BreezeOData4.configure({ initializeAdapters: false });
 
   const jsonMetadata = require('./breeze_metadata.json');
   const metadataStore = new MetadataStore();
