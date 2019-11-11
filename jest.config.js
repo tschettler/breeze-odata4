@@ -13,6 +13,9 @@ module.exports = {
         "json",
         "node"
     ],
+    /* moduleNameMapper: {
+        '^src/(.*)$': '<rootDir>/src/$1'
+    }, */
     coveragePathIgnorePatterns: [
         "/dist/",
         "/node_modules/",

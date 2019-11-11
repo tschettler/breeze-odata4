@@ -1,4 +1,3 @@
-export { AnnotationDecorator } from './annotation-decorator';
 export { CustomDecorator } from './custom-decorator';
 export { DescriptionDecorator } from './description-decorator';
 export { DisplayNameDecorator } from './display-name-decorator';

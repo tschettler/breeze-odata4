@@ -1,8 +1,8 @@
 import { Edm, Edmx, oData } from 'ts-odatajs';
 
 import { ClassRegistry } from '../class-registry';
-import { AnnotationDecorator } from '../decorators/decorators';
-import { MetadataAdapter } from './adapters';
+import { AnnotationDecorator } from '../decorators/annotation-decorator';
+import { MetadataAdapter } from './metadata-adapter';
 
 export const TargetNotFound = 'Could not find element with type name';
 export class AnnotationAdapter implements MetadataAdapter {

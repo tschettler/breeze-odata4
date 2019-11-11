@@ -10,6 +10,8 @@ export { ODataHttpClient } from './odata-http-client';
 export { Utilities } from './utilities';
 export { MetadataAdapter } from './adapters/metadata-adapter';
 export { AnnotationAdapter } from './adapters/annotation-adapter';
+export { DataTypeSetup } from './datatype-setups/datatype-setup';
+export { BaseDataTypeSetup } from './datatype-setups/base-datatype-setup';
 export { NavigationAdapter } from './adapters/navigation-adapter';
 
 export { AnnotationDecorator } from './decorators/annotation-decorator';

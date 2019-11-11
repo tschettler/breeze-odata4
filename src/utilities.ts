@@ -7,25 +7,23 @@ export interface InvokableEntry {
   url?: string;
 }
 
+export const nameof = <T>(name: keyof T) => name;
+
 export namespace Utilities {
   export const dataTypeMap: { [key: string]: DataTypeSymbol } = {
-    binary: DataType.Binary,
     bool: DataType.Boolean,
     date: DataType.DateTimeOffset,
-    datetimeoffset: DataType.DateTimeOffset,
-    decimal: DataType.Decimal,
-    // duration: DataType.Duration,
-    // enumMember?
     float: DataType.Double,
-    guid: DataType.Guid,
     int: DataType.Int64,
-    string: DataType.String,
-    single: DataType.Single
-    // timeofday: DataType.TimeOfDay
+    sbyte: DataType.Byte
   };
 
   export function getDataType(key: string): DataTypeSymbol {
-    const dataType = dataTypeMap[key] || dataTypeMap.string;
+    // try to get the built-in type
+    const enumName = DataType.getNames().find(n => n.toLowerCase() === key.toLowerCase());
+
+    const dataType = !!enumName ? DataType[enumName] : (dataTypeMap[key] || DataType.String);
+
     return dataType;
   }
 

@@ -1,17 +1,10 @@
-import {
-    config,
-    DataService,
-    DataServiceAdapter,
-    DataServiceOptions,
-    JsonResultsAdapter,
-    MetadataStore
-} from 'breeze-client';
+import { config, DataService, DataServiceAdapter, DataServiceOptions, JsonResultsAdapter, MetadataStore } from 'breeze-client';
 import * as fs from 'fs';
 import * as path from 'path';
 import { HttpOData } from 'ts-odatajs';
-
 import { NavigationAdapter } from '../src/adapters/adapters';
 import { ClassRegistry } from '../src/class-registry';
+import { DataTypeSetup } from '../src/datatypes/setups/datatype-setup';
 import { ODataHttpClient } from '../src/odata-http-client';
 import { BreezeOData4 } from './../src/breeze-odata4';
 import { OData4DataService } from './../src/breeze-odata4-dataService';
@@ -231,6 +224,7 @@ describe('OData4DataService', () => {
             delete global['window'];
             global['location'] = { origin: 'http://localhost' };
             (<any>ClassRegistry.MetadataAdapters.get).mockReturnValue([new NavigationAdapter()]);
+            (<any>ClassRegistry.DataTypeSetups.get) = jest.fn().mockImplementation(() => <DataTypeSetup[]>[]);
             BreezeOData4.configure();
             const ds = new OData4DataService();
             ds.initialize();

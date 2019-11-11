@@ -1,7 +1,7 @@
 import { Edm, EdmExtra, Edmx, oData } from 'ts-odatajs';
 
 import { AssociationEndpoint, AssociationSet } from '../models/models';
-import { MetadataAdapter } from './adapters';
+import { MetadataAdapter } from './metadata-adapter';
 
 export const EntityNotFound = 'Could not find entity with type name';
 const PartnerSuffix = 'Partner';
