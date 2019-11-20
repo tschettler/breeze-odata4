@@ -249,12 +249,18 @@ declare module "breeze-client"
         fetchMetadata(metadataStore: MetadataStore, dataService: DataService): Promise<any>;
         executeQuery(mappingContext: MappingContext): Promise<any>;
         saveChanges(saveContext: { resourceName: string; dataService: DataService }, saveBundle: SaveBundle): Promise<SaveResult>;
-        jsonResultsAdapter: JsonResultsAdapter;
+        _prepareSaveBundle(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): SaveBundle;
+        changeRequestInterceptor: {
+            getRequest: <T>(request: T, entity: Entity, index: number) => T;
+            done: (requests: Object[]) => void;
+        };
         _catchNoConnectionError(err: Error): any;
         _createChangeRequestInterceptor(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): {
             getRequest: <T>(request: T, entity: Entity, index: number) => T;
             done: (requests: Object[]) => void;
         };
+        _prepareSaveResult(saveContext: DataServiceSaveContext,data: SaveResult): SaveResult;
+        jsonResultsAdapter: JsonResultsAdapter;
     }
 
     export class DeletedEntityKey {
@@ -270,14 +276,14 @@ declare module "breeze-client"
     export class JsonResultsAdapter {
         name: string;
         extractResults: (data: {}) => {};
-        extractSaveResults: (data: {}) => any[];
+        extractSaveResults: (data: {}) => Entity[];
         extractKeyMappings: (data: {}) => KeyMapping[];
         extractDeletedKeys: (data: {}) => DeletedEntityKey[];
         visitNode: (node: {}, queryContext: MappingContext, nodeContext: NodeContext) => VisitNodeResult;
         constructor(config: {
             name: string;
             extractResults?: (data: {}) => {};
-            extractSaveResults?: (data: {}) => any[];
+            extractSaveResults?: (data: {}) => Entity[];
             extractKeyMappings?: (data: {}) => KeyMapping[];
             extractDeletedKeys?: (data: {}) => DeletedEntityKey[];
             visitNode: (node: {}, queryContext: MappingContext, nodeContext: NodeContext) => VisitNodeResult;
@@ -1076,6 +1082,7 @@ declare module "breeze-client"
     export interface SaveResult {
         entities: Entity[];
         keyMappings: KeyMapping[];
+        deletedKeys: DeletedEntityKey[];
         XHR: XMLHttpRequest;
     }
 

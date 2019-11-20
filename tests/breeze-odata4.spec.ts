@@ -1,13 +1,22 @@
-import { Utilities } from './../src/utilities';
 import { config, DataType } from 'breeze-client';
-import { BreezeOData4 } from './../src/breeze-odata4';
-import { ClassRegistry } from '../src/class-registry';
-import { OData4UriBuilder } from '../src/breeze-odata4-uriBuilder';
+import { NavigationAdapter } from '../src/adapters/adapters';
 import { OData4DataService } from '../src/breeze-odata4-dataService';
+import { BreezeOData4Options, DefaultOptions } from '../src/breeze-odata4-options';
+import { OData4UriBuilder } from '../src/breeze-odata4-uriBuilder';
+import { ClassRegistry } from '../src/class-registry';
+import { BreezeOData4 } from './../src/breeze-odata4';
 
 describe('BreezeOData4', () => {
+  let options: Partial<BreezeOData4Options>;
+
+  beforeEach(() => {
+    BreezeOData4.reset();
+    options = Object.assign({}, DefaultOptions, { initializeAdapters: false });
+  });
+
   it('should register UriBuilder when configure is called', () => {
-    BreezeOData4.configure(true);
+    options.initializeAdapters = true;
+    BreezeOData4.configure(options);
     const adapter = config.getAdapterInstance('uriBuilder');
     expect(adapter).toBeInstanceOf(OData4UriBuilder);
   });
@@ -18,41 +27,48 @@ describe('BreezeOData4', () => {
     expect(adapter).toBeInstanceOf(OData4DataService);
   });
 
+  it('should allow initializing after configuring', () => {
+    BreezeOData4.configure(options);
+    options.initializeAdapters = true;
+    BreezeOData4.configure(options);
+    const ubAdapter = config.getAdapterInstance('uriBuilder');
+    expect(ubAdapter).toBeInstanceOf(OData4UriBuilder);
+    const dsAdapter = config.getAdapterInstance('dataService');
+    expect(dsAdapter).toBeInstanceOf(OData4DataService);
+  });
+
   it('should add DataType.Duration when configure is called', () => {
     jest.useFakeTimers();
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
     jest.runAllTimers();
     const dataType = DataType['Duration'];
-    expect(dataType).toEqual(DataType.Time);
-    expect(Utilities.dataTypeMap.duration).toEqual(dataType);
+    expect(dataType).toBeTruthy();
   });
 
   it('should add DataType.Stream when configure is called', () => {
     jest.useFakeTimers();
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
     jest.runAllTimers();
     const dataType = DataType['Stream'];
     expect(dataType).toBeTruthy();
-    expect(Utilities.dataTypeMap.stream).toEqual(dataType);
   });
 
   it('should add DataType.TimeOfDay when configure is called', () => {
     jest.useFakeTimers();
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
     jest.runAllTimers();
     const dataType = DataType['TimeOfDay'];
     expect(dataType).toBeTruthy();
-    expect(Utilities.dataTypeMap.timeofday).toEqual(dataType);
   });
 
   it('should register classes when configure is called', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
     expect(ClassRegistry.AnnotationDecorators.types.length).toBeGreaterThan(0);
     expect(ClassRegistry.MetadataAdapters.types.length).toBeGreaterThan(0);
   });
 
   it('should return null when calling Int64.fmtOData for null number', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const result = DataType.Int64.fmtOData(null);
 
@@ -60,7 +76,7 @@ describe('BreezeOData4', () => {
   });
 
   it('should return null when calling Int64.fmtOData for undefined', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const result = DataType.Int64.fmtOData(undefined);
 
@@ -68,7 +84,7 @@ describe('BreezeOData4', () => {
   });
 
   it('should return number when calling Int64.fmtOData for numeric string', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const result = DataType.Int64.fmtOData('123.45');
 
@@ -77,7 +93,7 @@ describe('BreezeOData4', () => {
 
 
   it('should return value when calling Int64.fmtOData for non-string', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const result = DataType.Int64.fmtOData(123.45);
 
@@ -85,7 +101,7 @@ describe('BreezeOData4', () => {
   });
 
   it('should return null when calling DateTime.fmtOData for null', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const result = DataType.DateTime.fmtOData(null);
 
@@ -93,7 +109,7 @@ describe('BreezeOData4', () => {
   });
 
   it('should return null when calling DateTime.fmtOData for undefined', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const result = DataType.DateTime.fmtOData(undefined);
 
@@ -101,7 +117,7 @@ describe('BreezeOData4', () => {
   });
 
   it('should return ISO date string when calling DateTime.fmtOData for date', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const input = new Date();
 
@@ -111,15 +127,15 @@ describe('BreezeOData4', () => {
   });
 
   it('should throw exception when calling DateTime.fmtOData with non-date', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     expect(() => {
       DataType.DateTime.fmtOData(123.45);
-    }).toThrowError('is not a valid dateTime');
+    }).toThrowError('is not a valid DateTime');
   });
 
   it('should return null when calling DateTimeOffset.fmtOData for null', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const result = DataType.DateTimeOffset.fmtOData(null);
 
@@ -127,7 +143,7 @@ describe('BreezeOData4', () => {
   });
 
   it('should return null when calling DateTimeOffset.fmtOData for undefined', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const result = DataType.DateTimeOffset.fmtOData(undefined);
 
@@ -135,7 +151,7 @@ describe('BreezeOData4', () => {
   });
 
   it('should return ISO date string when calling DateTimeOffset.fmtOData for date', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const input = new Date();
 
@@ -145,15 +161,15 @@ describe('BreezeOData4', () => {
   });
 
   it('should throw exception when calling DateTimeOffset.fmtOData with non-date', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     expect(() => {
       DataType.DateTimeOffset.fmtOData(123.45);
-    }).toThrowError('is not a valid dateTimeOffset');
+    }).toThrowError('is not a valid DateTimeOffset');
   });
 
   it('should return null when calling Time.fmtOData for null', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const result = DataType.Time.fmtOData(null);
 
@@ -161,7 +177,7 @@ describe('BreezeOData4', () => {
   });
 
   it('should return null when calling Time.fmtOData for undefined', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const result = DataType.Time.fmtOData(undefined);
 
@@ -169,7 +185,7 @@ describe('BreezeOData4', () => {
   });
 
   it('should return value when calling Time.fmtOData for duration', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const input = 'P1Y2M10DT2H30M';
 
@@ -179,7 +195,7 @@ describe('BreezeOData4', () => {
   });
 
   it('should throw exception when calling Time.fmtOData with non-duration', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     expect(() => {
       DataType.Time.fmtOData(123.45);
@@ -187,7 +203,7 @@ describe('BreezeOData4', () => {
   });
 
   it('should return null when calling Guid.fmtOData for null', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const result = DataType.Guid.fmtOData(null);
 
@@ -195,7 +211,7 @@ describe('BreezeOData4', () => {
   });
 
   it('should return null when calling Guid.fmtOData for undefined', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const result = DataType.Guid.fmtOData(undefined);
 
@@ -203,7 +219,7 @@ describe('BreezeOData4', () => {
   });
 
   it('should return value when calling Guid.fmtOData for duration', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     const input = 'e6580e89-3f62-4d4f-bf54-5a794391e1bf';
 
@@ -213,11 +229,37 @@ describe('BreezeOData4', () => {
   });
 
   it('should throw exception when calling Guid.fmtOData with non-duration', () => {
-    BreezeOData4.configure(false);
+    BreezeOData4.configure(options);
 
     expect(() => {
       DataType.Guid.fmtOData(123.45);
-    }).toThrowError('is not a valid guid');
+    }).toThrowError('is not a valid Guid');
+  });
+
+  describe('inferNavigationPropertyPartner', () => {
+    it('should set NavigationAdapter.inferParter to true', () => {
+      BreezeOData4.configure(options);
+      expect(NavigationAdapter.inferPartner).toBeTruthy();
+    });
+
+    it('should set NavigationAdapter.inferParter to false', () => {
+      options.inferNavigationPropertyPartner = false;
+      BreezeOData4.configure(options);
+      expect(NavigationAdapter.inferPartner).toBeFalsy();
+    });
+  });
+
+  describe('inferReferentialConstraints', () => {
+    it('should set NavigationAdapter.inferConstraints to true', () => {
+      BreezeOData4.configure(options);
+      expect(NavigationAdapter.inferConstraints).toBeTruthy();
+    });
+
+    it('should set NavigationAdapter.inferConstraints to false', () => {
+      options.inferReferentialConstraints = false;
+      BreezeOData4.configure(options);
+      expect(NavigationAdapter.inferConstraints).toBeFalsy();
+    });
   });
 
 });

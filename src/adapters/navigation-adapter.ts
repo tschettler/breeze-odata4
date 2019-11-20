@@ -1,12 +1,16 @@
 import { Edm, EdmExtra, Edmx, oData } from 'ts-odatajs';
-
 import { AssociationEndpoint, AssociationSet } from '../models/models';
-import { MetadataAdapter } from './adapters';
+import { MetadataAdapter } from './metadata-adapter';
+
 
 export const EntityNotFound = 'Could not find entity with type name';
 const PartnerSuffix = 'Partner';
 
 export class NavigationAdapter implements MetadataAdapter {
+  /** Determines whether to allow many-to-many entity relationships.
+   * @default false
+   */
+  public static allowManyToMany = false;
 
   /** Determines whether to infer referential constraints when the referentialConstraint attribute is missing.
    * @default true
@@ -18,8 +22,8 @@ export class NavigationAdapter implements MetadataAdapter {
    */
   public static inferPartner = true;
 
-   /** Conventions used to infer foreign key properties.
-   */
+  /** Conventions used to infer foreign key properties.
+  */
   public static foreignKeyConventions: ((endpoint: AssociationEndpoint, suffix: string) => string)[] = [
     (endpoint, suffix) => `${endpoint.propertyName}${suffix}`.toLowerCase(),
     (endpoint) => `${endpoint.propertyName}Id`.toLowerCase(),
@@ -64,7 +68,11 @@ export class NavigationAdapter implements MetadataAdapter {
 
     this.trySetReferentialConstraint(endpoint);
 
-    const partnerNavProp = this.tryGetPartnerNavigationProperty(endpoint);
+    let partnerNavProp = this.tryGetPartnerNavigationProperty(endpoint);
+
+    if (!this.validateRelationship(navigationProperty, partnerNavProp)) {
+      partnerNavProp = null;
+    }
 
     const partnerEndpoint = new AssociationEndpoint({
       containingEntityType: navPropType,
@@ -219,6 +227,13 @@ export class NavigationAdapter implements MetadataAdapter {
         && (!n.partner || n.partner === navProp.name));
 
     return partnerNavProp;
+  }
+
+  private validateRelationship(...navigationProperties: Edm.NavigationProperty[]) {
+    const result = NavigationAdapter.allowManyToMany
+      || !navigationProperties.every(n => !!n && oData.utils.isCollectionType(n.type));
+
+    return result;
   }
 
   private getEntitySetNameByEntityType(entityType: string): string {

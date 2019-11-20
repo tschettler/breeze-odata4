@@ -1,8 +1,9 @@
 import { Edm, Edmx } from 'ts-odatajs';
-import { TargetNotFound } from './../../src/adapters/annotation-adapter';
 import { AnnotationAdapter } from '../../src/adapters/adapters';
 import { ClassRegistry } from '../../src/class-registry';
-import { DisplayNameDecorator, AnnotationDecorator } from '../../src/decorators/decorators';
+import { AnnotationDecorator } from '../../src/decorators/annotation-decorator';
+import { DisplayNameDecorator } from '../../src/decorators/display-name-decorator';
+import { TargetNotFound } from './../../src/adapters/annotation-adapter';
 
 let sut: AnnotationAdapter;
 let metadata: Edmx.Edmx;

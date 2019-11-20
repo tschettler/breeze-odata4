@@ -58,6 +58,11 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
 
   public jsonResultsAdapter: JsonResultsAdapter;
 
+  public changeRequestInterceptor: {
+    getRequest: <T>(request: T, entity: Entity, index: number) => T;
+    done: (requests: Object[]) => void;
+  } = this.innerAdapter.changeRequestInterceptor;
+
   public static register() {
     config.registerAdapter('dataService', OData4DataService);
   }
@@ -82,6 +87,14 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
 
   public checkForRecomposition(interfaceInitializedArgs: { interfaceName: string; isDefault: boolean }): void {
     this.innerAdapter.checkForRecomposition(interfaceInitializedArgs);
+  }
+
+  public _prepareSaveBundle(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): SaveBundle {
+    return this.innerAdapter._prepareSaveBundle(saveContext, saveBundle);
+  }
+
+  public _prepareSaveResult(saveContext: DataServiceSaveContext, saveResult: SaveResult): SaveResult {
+    return this.innerAdapter._prepareSaveResult(saveContext, saveResult);
   }
 
   public initialize(): void {
@@ -204,7 +217,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         (data: Batch.BatchResponse) => {
           const entities: Entity[] = [];
           const keyMappings: KeyMapping[] = [];
-          const saveResult: SaveResult = { entities: entities, keyMappings: keyMappings, XHR: null };
+          const saveResult: SaveResult = { entities: entities, keyMappings: keyMappings, deletedKeys: null, XHR: null };
           data.__batchResponses.forEach((br: Batch.ChangeResponseSet) => {
             br.__changeResponses.forEach((cr: Batch.ChangeResponse | Batch.FailedResponse, index: number) => {
               const chResponse = (<Batch.FailedResponse>cr).response || <Batch.ChangeResponse>cr;
