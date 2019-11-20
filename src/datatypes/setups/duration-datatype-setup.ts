@@ -1,4 +1,4 @@
-import { DataType, core } from 'breeze-client';
+import { core, DataType } from 'breeze-client';
 import { BaseDataTypeSetup } from './base-datatype-setup';
 
 export class DurationDataTypeSetup extends BaseDataTypeSetup {
