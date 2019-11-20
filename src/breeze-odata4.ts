@@ -17,6 +17,7 @@ export class BreezeOData4 {
       OData4UriBuilder.register();
       OData4DataService.register();
 
+      metadataAdapters.NavigationAdapter.allowManyToMany = opts.allowManyToManyRelationships;
       metadataAdapters.NavigationAdapter.inferPartner = opts.inferNavigationPropertyPartner;
       metadataAdapters.NavigationAdapter.inferConstraints = opts.inferReferentialConstraints;
 

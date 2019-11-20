@@ -8,6 +8,11 @@ import { AnnotationDecorator } from './decorators/annotation-decorator';
  * Configuration options for breeze-odata4.
  */
 export interface BreezeOData4Options {
+    /** Determines whether to allow many-to-many entity relationships.
+     * @default false
+     */
+    allowManyToManyRelationships: boolean;
+
     /**
      * Custom annotation decorators to register with breeze-odata4.
      */
@@ -40,6 +45,7 @@ export interface BreezeOData4Options {
 }
 
 export const DefaultOptions: BreezeOData4Options = {
+    allowManyToManyRelationships: false,
     annotationDecorators: [],
     dataTypeSetups: [],
     inferNavigationPropertyPartner: true,

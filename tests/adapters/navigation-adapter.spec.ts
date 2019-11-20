@@ -1,7 +1,7 @@
 import { Edm, Edmx } from 'ts-odatajs';
-
 import { EntityNotFound } from '../../src/adapters/navigation-adapter';
 import { NavigationAdapter } from './../../src/adapters/adapters';
+
 
 let metadata: Edmx.Edmx;
 let sut: NavigationAdapter;
@@ -94,6 +94,7 @@ const schema: Edm.Schema = {
 describe('NavigationAdapter', () => {
   beforeEach(() => {
     sut = new NavigationAdapter();
+    NavigationAdapter.allowManyToMany = false;
     NavigationAdapter.inferConstraints = true;
     NavigationAdapter.inferPartner = true;
 
@@ -379,7 +380,46 @@ describe('NavigationAdapter', () => {
     );
   });
 
-  it('should add associations when adapt is called with a M:M entity relationship', () => {
+  it('should add associations when adapt is called with a M:M entity relationship and allowManyToMany=false', () => {
+    NavigationAdapter.allowManyToMany = false;
+    schema.entityType = getManyToManyEntityTypes();
+
+    sut.adapt(metadata.dataServices);
+
+    expect(schema.association).toHaveLength(2);
+    expect(schema.association[0].name).toBe('Category_Products_Product_ProductsPartner');
+    expect(schema.association[0].end).toContainEqual(
+      expect.objectContaining({
+        multiplicity: '1',
+        role: 'Product_ProductsPartner'
+      })
+    );
+
+    expect(schema.association[0].end).toContainEqual(
+      expect.objectContaining({
+        multiplicity: '*',
+        role: 'Category_Products'
+      })
+    );
+
+    expect(schema.association[1].name).toBe('Product_Categories_Category_CategoriesPartner');
+    expect(schema.association[1].end).toContainEqual(
+      expect.objectContaining({
+        multiplicity: '1',
+        role: 'Category_CategoriesPartner'
+      })
+    );
+
+    expect(schema.association[1].end).toContainEqual(
+      expect.objectContaining({
+        multiplicity: '*',
+        role: 'Product_Categories'
+      })
+    );
+  });
+
+  it('should add associations when adapt is called with a M:M entity relationship and allowManyToMany=true', () => {
+    NavigationAdapter.allowManyToMany = true;
     schema.entityType = getManyToManyEntityTypes();
 
     sut.adapt(metadata.dataServices);
