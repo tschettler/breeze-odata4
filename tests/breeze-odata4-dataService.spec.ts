@@ -76,10 +76,6 @@ describe('OData4DataService', () => {
             sut.initialize();
         });
 
-        it('should call get on ClassRegistry.MetadataAdapters', () => {
-            expect(ClassRegistry.MetadataAdapters.get).toHaveBeenCalledTimes(1);
-        });
-
         it('should set jsonResultsAdapter', () => {
             expect(sut.jsonResultsAdapter).toBeInstanceOf(JsonResultsAdapter);
         });

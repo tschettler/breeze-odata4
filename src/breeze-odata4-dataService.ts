@@ -22,9 +22,7 @@ import {
 } from 'breeze-client';
 import { Batch, Edm, Edmx, HttpOData, oData } from 'ts-odatajs';
 
-import { MetadataAdapter } from './adapters/metadata-adapter';
 import { JsonResultsAdapterFactory } from './breeze-jsonResultsAdapter-factory';
-import { ClassRegistry } from './class-registry';
 import { ODataError } from './odata-error';
 import { ODataHttpClient } from './odata-http-client';
 import { InvokableEntry, Utilities } from './utilities';
@@ -39,8 +37,6 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
 
   // I don't like this, but I'm not able to find a better way
   private innerAdapter: DataServiceAdapter = <DataServiceAdapter>config.getAdapterInstance('dataService', 'WebApi');
-
-  private metadataAdapters: MetadataAdapter[] = [];
 
   private actions: InvokableEntry[] = [];
 
@@ -98,7 +94,6 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
   }
 
   public initialize(): void {
-    this.metadataAdapters = ClassRegistry.MetadataAdapters.get() || [];
     this.jsonResultsAdapter = JsonResultsAdapterFactory.create();
   }
 
@@ -137,9 +132,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
 
           const csdlMetadata = this.metadata.dataServices;
 
-          this.metadataAdapters.forEach(a => {
-            oData.utils.forEachSchema(csdlMetadata, a.adapt.bind(a));
-          });
+          Utilities.adaptMetadata(this.metadata);
 
           // might have been fetched by another query
           if (!metadataStore.hasMetadataFor(serviceName)) {
