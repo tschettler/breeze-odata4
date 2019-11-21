@@ -13,4 +13,3 @@ export { BaseDataTypeSetup } from './datatypes/setups/base-datatype-setup';
 export { AnnotationDecorator } from './decorators/annotation-decorator';
 export { ODataHttpClient } from './odata-http-client';
 export { Utilities } from './utilities';
-

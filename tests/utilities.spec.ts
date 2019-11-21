@@ -192,6 +192,16 @@ describe('Utilities', () => {
     });
   });
 
+  describe('adaptMetadata', () => {
+    it('should return if version is not 4.0', () => {
+      const edmx: Edmx.Edmx = { version: '1.0', dataServices: null };
+
+      const result = Utilities.adaptMetadata(edmx);
+
+      expect(result).toBe(edmx);
+    });
+  });
+
   describe('adaptStructuralType', () => {
     it('should return the correct entityType if exists', () => {
       const result = Utilities.adaptStructuralType(metadataStore, personEntityType);

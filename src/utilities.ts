@@ -1,5 +1,6 @@
 import { ComplexType, DataType, DataTypeSymbol, EntityType, IStructuralType, MetadataStore } from 'breeze-client';
 import { Edm, Edmx, oData } from 'ts-odatajs';
+import { ClassRegistry } from './class-registry';
 
 export interface InvokableEntry {
   config: Edm.Action | Edm.Function;
@@ -17,6 +18,23 @@ export namespace Utilities {
     int: DataType.Int64,
     sbyte: DataType.Byte
   };
+
+  export function adaptMetadata(metadata: Edmx.Edmx): Edmx.Edmx {
+    // Edmx version must be "4.0", no need to adapt if it is not OData 4.
+    if (metadata.version !== '4.0') {
+      return metadata;
+    }
+
+    const metadataAdapters = ClassRegistry.MetadataAdapters.get();
+
+    const csdlMetadata = metadata.dataServices;
+
+    metadataAdapters.forEach(a => {
+      oData.utils.forEachSchema(csdlMetadata, a.adapt.bind(a));
+    });
+
+    return metadata;
+  }
 
   export function getDataType(key: string): DataTypeSymbol {
     // try to get the built-in type
