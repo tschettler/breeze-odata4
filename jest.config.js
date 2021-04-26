@@ -1,4 +1,11 @@
 module.exports = {
+    globals: {
+        "ts-jest": {
+            diagnostics: {
+                warnOnly: true
+            }
+        }
+    },
     transform: {
         ".ts": "ts-jest"
     },
@@ -34,5 +41,5 @@ module.exports = {
     collectCoverageFrom: [
         "src/**/*.{js,ts}",
         "!**/node_modules/**"
-    ]
+    ]    
 }
