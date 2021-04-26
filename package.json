@@ -49,28 +49,28 @@
   },
   "peerDependencies": {
     "breeze-client": "^1.7.0",
-    "ts-odatajs": "^4.0.4"
+    "ts-odatajs": "^4.0.6"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.19",
-    "@types/node": "^12.11.2",
+    "@types/jest": "^24.9.1",
+    "@types/node": "^12.20.10",
     "camelcase": "^5.0.0",
-    "coveralls": "^3.0.7",
+    "coveralls": "^3.1.0",
     "jest": "^24.9.0",
     "jest-config": "^24.9.0",
-    "levelup": "^4.3.2",
+    "levelup": "^4.4.0",
     "rimraf": "^2.6.2",
-    "rollup": "^1.25.1",
+    "rollup": "^1.32.1",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-sourcemaps": "^0.4.2",
     "rollup-plugin-typescript2": "^0.24.3",
-    "ts-jest": "^24.1.0",
-    "ts-node": "^8.4.1",
+    "ts-jest": "^24.3.0",
+    "ts-node": "^8.10.2",
     "ts-odatajs": "^4.0.6",
-    "tslint": "^5.20.0",
+    "tslint": "^5.20.1",
     "typedoc": "^0.15.0",
     "typescript": "~3.5.3"
   }
