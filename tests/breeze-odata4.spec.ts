@@ -1,10 +1,12 @@
 import { config, DataType } from 'breeze-client';
+
 import { NavigationAdapter } from '../src/adapters/adapters';
+import { BreezeOData4 } from '../src/breeze-odata4';
 import { OData4DataService } from '../src/breeze-odata4-dataService';
 import { BreezeOData4Options, DefaultOptions } from '../src/breeze-odata4-options';
 import { OData4UriBuilder } from '../src/breeze-odata4-uriBuilder';
 import { ClassRegistry } from '../src/class-registry';
-import { BreezeOData4 } from './../src/breeze-odata4';
+import { AssociationEndpoint } from '../src/models/association-endpoint';
 
 describe('BreezeOData4', () => {
   let options: Partial<BreezeOData4Options>;
@@ -35,6 +37,14 @@ describe('BreezeOData4', () => {
     expect(ubAdapter).toBeInstanceOf(OData4UriBuilder);
     const dsAdapter = config.getAdapterInstance('dataService');
     expect(dsAdapter).toBeInstanceOf(OData4DataService);
+  });
+
+  it('should add DataType.Date when configure is called', () => {
+    jest.useFakeTimers();
+    BreezeOData4.configure(options);
+    jest.runAllTimers();
+    const dataType = DataType['Date'];
+    expect(dataType).toBeTruthy();
   });
 
   it('should add DataType.Duration when configure is called', () => {
@@ -234,6 +244,15 @@ describe('BreezeOData4', () => {
     expect(() => {
       DataType.Guid.fmtOData(123.45);
     }).toThrowError('is not a valid Guid');
+  });
+
+  describe('foreignKeyConventions', () => {
+    it('should add foreign key conventions', () => {
+      const convention = (endpoint: AssociationEndpoint, suffix: string) => `${endpoint.propertyName}Test`;
+      options.foreignKeyConventions.push(convention);
+      BreezeOData4.configure(options);
+      expect(NavigationAdapter.foreignKeyConventions).toContain(convention);
+    });
   });
 
   describe('inferNavigationPropertyPartner', () => {
