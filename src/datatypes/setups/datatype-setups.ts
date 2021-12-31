@@ -1,3 +1,4 @@
+export { DateDataTypeSetup as DateDataType } from './date-datatype-setup';
 export { DateTimeDataTypeSetup as DateTimeDataType } from './datetime-datatype-setup';
 export { DateTimeOffsetDataTypeSetup as DateTimeOffsetDataType } from './datetimeoffset-datatype-setup';
 export { DurationDataTypeSetup as DurationDataType } from './duration-datatype-setup';

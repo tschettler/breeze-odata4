@@ -13,7 +13,6 @@ export const nameof = <T>(name: keyof T) => name;
 export namespace Utilities {
   export const dataTypeMap: { [key: string]: DataTypeSymbol } = {
     bool: DataType.Boolean,
-    date: DataType.DateTimeOffset,
     float: DataType.Double,
     int: DataType.Int64,
     sbyte: DataType.Byte
@@ -37,12 +36,19 @@ export namespace Utilities {
   }
 
   export function getDataType(key: string): DataTypeSymbol {
+    // default to the data type map
+    let result = dataTypeMap[key];
+
+    if (result) {
+      return result;
+    }
+
     // try to get the built-in type
     const enumName = DataType.getNames().find(n => n.toLowerCase() === key.toLowerCase());
 
-    const dataType = !!enumName ? DataType[enumName] : (dataTypeMap[key] || DataType.String);
+    result = !!enumName ? DataType[enumName] : DataType.String;
 
-    return dataType;
+    return result;
   }
 
   export function getEdmTypeFromTypeName(metadata: Edmx.Edmx, typeName: string): Edm.ComplexType | Edm.EntityType {
