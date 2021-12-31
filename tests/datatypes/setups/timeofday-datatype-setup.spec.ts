@@ -1,4 +1,5 @@
 import { DataType, DataTypeSymbol } from 'breeze-client';
+
 import { TimeOfDayDataTypeSetup } from '../../../src/datatypes/setups/timeofday-datatype-setup';
 import { Utilities } from '../../../src/utilities';
 
@@ -28,6 +29,10 @@ describe('TimeOfDayDataTypeSetup', () => {
             let dataType: DataTypeSymbol;
             beforeAll(() => {
                 dataType = DataType['TimeOfDay'];
+            });
+
+            it('should not be null', () => {
+                expect(dataType).not.toBeNull();
             });
         });
     });
