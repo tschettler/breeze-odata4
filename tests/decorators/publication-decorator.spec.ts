@@ -1,10 +1,13 @@
 import { Edm } from 'ts-odatajs';
 
-import { ExpressionWithPublication, PublicationDecorator } from './../../src/decorators/publication-decorator';
+import { BreezeOData4 } from '../../src/breeze-odata4';
+import { ExpressionWithPublication, PublicationDecorator } from '../../src/decorators/publication-decorator';
 
 let sut: PublicationDecorator;
 
 describe('PublicationDecorator', () => {
+  BreezeOData4.configure({ initializeAdapters: false });
+
   beforeEach(() => {
     sut = new PublicationDecorator();
   });
@@ -74,7 +77,7 @@ describe('PublicationDecorator', () => {
       sut.decorate(expression, annotation);
       sut.decorate(expression, annotation2);
 
-      expect(expression.publication.lastModified).toEqual(new Date(annotation.date.toString()));
+      expect(expression.publication.lastModified).toBe(annotation.date);
       expect(expression.publication.publisherName).toBe(annotation2.string);
     });
   });

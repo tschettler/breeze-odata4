@@ -32,7 +32,7 @@ export class CustomDecorator implements AnnotationDecorator {
         }
 
         const dataType = Utilities.getDataType(valueKey);
-        const customValue = dataType.parse(value, 'string');
+        const customValue = Utilities.parseValue(dataType, value);
 
         expression.custom = expression.custom instanceof Object ? expression.custom : {};
 

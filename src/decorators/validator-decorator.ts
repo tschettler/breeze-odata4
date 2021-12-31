@@ -45,6 +45,6 @@ export class ValidatorDecorator implements AnnotationDecorator {
     }
 
     const dataType = Utilities.getDataType(valueKey);
-    validator[prop] = dataType.parse(value, 'string');
+    validator[prop] = Utilities.parseValue(dataType, value);
   }
 }

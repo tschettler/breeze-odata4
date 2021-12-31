@@ -1,9 +1,13 @@
-import { CustomDecorator, ExpressionWithCustom } from './../../src/decorators/custom-decorator';
 import { Edm } from 'ts-odatajs';
+
+import { BreezeOData4 } from '../../src/breeze-odata4';
+import { CustomDecorator, ExpressionWithCustom } from '../../src/decorators/custom-decorator';
 
 let sut: CustomDecorator;
 
 describe('CustomDecorator', () => {
+  BreezeOData4.configure({ initializeAdapters: false });
+
   beforeEach(() => {
     sut = new CustomDecorator();
   });
@@ -86,7 +90,7 @@ describe('CustomDecorator', () => {
       sut.decorate(expression, annotation);
       sut.decorate(expression, annotation2);
 
-      expect(expression.custom.Foo.Date).toEqual(new Date(annotation.date.toString()));
+      expect(expression.custom.Foo.Date).toBe(annotation.date);
       expect(expression.custom.Foo.Answer).toBe(Number(annotation2.int));
     });
   });

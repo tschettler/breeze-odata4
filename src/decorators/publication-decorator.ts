@@ -41,7 +41,7 @@ export class PublicationDecorator implements AnnotationDecorator {
     }
 
     const dataType = Utilities.getDataType(valueKey);
-    const parsedValue = dataType.parse(value, 'string');
+    const parsedValue = Utilities.parseValue(dataType, value);
 
     expression.publication = expression.publication instanceof Object ? expression.publication : {};
     expression.publication[propName] = parsedValue;
