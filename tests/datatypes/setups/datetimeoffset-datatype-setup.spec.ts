@@ -47,7 +47,7 @@ describe('DateTimeOffsetDataTypeSetup', () => {
 
                 const result = dataType.fmtOData(input);
 
-                expect(result).toEqual(input.toISOString());
+                expect(result).toBe(input.toISOString());
             });
 
             it('should throw exception when calling fmtOData with non-date', () => {

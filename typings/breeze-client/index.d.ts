@@ -360,6 +360,7 @@ declare module "breeze-client"
         Binary: DataTypeSymbol;
         Boolean: DataTypeSymbol;
         Byte: DataTypeSymbol;
+        Date: DataTypeSymbol; /* OData 4 */
         DateTime: DataTypeSymbol;
         DateTimeOffset: DataTypeSymbol;
         Decimal: DataTypeSymbol;

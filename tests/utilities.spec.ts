@@ -64,11 +64,11 @@ describe('Utilities', () => {
       expect(result).toEqual(DataType.Boolean);
     });
 
-    it('should return DataType.DateTimeOffset for "date".', () => {
+    it('should return DataType.Date for "date".', () => {
       const type = 'date';
 
       const result = Utilities.getDataType(type);
-      expect(result).toEqual(DataType.DateTimeOffset);
+      expect(result).toEqual(DataType['Date']);
     });
 
     it('should return DataType.DateTimeOffset for "datetimeoffset".', () => {
