@@ -1,4 +1,5 @@
 import { DataType, DataTypeSymbol } from 'breeze-client';
+
 import { GeographyPointDataTypeSetup } from '../../../src/datatypes/setups/geographypoint-datatype-setup';
 import { Utilities } from '../../../src/utilities';
 
@@ -30,6 +31,9 @@ describe('GeographyPointDataTypeSetup', () => {
                 dataType = DataType['GeographyPoint'];
             });
 
+            it('should not be null', () => {
+                expect(dataType).not.toBeNull();
+            });
         });
     });
 });

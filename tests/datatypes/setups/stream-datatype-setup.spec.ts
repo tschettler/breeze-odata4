@@ -1,4 +1,5 @@
 import { DataType, DataTypeSymbol } from 'breeze-client';
+
 import { StreamDataTypeSetup } from '../../../src/datatypes/setups/stream-datatype-setup';
 import { Utilities } from '../../../src/utilities';
 
@@ -28,6 +29,10 @@ describe('StreamDataTypeSetup', () => {
             let dataType: DataTypeSymbol;
             beforeAll(() => {
                 dataType = DataType['Stream'];
+            });
+
+            it('should not be null', () => {
+                expect(dataType).not.toBeNull();
             });
         });
     });

@@ -1,5 +1,7 @@
-import { oData, HttpOData } from 'ts-odatajs';
+import { oData } from 'ts-odatajs';
+
 import { ODataHttpClient } from '../src/odata-http-client';
+
 jest.mock('ts-odatajs');
 
 describe('ODataHttpClient', () => {
