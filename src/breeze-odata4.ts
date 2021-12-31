@@ -1,4 +1,5 @@
 import { config } from 'breeze-client';
+
 import * as metadataAdapters from './adapters/adapters';
 import { OData4DataService } from './breeze-odata4-dataService';
 import { BreezeOData4Options, DefaultOptions } from './breeze-odata4-options';
@@ -18,6 +19,10 @@ export class BreezeOData4 {
       OData4DataService.register();
 
       metadataAdapters.NavigationAdapter.allowManyToMany = opts.allowManyToManyRelationships;
+      metadataAdapters.NavigationAdapter.foreignKeyConventions = [
+        ...opts.foreignKeyConventions,
+        ...metadataAdapters.NavigationAdapter.foreignKeyConventions
+      ];
       metadataAdapters.NavigationAdapter.inferPartner = opts.inferNavigationPropertyPartner;
       metadataAdapters.NavigationAdapter.inferConstraints = opts.inferReferentialConstraints;
 
