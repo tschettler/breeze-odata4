@@ -138,4 +138,10 @@ export namespace Utilities {
 
     return url;
   }
+
+  export function parseValue(dataType: DataTypeSymbol, value: any) {
+    const result = dataType.parseRawValue ? dataType.parseRawValue(value) : dataType.parse(value, 'string');
+
+    return result;
+  }
 }

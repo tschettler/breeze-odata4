@@ -1,9 +1,12 @@
 import { Edm } from 'ts-odatajs';
-import { ValidatorDecorator, ExpressionWithValidators } from './../../src/decorators/validator-decorator';
+
+import { BreezeOData4 } from '../../src/breeze-odata4';
+import { ExpressionWithValidators, ValidatorDecorator } from '../../src/decorators/validator-decorator';
 
 let sut: ValidatorDecorator;
 
 describe('ValidatorDecorator', () => {
+  BreezeOData4.configure({ initializeAdapters: false });
   beforeEach(() => {
     sut = new ValidatorDecorator();
   });
@@ -87,6 +90,29 @@ describe('ValidatorDecorator', () => {
       sut.decorate(expression, annotation2);
 
       expect(expression.validators[0]).toMatchObject({ name: 'maxlength', errorMessage: annotation.string, max: Number(annotation2.int) });
+    });
+
+    it('should handle decorating with different type annotations', () => {
+      const expression: ExpressionWithValidators = {};
+
+      const annotation: Edm.Annotation = {
+        term: 'UnitTesting.Validator.custom.asofdate',
+        date: '2021-01-01'
+      };
+
+      const annotation2: Edm.Annotation = {
+        term: 'UnitTesting.Validator.custom.enabled',
+        bool: 'true'
+      };
+
+      sut.decorate(expression, annotation);
+      sut.decorate(expression, annotation2);
+
+      expect(expression.validators[0]).toMatchObject({
+        name: 'custom',
+        asofdate: annotation.date,
+        enabled: true
+      });
     });
   });
 });

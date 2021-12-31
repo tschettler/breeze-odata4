@@ -305,4 +305,93 @@ describe('Utilities', () => {
       expect(result).toEqual(`${schema.namespace}.${item.name}`);
     });
   });
+
+  describe('parseValue', () => {
+
+    it('should return correct value for DataType.String.', () => {
+      const input = 'test';
+
+      const result = Utilities.parseValue(DataType.String, input);
+      expect(result).toEqual(input);
+    });
+
+    it('should return correct value for DataType.Binary.', () => {
+      const input = '0';
+
+      const result = Utilities.parseValue(DataType.Binary, input);
+      expect(result).toEqual(input);
+    });
+
+    it('should return correct value for DataType.Boolean.', () => {
+      const input = 'true';
+
+      const result = Utilities.parseValue(DataType.Boolean, input);
+      expect(result).toEqual(true);
+    });
+
+    it('should return correct value for DataType.Date.', () => {
+      const input = '2021-01-01';
+
+      const result = Utilities.parseValue(DataType['Date'], input);
+      expect(result).toEqual(input);
+    });
+
+    it('should return correct value for DataType.DateTimeOffset.', () => {
+      const date = new Date();
+      const input = date.toISOString();
+
+      const result = Utilities.parseValue(DataType.DateTimeOffset, input);
+      expect(result).toEqual(date);
+    });
+
+    it('should return correct value for DataType.Decimal.', () => {
+      const input = '123.456';
+
+      const result = Utilities.parseValue(DataType.Decimal, input);
+      expect(result).toEqual(123.456);
+    });
+
+    it('should return correct value for DataType.Duration.', () => {
+      const input = 'P1Y2M10DT2H30M';
+
+      const result = Utilities.parseValue(DataType['Duration'], input);
+      expect(result).toEqual(input);
+    });
+
+    it('should return correct value for DataType.Guid.', () => {
+      const input = '1f1db73d-cbb2-496f-88a1-0e8fe6a99e26';
+
+      const result = Utilities.parseValue(DataType.Guid, input);
+      expect(result).toEqual(input);
+    });
+
+    it('should return correct value for DataType.Int64.', () => {
+      const input = '1';
+
+      const result = Utilities.parseValue(DataType.Int64, input);
+      expect(result).toEqual(1);
+    });
+
+    it('should return correct value for DataType.Single.', () => {
+      const input = '1';
+
+      const result = Utilities.parseValue(DataType.Single, input);
+      expect(result).toEqual(1);
+    });
+
+    it('should return correct value for DataType.Stream.', () => {
+      const input = 'stream';
+
+      const result = Utilities.parseValue(DataType['Stream'], input);
+      expect(result).toEqual(input);
+    });
+
+
+    it('should return correct value for DataType.TimeOfDay.', () => {
+      const input = '01:10:00';
+
+      const result = Utilities.parseValue(DataType['TimeOfDay'], input);
+      expect(result).toEqual(input);
+    });
+  });
 });
