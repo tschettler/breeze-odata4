@@ -12,6 +12,7 @@ import {
   UriBuilder
 } from 'breeze-client';
 
+import { ExpandParamsKey } from './breeze-odata4-entity-query';
 import { OData4PredicateVisitor } from './breeze-odata4-predicateVisitor';
 
 export interface QueryOptionsBase {
@@ -44,8 +45,16 @@ export class OData4UriBuilder implements UriBuilder {
   }
 
   public buildUri(entityQuery: EntityQuery, metadataStore: MetadataStore) {
-    const queryOptions: QueryOptions = { expand: [] };
+    const queryOptions = this.buildQueryOptions({ expand: [] }, entityQuery, metadataStore);
 
+    const qoText = this.toQueryOptionsString(queryOptions);
+
+    entityQuery.resourceName = this.getResource(entityQuery);
+
+    return entityQuery.resourceName + qoText;
+  }
+
+  private buildQueryOptions(queryOptions: QueryOptions, entityQuery: EntityQuery, metadataStore: MetadataStore): QueryOptions {
     // force entityType validation;
     let entityType = (<any>entityQuery)._getFromEntityType(metadataStore, false);
     if (!entityType) {
@@ -69,15 +78,16 @@ export class OData4UriBuilder implements UriBuilder {
 
     this.addSelectOption(entityType, queryOptions, entityQuery.selectClause);
 
+    if (entityQuery.parameters[ExpandParamsKey]) {
+      this.addExpandOptionsFromSubqueries(entityType, queryOptions, entityQuery.parameters[ExpandParamsKey]);
+      delete entityQuery.parameters[ExpandParamsKey];
+    }
+
     queryOptions.filter = this.toWhereODataFragment(entityType, entityQuery.wherePredicate);
 
     queryOptions.orderby = this.toOrderByODataFragment(entityType, entityQuery.orderByClause);
 
-    const qoText = this.toQueryOptionsString(queryOptions);
-
-    entityQuery.resourceName = this.getResource(entityQuery);
-
-    return entityQuery.resourceName + qoText;
+    return queryOptions;
   }
 
   private getResource(entityQuery: EntityQuery): string {
@@ -117,13 +127,34 @@ export class OData4UriBuilder implements UriBuilder {
       const props = entityType.getPropertiesOnPath(pp, false, true);
       const workingOptions = this.getQueryOptions(queryOptions, props);
 
-      const expandOptions = { name: props.pop().nameOnServer, expand: [] };
+      const property = props.pop().nameOnServer;
+      if (workingOptions.expand.find(e => e.name === property)) {
+        return;
+      }
+
+      const expandOptions = { name: property, expand: [] };
       workingOptions.expand.push(expandOptions);
     });
   }
 
+  private addExpandOptionsFromSubqueries(entityType: EntityType, queryOptions: QueryOptions, subqueries: { [key: string]: EntityQuery }) {
+    Object.entries(subqueries).forEach(([key, value]) => {
+      const props = entityType.getPropertiesOnPath(key, false, true);
+      const workingOptions = this.getQueryOptions(queryOptions, props);
+
+      const property = props.pop().nameOnServer;
+      let currentExpand = workingOptions.expand.find(e => e.name === property);
+
+      if (!currentExpand) {
+        currentExpand = { name: property, expand: [] };
+        workingOptions.expand.push(currentExpand);
+      }
+
+      this.buildQueryOptions(currentExpand, value, entityType.metadataStore);
+    });
+  }
+
   private addSelectOption(entityType: EntityType, queryOptions: QueryOptions, selectClause: SelectClause): void {
-    const result = [];
     if (!selectClause) {
       return;
     }
@@ -135,7 +166,13 @@ export class OData4UriBuilder implements UriBuilder {
       const workingOptions = this.getQueryOptions(queryOptions, props);
 
       workingOptions.select = workingOptions.select || [];
-      workingOptions.select.push(props.pop().nameOnServer);
+
+      const property = props.pop().nameOnServer;
+      if (workingOptions.select.find(p => p === property)) {
+        return;
+      }
+
+      workingOptions.select.push(property);
     });
   }
 
@@ -173,10 +210,6 @@ export class OData4UriBuilder implements UriBuilder {
           qoStrings.push(this.getExpandString(qoValue));
         } else if (qoName === 'select') {
           qoStrings.push(this.getSelectString(qoValue));
-        } else if (qoValue instanceof Array) {
-          qoValue.forEach(qov => {
-            qoStrings.push(`$${qoName}=${encodeURIComponent(qov)}`);
-          });
         } else {
           qoStrings.push(`$${qoName}=${encodeURIComponent(qoValue)}`);
         }

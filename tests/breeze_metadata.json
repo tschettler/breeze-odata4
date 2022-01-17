@@ -8,7 +8,8 @@
             "dataProperties": [
                 {
                     "name": "personId",
-                    "isPartOfKey": true
+                    "isPartOfKey": true,
+                    "dataType": "Int32"
                 },
                 {
                     "name": "firstName"

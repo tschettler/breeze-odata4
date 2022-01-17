@@ -1,7 +1,8 @@
 import { config, EntityQuery, MetadataStore, Predicate } from 'breeze-client';
 
+import { OData4EntityQuery } from '../src/breeze-odata4-entity-query';
 import { OData4PredicateVisitor } from '../src/breeze-odata4-predicateVisitor';
-import { OData4UriBuilder } from './../src/breeze-odata4-uriBuilder';
+import { OData4UriBuilder } from '../src/breeze-odata4-uriBuilder';
 
 jest.mock('../src/breeze-odata4-predicateVisitor');
 const jsonMetadata = require('./breeze_metadata.json');
@@ -86,6 +87,14 @@ describe('OData4UriBuilder', () => {
             expect(result).toEqual(`${query.resourceName}?$filter=firstName%20eq%20'Test'`);
         });
 
+        it('should add multiple filter options', () => {
+            const predicate = new Predicate('firstName', 'eq', 'Test');
+            query = query.where(predicate).where('personId', 'eq', 1);
+
+            const result = sut.buildUri(query, metadataStore);
+            expect(result).toEqual(`${query.resourceName}?$filter=(firstName%20eq%20'Test')%20and%20(personId%20eq%201)`);
+        });
+
         it('should add orderby option', () => {
             const orderBy = 'firstName';
             query = query.orderBy(orderBy);
@@ -110,7 +119,7 @@ describe('OData4UriBuilder', () => {
             expect(result).toEqual(`${query.resourceName}?$expand=${navProperty}`);
         });
 
-        it('should add select and expand option', () => {
+        it('should add expand option with select', () => {
             const navProp = 'id';
             const navPropSelect = 'idType';
             const selectValue = `${navProp}.${navPropSelect}`;
@@ -118,6 +127,112 @@ describe('OData4UriBuilder', () => {
 
             const result = sut.buildUri(query, metadataStore);
             expect(result).toEqual(`${query.resourceName}?$expand=${navProp}($select=${navPropSelect})`);
+        });
+
+        it('should add expand with merged select', () => {
+            const expandSelect = 'personId';
+            query = query.select(expandSelect);
+
+            const navProperty = 'spouse';
+            const navPropSelect = 'firstName';
+            const selectValue = `${navProperty}.${navPropSelect}`;
+            const newQuery = new OData4EntityQuery('Person')
+                .expand(navProperty, query)
+                .select(selectValue);
+
+            const result = sut.buildUri(newQuery, metadataStore);
+            expect(result).toEqual(`${query.resourceName}?$expand=${navProperty}($select=${navPropSelect},${expandSelect})`);
+        });
+
+        it('should add expand with unique select names', () => {
+            const navProperty = 'spouse';
+            const navPropSelect = 'firstName';
+            query = query.select(navPropSelect);
+            const selectValue = `${navProperty}.${navPropSelect}`;
+            const newQuery = new OData4EntityQuery('Person')
+                .expand(navProperty, query)
+                .select(selectValue);
+
+            const result = sut.buildUri(newQuery, metadataStore);
+            expect(result).toEqual(`${query.resourceName}?$expand=${navProperty}($select=${navPropSelect})`);
+        });
+
+        it('should add expand with unique nested expand', () => {
+            const navProperty = 'spouse';
+            query = query.expand(navProperty);
+            const expandValue = `${navProperty}.${navProperty}`;
+            const newQuery = new OData4EntityQuery('Person')
+                .expand(navProperty, query)
+                .expand(expandValue);
+
+            const result = sut.buildUri(newQuery, metadataStore);
+            expect(result).toEqual(`${query.resourceName}?$expand=${navProperty}($expand=${navProperty})`);
+        });
+
+        it('should add expand option with filter', () => {
+            const navProperty = 'spouse';
+            query = query.where('firstName', 'eq', 'Test');
+
+            const newQuery = new OData4EntityQuery('Person')
+                .expand(navProperty, query);
+
+            const result = sut.buildUri(newQuery, metadataStore);
+            expect(result).toEqual(`${query.resourceName}?$expand=${navProperty}($filter=firstName%20eq%20'Test')`);
+        });
+
+        it('should add multiple expand options', () => {
+            const navProperty = 'spouse';
+            query = query.where('firstName', 'eq', 'Test');
+
+            const newQuery = new OData4EntityQuery('Person')
+                .expand(navProperty, query)
+                .expand('id');
+
+            const result = sut.buildUri(newQuery, metadataStore);
+            expect(result).toEqual(`${query.resourceName}?$expand=id,${navProperty}($filter=firstName%20eq%20'Test')`);
+        });
+
+        it('should add multiple expand options with suboptions', () => {
+            const navProperty1 = 'spouse';
+            const query1 = query.where('firstName', 'eq', 'Test');
+
+            const navProperty2 = 'id';
+            const navPropSelect = 'idType';
+            const query2 = new EntityQuery('Identification').select(navPropSelect);
+
+            const newQuery = new OData4EntityQuery('Person')
+                .expand(navProperty1, query1)
+                .expand(navProperty2, query2);
+
+            const result = sut.buildUri(newQuery, metadataStore);
+            expect(result).toEqual(`${query.resourceName}?$expand=${navProperty1}($filter=firstName%20eq%20'Test'),${navProperty2}($select=${navPropSelect})`);
+        });
+
+        it('should add nested expand options', () => {
+            const navProperty = 'spouse';
+            query = query.expand('spouse');
+
+            const newQuery = new OData4EntityQuery('Person')
+                .expand(navProperty, query);
+
+            const result = sut.buildUri(newQuery, metadataStore);
+            expect(result).toEqual(`${query.resourceName}?$expand=${navProperty}($expand=${navProperty})`);
+        });
+
+        it('should add expand option with select and filter', () => {
+            const navProperty = 'spouse';
+            const navPropSelect = 'firstName';
+            const selectValue = `${navProperty}.${navPropSelect}`;
+            query = query
+                .where('firstName', 'eq', 'Test');
+
+            const newQuery = new OData4EntityQuery('Person')
+                .expand(navProperty, query)
+                .select(selectValue);
+
+            const result = sut.buildUri(newQuery, metadataStore);
+            expect(result).toEqual(
+                `${query.resourceName}?$expand=${navProperty}($filter=firstName%20eq%20'Test';$select=${navPropSelect})`);
         });
 
         it('should add filter and orderby options', () => {
