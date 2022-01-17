@@ -672,34 +672,24 @@ declare module "breeze-client"
 
         execute(callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Promise<QueryResult>;
         executeLocally(): Entity[];
-        expand(propertyPaths: string[]): EntityQuery;
-        expand(propertyPaths: string): EntityQuery;
+        expand(propertyPaths: string | string[]): EntityQuery;
         static from(resourceName: string): EntityQuery;
         from(resourceName: string): EntityQuery;
-        static fromEntities(entity: Entity): EntityQuery;
-        static fromEntities(entities: Entity[]): EntityQuery;
+        static fromEntities(entity: Entity | Entity[]): EntityQuery;
         static fromEntityKey(entityKey: EntityKey): EntityQuery;
         static fromEntityNavigation(entity: Entity, navigationProperty: NavigationProperty): EntityQuery;
         inlineCount(enabled?: boolean): EntityQuery;
         noTracking(enabled?: boolean): EntityQuery;
-        orderBy(propertyPaths: string, isDescending?: boolean): EntityQuery;
-        orderBy(propertyPaths: string[], isDescending?: boolean): EntityQuery;
-        orderByDesc(propertyPaths: string): EntityQuery;
-        orderByDesc(propertyPaths: string[]): EntityQuery;
-        select(propertyPaths: string): EntityQuery;
-        select(propertyPaths: string[]): EntityQuery;
+        orderBy(propertyPaths: string | string[], isDescending?: boolean): EntityQuery;
+        orderByDesc(propertyPaths: string | string[]): EntityQuery;
+        select(propertyPaths: string | string[]): EntityQuery;
         skip(count: number): EntityQuery;
         take(count: number): EntityQuery;
         top(count: number): EntityQuery;
-        toType(typeName: string): EntityQuery;
-        toType(type: EntityType): EntityQuery;
+        toType(entityType: string | EntityType): EntityQuery;
 
-        using(obj: EntityManager): EntityQuery;
-        using(obj: DataService): EntityQuery;
-        using(obj: JsonResultsAdapter): EntityQuery;
-        using(obj: QueryOptions): EntityQuery;
-        using(obj: MergeStrategySymbol): EntityQuery;
-        using(obj: FetchStrategySymbol): EntityQuery;
+        useNameOnServer(usesNameOnServer: boolean): EntityQuery;
+        using(obj: EntityManager | QueryOptions | DataService | MergeStrategySymbol | FetchStrategySymbol | JsonResultsAdapter | Object): EntityQuery;
 
         where(predicate: Predicate): EntityQuery;
         where(property: string, operator: string, value: any): EntityQuery;
