@@ -123,7 +123,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         (data: Edmx.Edmx) => {
           // data.dataServices.schema is an array of schemas. with properties of
           // entityContainer[], association[], entityType[], and namespace.
-          if (!data || !data.dataServices) {
+          if (!data?.dataServices) {
             const error = new Error(`Metadata query failed for: ${url}`);
             return reject(error);
           }
@@ -151,7 +151,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         },
         (error: Error) => {
           const err = this.createError(error, url);
-          err.message = `Metadata query failed for: ${url}; ${err.message || ''}`;
+          err.message = `Metadata query failed for: ${url}; ${err.message}`;
           reject(err);
         },
         oData.metadataHandler,
@@ -189,6 +189,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     });
   }
 
+  // TODO: Add unit tests (193-332)
   public saveChanges(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): Promise<SaveResult> {
     saveContext.adapter = this;
 
@@ -221,14 +222,11 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                 return;
               }
 
-              /**
-               * It seems that the `Content-ID` header is not being properly parsed out by the odatajs library.
-               * As a work around we can assume that each change response is numbered sequentially from 1,
-               * and infer the ID from the index in the br.__changeResponses array.
-               */
-              /*var contentId = cr.headers['Content-ID'];*/
-              const contentId = index + 1;
+              // The server is required to provide the Content-ID header
 
+              const contentId = Number((chResponse.headers || {})['Content-ID'] ?? 0);
+
+              const origEntity = contentKeys[contentId];
               const rawEntity: Entity = chResponse.data;
               if (rawEntity) {
                 const tempKey = tempKeys[contentId];
@@ -246,16 +244,11 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                   }
                 }
                 entities.push(rawEntity);
-              } else {
-                const origEntity = contentKeys[contentId];
+              } else if (origEntity) {
                 entities.push(origEntity);
               }
             });
           });
-
-          /*if (defer._rejected) {
-                        throw defer.promise.source.exception;
-                    }*/
 
           resolve(saveResult);
         },
@@ -277,16 +270,16 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     const contentKeys: Entity[] = [];
     const entityManager = saveContext.entityManager;
     const helper = entityManager.helper;
-    let id = 0;
+    let contentId = 1;
     const routePrefix = saveContext.routePrefix;
 
     saveBundle.entities.forEach((entity: Entity, index: number) => {
       const aspect = entity.entityAspect;
-      id = id + 1; // we are deliberately skipping id=0 because Content-ID = 0 seems to be ignored.
+
       let request: Batch.ChangeRequest = {
         headers: Object.assign(
           {
-            'Content-ID': id.toString(),
+            'Content-ID': contentId.toString(),
             'Content-Type': 'application/json;IEEE754Compatible=true'
           },
           this.headers
@@ -294,12 +287,13 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         requestUri: null,
         method: null
       };
-      contentKeys[id] = entity;
+
+      contentKeys[contentId] = entity;
       if (aspect.entityState.isAdded()) {
         request.requestUri = routePrefix + entity.entityType.defaultResourceName;
         request.method = 'POST';
         request.data = helper.unwrapInstance(entity, this.transformValue);
-        tempKeys[id] = aspect.getKey();
+        tempKeys[contentId] = aspect.getKey();
       } else if (aspect.entityState.isModified()) {
         this.updateDeleteMergeRequest(request, aspect, routePrefix);
         request.method = 'PATCH';
@@ -313,6 +307,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
       }
       request = changeRequestInterceptor.getRequest(request, entity, index);
       changeRequests.push(request);
+      contentId++;
     });
 
     saveContext.contentKeys = contentKeys;
@@ -342,7 +337,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
       headers: Object.assign({}, this.headers)
     };
 
-    if (!query.parameters) {
+    if (!query?.parameters) {
       return request;
     }
 
@@ -352,7 +347,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     if (method === 'GET') {
       request = Object.assign({}, request, { requestUri: this.addQueryString(request.requestUri, query.parameters) });
     } else {
-      const data = query.parameters['$data'] ? this.getData(mappingContext, query.parameters['$data']) : query.parameters;
+      const data = this.getData(mappingContext, query.parameters['$data']) ?? query.parameters;
       request = Object.assign({}, request, { method: method, data: data });
     }
 
@@ -382,14 +377,15 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
       return data;
     }
 
-    const paramIndex = invokeConfig.isBound ? 1 : 0;
+    const paramStartIndex = Number((invokeConfig.isBound === 'true'));
 
     const param = invokeConfig.parameter.find((p, idx) => {
-      if (idx < paramIndex || p.type.startsWith('Edm.')) {
-        return false;
-      }
+      const isParameter = idx >= paramStartIndex;
+      const isEdmType = p.type.startsWith('Edm.');
 
-      return true;
+      const result = isParameter && !isEdmType;
+
+      return result;
     });
 
     if (!param) {
@@ -427,7 +423,11 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
   }
 
   private getInvokableConfig(url: string): Edm.Action | Edm.Function {
-    const urlParts = url ? url.split('/') : [];
+    if (!url) {
+      return null;
+    }
+
+    const urlParts = url.split('/');
 
     const invokableName = urlParts.pop().replace(/\([^\)]*\)/, '');
 
@@ -458,6 +458,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     return url;
   }
 
+  // TODO: Add unit tests (468-516)
   private transformValue(prop: DataProperty, val: any): any {
     // TODO: Split these into separate parsers
     if (prop.isUnmapped) {
@@ -472,19 +473,20 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
   }
 
   private updateDeleteMergeRequest(request: Batch.ChangeRequest, aspect: EntityAspect, routePrefix: string): void {
-    let uriKey;
-    const extraMetadata = aspect.extraMetadata;
-    if (!extraMetadata) {
-      uriKey = this.getUriKey(aspect);
-      aspect.extraMetadata = {
-        uriKey: uriKey
-      };
-    } else {
-      uriKey = extraMetadata['uriKey'] || this.getUriKey(aspect);
-      if (extraMetadata['etag']) {
-        request.headers['If-Match'] = extraMetadata['etag'];
-      }
+    if (!aspect.extraMetadata) {
+      aspect.extraMetadata = {};
     }
+
+    const extraMetadata = aspect.extraMetadata;
+    if (extraMetadata['etag']) {
+      request.headers['If-Match'] = extraMetadata['etag'];
+    }
+
+    if (!extraMetadata['uriKey']) {
+      extraMetadata['uriKey'] = this.getUriKey(aspect);
+    }
+
+    const uriKey = extraMetadata['uriKey'];
     request.requestUri =
       // use routePrefix if uriKey lacks protocol (i.e., relative uri)
       uriKey.indexOf('//') > 0 ? uriKey : routePrefix + uriKey;
@@ -568,16 +570,24 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
   }
 
   private getMessage(body: any): string {
-    const msg = body['message'] || body['Message'] || '';
-    return (typeof msg === 'string' ? msg : msg.value) + '; ';
+    const messageKey = Object.keys(body)
+      .find(k => k.toLowerCase() === 'message');
+
+    if (!messageKey) {
+      return '';
+    }
+
+    const msg = body[messageKey];
+    return `${(typeof msg === 'string' ? msg : msg.value)}; `;
   }
 
   private toQueryString(payload: {}): string {
-    if (!payload) {
+    const keys = Object.keys(payload);
+    if (!keys.length) {
       return null;
     }
 
-    const result = Object.keys(payload)
+    const result = keys
       .map(key => {
         return `${encodeURIComponent(key)}=${encodeURIComponent(payload[key])}`;
       })
