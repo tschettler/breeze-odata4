@@ -1,11 +1,11 @@
 import { Edm, Edmx } from 'ts-odatajs';
+
 import { EntityNotFound } from '../../src/adapters/navigation-adapter';
 import { NavigationAdapter } from './../../src/adapters/adapters';
 
 
 let metadata: Edmx.Edmx;
 let sut: NavigationAdapter;
-const metadataJson = require('../metadata.json');
 
 function getBaseEntityType(): Edm.EntityType {
   return {
