@@ -1,5 +1,4 @@
 {
-    "mode": "file",
     "out": "docs",
-    "theme": "minimal"
+    "theme": "default"
 }
