@@ -1,7 +1,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": ".",
+    //"baseUrl": ".",
     "declaration": true,
     "declarationDir": "dist/types",
     "emitDecoratorMetadata": true,
@@ -17,7 +17,7 @@
     }, */
     "removeComments": true,
     "sourceMap": true,
-    "target": "es6",
+    "target": "es2015",
     "typeRoots": ["node_modules/@types", "typings"]
   },
   "include": ["src/**/*.ts"],
