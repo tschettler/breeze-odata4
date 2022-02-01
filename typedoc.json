@@ -1,4 +1,7 @@
 {
-    "out": "docs",
-    "theme": "default"
+  "externalPattern": ["node_modules/**/*.*", "typings/**/*.*"],
+  "excludeExternals": true,
+  "includeVersion": true,
+  "out": "docs",
+  "theme": "default"
 }
