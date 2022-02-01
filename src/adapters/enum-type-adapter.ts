@@ -1,8 +1,8 @@
-import { DataType, DataTypeSymbol } from 'breeze-client';
+import { DataType } from 'breeze-client';
 import { Edm, Edmx, oData } from 'ts-odatajs';
 
 import { ExpressionWithDisplayName } from '../decorators/display-name-decorator';
-import { EdmEnum, EdmEnumMember } from '../models/edm-enum';
+import { EdmEnum, EdmEnumMember } from '../models/models';
 import { Utilities } from '../utilities';
 import { MetadataAdapter } from './metadata-adapter';
 
