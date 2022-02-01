@@ -78,9 +78,13 @@ export class EdmEnum extends core.Enum {
         return result;
     }
 
-    public parse(val: any, sourceTypeName?: string): any {
+    public parse = (val: any, sourceTypeName?: string): any => {
         if (typeof val === 'undefined' || val === null) {
             return null;
+        }
+
+        if (sourceTypeName === 'object' && val['parentEnum'] === this) {
+            return val;
         }
 
         if (sourceTypeName === 'string') {
@@ -92,6 +96,10 @@ export class EdmEnum extends core.Enum {
         }
 
         return null;
+    }
+
+    public parseRawValue = (val: any): any => {
+        return this.parse(val, 'string');
     }
 
     private fromFlagsEnumValue(value: number): core.EnumSymbol {

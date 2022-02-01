@@ -91,6 +91,22 @@ describe('EnumTypeAdapter', () => {
             expect(DataType[enumType.name]).toMatchObject({ isFlags: false });
         });
 
+        it('should set parse on DataTypeSymbol', () => {
+            schema.enumType.push(enumType);
+
+            sut.adapt(metadata.dataServices);
+
+            expect(DataType[enumType.name]['parse']).toBeDefined();
+        });
+
+        it('should set parseRawValue on DataTypeSymbol', () => {
+            schema.enumType.push(enumType);
+
+            sut.adapt(metadata.dataServices);
+
+            expect(DataType[enumType.name]['parseRawValue']).toBeDefined();
+        });
+
         it('should adapt members', () => {
             schema.enumType.push(enumType);
 

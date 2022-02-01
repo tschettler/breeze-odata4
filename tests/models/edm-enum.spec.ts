@@ -1,15 +1,15 @@
 import { DataType } from 'breeze-client';
-import exp from 'constants';
 
-import { EdmEnum, EdmEnumMember, EdmEnumOptions } from '../../src/models/edm-enum';
+import { EdmEnum, EdmEnumMember, EdmEnumOptions } from '../../src/models/models';
 
 describe('EdmEnum', () => {
+    let sut: EdmEnum;
+
     const opts = <EdmEnumOptions>{
         name: 'Test',
         isFlags: false,
         underlyingDataType: DataType.Int32
     };
-    let sut: EdmEnum;
 
     describe('isFlags=false', () => {
         beforeEach(() => {
@@ -184,6 +184,22 @@ describe('EdmEnum', () => {
                 expect(result).toBeNull();
             });
 
+            it('should return null for object', () => {
+                const result = sut.parse({});
+                expect(result).toBeNull();
+            });
+
+            it('should return correct symbol with symbol', () => {
+                const enumMember = new EdmEnumMember();
+                enumMember.name = 'None';
+                enumMember.rawValue = '0';
+                const symbol = sut.addSymbol(enumMember);
+
+                const result = sut.parse(symbol, 'object');
+
+                expect(result).toBe(symbol);
+            });
+
             it('should return correct symbol with name', () => {
                 const enumMember = new EdmEnumMember();
                 enumMember.name = 'None';
@@ -215,6 +231,40 @@ describe('EdmEnum', () => {
                 const result = sut.parse(enumMember.name);
 
                 expect(result).toBeNull();
+            });
+        });
+
+        describe('parseRawValue', () => {
+            it('should return null for undefined', () => {
+                const result = sut.parseRawValue(undefined);
+                expect(result).toBeNull();
+            });
+
+            it('should return null for null', () => {
+                const result = sut.parseRawValue(null);
+                expect(result).toBeNull();
+            });
+
+            it('should return correct symbol with name', () => {
+                const enumMember = new EdmEnumMember();
+                enumMember.name = 'None';
+                enumMember.rawValue = '0';
+                const symbol = sut.addSymbol(enumMember);
+
+                const result = sut.parseRawValue(enumMember.name);
+
+                expect(result).toBe(symbol);
+            });
+
+            it('should return correct symbol with value', () => {
+                const enumMember = new EdmEnumMember();
+                enumMember.name = 'None';
+                enumMember.rawValue = '0';
+                const symbol = sut.addSymbol(enumMember);
+
+                const result = sut.parseRawValue(enumMember.value);
+
+                expect(result).toBe(symbol);
             });
         });
     });
@@ -433,6 +483,62 @@ describe('EdmEnum', () => {
                 const result = sut.parse(enumMember.name);
 
                 expect(result).toBeNull();
+            });
+        });
+
+        describe('parseRawValue', () => {
+            it('should return null for undefined', () => {
+                const result = sut.parseRawValue(undefined);
+                expect(result).toBeNull();
+            });
+
+            it('should return null for null', () => {
+                const result = sut.parseRawValue(null);
+                expect(result).toBeNull();
+            });
+
+            it('should return correct symbol with name', () => {
+                const enumMember = new EdmEnumMember();
+                enumMember.name = 'None';
+                enumMember.rawValue = '0';
+                const symbol = sut.addSymbol(enumMember);
+
+                const result = sut.parseRawValue(enumMember.name);
+
+                expect(result).toBe(symbol);
+            });
+
+            it('should return correct symbol with value', () => {
+                const enumMember = new EdmEnumMember();
+                enumMember.name = 'None';
+                enumMember.rawValue = '0';
+                const symbol = sut.addSymbol(enumMember);
+
+                const result = sut.parseRawValue(enumMember.value);
+
+                expect(result).toBe(symbol);
+            });
+
+            it('should return composite value', () => {
+                let enumMember = new EdmEnumMember();
+                enumMember.name = 'None';
+                enumMember.rawValue = '0';
+                sut.addSymbol(enumMember);
+
+                enumMember = new EdmEnumMember();
+                enumMember.name = 'One';
+                enumMember.rawValue = '1';
+                sut.addSymbol(enumMember);
+
+                enumMember = new EdmEnumMember();
+                enumMember.name = 'Two';
+                enumMember.rawValue = '2';
+                sut.addSymbol(enumMember);
+
+                const result = sut.parseRawValue(3);
+
+                expect(result['value']).toEqual(3);
+                expect(result['name']).toEqual('One,Two');
             });
         });
     });

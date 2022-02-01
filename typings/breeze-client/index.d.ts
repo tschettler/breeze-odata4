@@ -380,7 +380,7 @@ declare module "breeze-client"
 
         constants: { nextNumber: number, nextNumberIncrement: number, stringPrefix: string };
         
-        addSymbol(propertiesObj?: any): DataTypeSymbol;
+        addSymbol(propertiesObj?: any): DataTypeSymbol; 
         fromEdmDataType(typeName: string): DataTypeSymbol;
         fromValue(val: any): DataTypeSymbol;
         getComparableFn(dataType: DataTypeSymbol): (value: any) => any;
@@ -977,8 +977,16 @@ declare module "breeze-client"
         toODataFragment(context: {}): string;
         toString(): string;
         validate(entityType: EntityType): void;
-        visit(context: {}, visitor: PredicateVisitor): any;
+        visit(context: PredicateContext, visitor: PredicateVisitor): any;
         toJSON(): string;
+
+        visitorMethodName: string;
+        aliasMap: { [key: string]: OpConfig[] };
+    }
+
+    export interface OpConfig {
+        key: string;
+        aliases: string[]
     }
 
     export interface PredicateMethod {

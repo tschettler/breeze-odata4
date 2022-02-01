@@ -25,10 +25,12 @@ export interface BreezeOData4Options {
 
     /** Additional conventions used to infer foreign key properties. These are preferred over the defaults.
     * These conventions are used to define referential constraints for navigation properties.
-    * @default [endpoint.propertyName][suffix]
-    * [endpoint.propertyName]Id
-    * [endpoint.partnerEntityShortName][suffix]
-    * [endpoint.partnerEntityShortName]Id
+    * @default
+    *
+    *     [endpoint.propertyName][suffix]
+    *     [endpoint.propertyName]Id
+    *     [endpoint.partnerEntityShortName][suffix]
+    *     [endpoint.partnerEntityShortName]Id
    */
     foreignKeyConventions: ((endpoint: AssociationEndpoint, suffix: string) => string)[];
 
