@@ -32,6 +32,9 @@ manager.fetchMetadata();
 ```
 Now we can utilize breeze to query against an OData 4 API.
 
+## Documentation
+> See https://tschettler.github.io/breeze-odata4/ for project documentation.
+
 ## Samples
 
 Samples can be found in the samples repo: https://github.com/tschettler/breeze-odata4-samples
