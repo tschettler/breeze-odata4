@@ -1,4 +1,5 @@
 import { DataType } from 'breeze-client';
+
 import { nameof } from '../../utilities';
 import { BaseDataTypeSetup } from './base-datatype-setup';
 

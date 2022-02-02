@@ -1,4 +1,5 @@
 import { DataType, DataTypeSymbol } from 'breeze-client';
+
 import { NumericDataTypeSetup } from '../../../src/datatypes/setups/numeric-datatype-setup';
 import { Utilities } from '../../../src/utilities';
 

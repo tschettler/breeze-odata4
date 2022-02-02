@@ -1,5 +1,6 @@
 import { ComplexType, DataType, DataTypeSymbol, EntityType, IStructuralType, MetadataStore } from 'breeze-client';
 import { Edm, Edmx, oData } from 'ts-odatajs';
+
 import { ClassRegistry } from './class-registry';
 
 export interface InvokableEntry {

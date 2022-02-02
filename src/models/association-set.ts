@@ -1,6 +1,6 @@
 import { Edm, } from 'ts-odatajs';
 
-import { AssociationEndpoint } from './models';
+import { AssociationEndpoint } from '.';
 
 export class AssociationSet {
     private _endpoints: AssociationEndpoint[];

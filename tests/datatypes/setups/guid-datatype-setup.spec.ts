@@ -1,4 +1,5 @@
 import { DataType, DataTypeSymbol } from 'breeze-client';
+
 import { GuidDataTypeSetup } from '../../../src/datatypes/setups/guid-datatype-setup';
 import { Utilities } from '../../../src/utilities';
 

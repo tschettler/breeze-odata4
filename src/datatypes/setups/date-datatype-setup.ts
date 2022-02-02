@@ -2,7 +2,6 @@ import { DataType } from 'breeze-client';
 
 import { BaseDataTypeSetup } from './base-datatype-setup';
 
-
 /**
  * Supports ISO 8601 formatted dates, allowing for year 0000 and negative years.
  */

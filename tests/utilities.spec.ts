@@ -1,5 +1,6 @@
 import { ComplexType, DataType, EntityType, MetadataStore } from 'breeze-client';
 import { Edm, Edmx } from 'ts-odatajs';
+
 import { Utilities } from '../src/utilities';
 import { BreezeOData4 } from './../src/breeze-odata4';
 

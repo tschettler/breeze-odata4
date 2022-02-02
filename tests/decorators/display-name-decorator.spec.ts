@@ -1,5 +1,6 @@
-import { DisplayNameDecorator, ExpressionWithDisplayName } from './../../src/decorators/display-name-decorator';
 import { Edm } from 'ts-odatajs';
+
+import { DisplayNameDecorator, ExpressionWithDisplayName } from './../../src/decorators/display-name-decorator';
 
 let sut: DisplayNameDecorator;
 

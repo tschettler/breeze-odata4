@@ -1,5 +1,6 @@
-import { Edm, oData } from 'ts-odatajs';
-import { AssociationEndpoint } from '../../src/models/models';
+import { Edm } from 'ts-odatajs';
+
+import { AssociationEndpoint } from '../../src/models';
 
 describe('AssociationEndpoint', () => {
 

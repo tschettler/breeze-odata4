@@ -1,7 +1,6 @@
-import { Predicate, PredicateContext, PredicateVisitor, MetadataStore, DataType } from 'breeze-client';
+import { DataType, EntityType, MetadataStore, Predicate, PredicateContext } from 'breeze-client';
 
 import { OData4PredicateVisitor } from './../src/breeze-odata4-predicateVisitor';
-import { EntityType } from 'breeze-client';
 
 describe('OData4PredicateVisitor', () => {
 

@@ -1,4 +1,5 @@
 import { DataType, Validator } from 'breeze-client';
+
 import { BaseDataTypeSetup } from './base-datatype-setup';
 
 export class GeographyPointDataTypeSetup extends BaseDataTypeSetup {
@@ -13,7 +14,7 @@ export class GeographyPointDataTypeSetup extends BaseDataTypeSetup {
             validatorCtor: Validator.string
         });
 
-        DataType[this.name] =  result;
+        DataType[this.name] = result;
 
         return result;
     }

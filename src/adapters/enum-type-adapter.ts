@@ -2,11 +2,16 @@ import { DataType } from 'breeze-client';
 import { Edm, Edmx, oData } from 'ts-odatajs';
 
 import { ExpressionWithDisplayName } from '../decorators/display-name-decorator';
-import { EdmEnum, EdmEnumMember } from '../models/models';
+import { EdmEnum, EdmEnumMember } from '../models';
 import { Utilities } from '../utilities';
 import { MetadataAdapter } from './metadata-adapter';
 
+const DefaultIsFlags = 'false';
+const DefaultUnderlyingType = 'Edm.Int32';
+const TrueValue = 'true';
+
 export class EnumTypeAdapter implements MetadataAdapter {
+
     public adapt(metadata: Edmx.DataServices): void {
         oData.utils.forEachSchema(metadata.schema, this.adaptSchema.bind(this));
     }
@@ -16,13 +21,13 @@ export class EnumTypeAdapter implements MetadataAdapter {
     }
 
     private adaptEnumType(enumType: Edm.EnumType): void {
-        enumType.underlyingType ??= 'Edm.Int32';
-        enumType.isFlags ??= 'false';
+        enumType.isFlags ??= DefaultIsFlags;
+        enumType.underlyingType ??= DefaultUnderlyingType;
 
         const enumName = enumType.name;
         const underlyingType = enumType.underlyingType.split('.').pop();
         const dataType = Utilities.getDataType(underlyingType);
-        const isFlags = enumType.isFlags.toLowerCase() === 'true';
+        const isFlags = enumType.isFlags.toLowerCase() === TrueValue;
         const enumValue = new EdmEnum({
             isFlags: isFlags,
             name: enumName,

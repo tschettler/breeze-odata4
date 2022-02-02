@@ -1,4 +1,5 @@
 import { DataType, DataTypeSymbol } from 'breeze-client';
+
 import { DurationDataTypeSetup } from '../../../src/datatypes/setups/duration-datatype-setup';
 import { Utilities } from '../../../src/utilities';
 
