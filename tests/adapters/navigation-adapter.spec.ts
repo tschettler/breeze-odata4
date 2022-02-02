@@ -1,7 +1,7 @@
 import { Edm, Edmx } from 'ts-odatajs';
 
 import { EntityNotFound } from '../../src/adapters/navigation-adapter';
-import { NavigationAdapter } from './../../src/adapters/adapters';
+import { NavigationAdapter } from './../../src/adapters';
 
 
 let metadata: Edmx.Edmx;

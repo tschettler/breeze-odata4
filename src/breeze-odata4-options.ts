@@ -2,7 +2,7 @@ import { MetadataAdapter } from './adapters/metadata-adapter';
 import { Type } from './class-registry';
 import { DataTypeSetup } from './datatypes/setups/datatype-setup';
 import { AnnotationDecorator } from './decorators/annotation-decorator';
-import { AssociationEndpoint } from './models/models';
+import { AssociationEndpoint } from './models';
 
 /**
  * Configuration options for breeze-odata4.

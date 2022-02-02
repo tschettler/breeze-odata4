@@ -1,7 +1,7 @@
 import { DataType } from 'breeze-client';
 import { Edm, Edmx } from 'ts-odatajs';
 
-import { EnumTypeAdapter } from '../../src/adapters/enum-type-adapter';
+import { EnumTypeAdapter } from '../../src/adapters';
 
 let sut: EnumTypeAdapter;
 let metadata: Edmx.Edmx;

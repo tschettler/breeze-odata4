@@ -1,7 +1,8 @@
 import { Edm } from 'ts-odatajs';
+
 import {
-  StoreGeneratedPatternDecorator,
-  ExpressionWithStoreGeneratedPattern
+  ExpressionWithStoreGeneratedPattern,
+  StoreGeneratedPatternDecorator
 } from './../../src/decorators/store-generated-pattern-decorator';
 
 let sut: StoreGeneratedPatternDecorator;

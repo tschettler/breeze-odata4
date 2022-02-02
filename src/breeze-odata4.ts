@@ -1,12 +1,12 @@
 import { config } from 'breeze-client';
 
-import * as metadataAdapters from './adapters/adapters';
+import * as metadataAdapters from './adapters';
 import { OData4DataService } from './breeze-odata4-dataService';
 import { BreezeOData4Options, DefaultOptions } from './breeze-odata4-options';
 import { OData4UriBuilder } from './breeze-odata4-uriBuilder';
 import { ClassRegistry } from './class-registry';
-import * as datatypeSetups from './datatypes/setups/datatype-setups';
-import * as annotationDecorators from './decorators/decorators';
+import * as datatypeSetups from './datatypes/setups';
+import * as annotationDecorators from './decorators';
 
 export class BreezeOData4 {
   private static isConfigured = false;

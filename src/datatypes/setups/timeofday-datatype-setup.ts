@@ -1,4 +1,5 @@
 import { DataType, Validator } from 'breeze-client';
+
 import { BaseDataTypeSetup } from './base-datatype-setup';
 
 export class TimeOfDayDataTypeSetup extends BaseDataTypeSetup {

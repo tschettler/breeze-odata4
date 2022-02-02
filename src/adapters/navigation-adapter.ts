@@ -1,5 +1,6 @@
 import { Edm, EdmExtra, Edmx, oData } from 'ts-odatajs';
-import { AssociationEndpoint, AssociationSet } from '../models/models';
+
+import { AssociationEndpoint, AssociationSet } from '../models';
 import { MetadataAdapter } from './metadata-adapter';
 
 

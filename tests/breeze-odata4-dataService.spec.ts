@@ -22,7 +22,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Batch, HttpOData } from 'ts-odatajs';
 
-import { NavigationAdapter } from '../src/adapters/adapters';
+import { NavigationAdapter } from '../src/adapters';
 import { BreezeOData4 } from '../src/breeze-odata4';
 import { OData4DataService } from '../src/breeze-odata4-dataService';
 import { ClassRegistry } from '../src/class-registry';

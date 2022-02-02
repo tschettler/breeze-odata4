@@ -1,4 +1,5 @@
 import { DataType, DataTypeSymbol } from 'breeze-client';
+
 import { DataTypeSetup } from './datatype-setup';
 
 export class BaseDataTypeSetup implements DataTypeSetup {

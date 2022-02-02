@@ -1,4 +1,5 @@
 import { DataType } from 'breeze-client';
+
 import { BaseDataTypeSetup } from './base-datatype-setup';
 
 export class NumericDataTypeSetup extends BaseDataTypeSetup {

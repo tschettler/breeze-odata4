@@ -1,12 +1,12 @@
 import { config, DataType } from 'breeze-client';
 
-import { NavigationAdapter } from '../src/adapters/adapters';
+import { NavigationAdapter } from '../src/adapters';
 import { BreezeOData4 } from '../src/breeze-odata4';
 import { OData4DataService } from '../src/breeze-odata4-dataService';
 import { BreezeOData4Options, DefaultOptions } from '../src/breeze-odata4-options';
 import { OData4UriBuilder } from '../src/breeze-odata4-uriBuilder';
 import { ClassRegistry } from '../src/class-registry';
-import { AssociationEndpoint } from '../src/models/association-endpoint';
+import { AssociationEndpoint } from '../src/models';
 
 describe('BreezeOData4', () => {
   let options: Partial<BreezeOData4Options>;

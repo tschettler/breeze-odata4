@@ -1,4 +1,5 @@
 import { DataTypeSymbol } from 'breeze-client';
+
 export interface DataTypeSetup {
     name: string;
 

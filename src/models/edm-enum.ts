@@ -1,4 +1,4 @@
-import { core, DataType, DataTypeSymbol, Validator } from 'breeze-client';
+import { core, DataTypeSymbol, Validator } from 'breeze-client';
 
 export class EdmEnumMember implements core.EnumSymbol {
     public parentEnum: core.IEnum;

@@ -1,6 +1,6 @@
-import { ClassRegistry } from '../src/class-registry';
-import { DisplayNameDecorator } from '../src/decorators/display-name-decorator';
 import { AnnotationAdapter } from '../src/adapters/annotation-adapter';
+import { ClassRegistry } from '../src/class-registry';
+import { DisplayNameDecorator } from '../src/decorators';
 
 describe('ClassRegistry', () => {
   it('should have annotation decorators', () => {
