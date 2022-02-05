@@ -1,0 +1,21 @@
+name: draft-release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  draft-release:
+    name: Draft Release
+    runs-on: 'ubuntu-latest'
+
+    steps:
+      - name: Create Release
+      - uses: 'marvinpinto/action-automatic-releases@latest'
+        with:
+          repo_token: '${{ secrets.GITHUB_TOKEN }}'
+          draft: true
+          prerelease: false
+          files: |
+            LICENSE
