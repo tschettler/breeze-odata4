@@ -1,46 +1,44 @@
-# This is a basic workflow to help you get started with Actions
+name: Build and Test
 
-name: Build and Deploy
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build-and-deploy"
-  build-and-deploy:
-    concurrency: ci-${{ github.ref }} # Recommended if you intend to make multiple deployments in quick succession.
-    # The type of runner that the job will run on
+  build:
+    concurrency: ci-${{ github.ref }}
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # Checks-out your repository under $GITHUB_WORKSPACE, so job can access it
       - name: Checkout 🛎️
         uses: actions/checkout@v2
 
-      - name: Install and Build 🔧 # This project is built using npm and outputs the result to the 'docs' folder. 
+      - name: Build 🔧
         run: |
           npm ci
           npm run build
-      
-      - name: Jest coverage report 🧪
+
+      - name: Linting 🔎
+        run: npm run lint
+
+      - name: Run Tests 🧪
         uses: ArtiomTr/jest-coverage-report-action@v2.0.3
-        
-      - name: Coveralls 🧮
+        with:
+          skip: install
+
+      - name: Report Code Coverage 💯
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Deploy GitHub Pages 🚀
+        if: github.event_name != 'pull_request'
         uses: JamesIves/github-pages-deploy-action@v4.2.3
         with:
           branch: gh-pages # The branch the action should deploy to.
