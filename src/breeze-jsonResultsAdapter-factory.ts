@@ -9,7 +9,15 @@ import {
   VisitNodeResult
 } from 'breeze-client';
 
+/**
+ * @classdesc OData 4 Json results adapter factory.
+ */
 export class JsonResultsAdapterFactory {
+
+  /**
+   * Creates the OData 4 json results adapter.
+   * @returns The json results adapter.
+   */
   public static create(): JsonResultsAdapter {
     const adapter = new JsonResultsAdapter({
       name: 'OData4',
@@ -49,25 +57,9 @@ export class JsonResultsAdapterFactory {
     }
 
     entityType = entityType || (entityTypeName && <EntityType>metadataStore.getEntityType(entityTypeName, true));
-    // OData response doesn't distinguish a projection from a whole entity.
-    // We'll assume that whole-entity data would have at least as many properties  (<=)
-    // as the EntityType has mapped properties on the basis that
-    // most projections remove properties rather than add them.
-    // If not, assume it's a projection and do NOT treat as an entity
-    if (entityType /*&& entityType._mappedPropertiesCount <= Object.keys(node).length - 1*/) {
-      // if (et && entityType._mappedPropertiesCount === Object.keys(node).length - 1) { // OLD
+    if (entityType) {
       result.entityType = entityType;
-      /*var uriKey = metadata.uri || metadata.id;
-                if (uriKey) {
-                    // Strip baseUri to make uriKey a relative uri
-                    // Todo: why is this necessary when absolute works for every OData source tested?
-                    var re = new RegExp('^' + mappingContext.dataService.serviceName, 'i')
-                    uriKey = uriKey.replace(re, '');
-                }*/
-      result.extraMetadata = {
-        /*uriKey: uriKey,
-                etag: etag*/
-      };
+      result.extraMetadata = {};
     }
 
     // OData v3 - projection arrays will be enclosed in a results array

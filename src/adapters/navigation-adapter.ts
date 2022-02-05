@@ -7,6 +7,10 @@ import { MetadataAdapter } from './metadata-adapter';
 export const EntityNotFound = 'Could not find entity with type name';
 const PartnerSuffix = 'Partner';
 
+/**
+ * @classdesc Metadata adapter used to configure navigation properties as expected by breeze.
+ * @see {Edm.NavigationProperty}
+ */
 export class NavigationAdapter implements MetadataAdapter {
   /** Determines whether to allow many-to-many entity relationships.
    * @default false

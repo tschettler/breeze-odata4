@@ -7,6 +7,9 @@ import { BaseDataTypeSetup } from './base-datatype-setup';
  */
 const DateRegex = /(-\d)?\d{4}-\d{2}-\d{2}/;
 
+/**
+ * @classdesc Sets up the breeze DataType.Date enum symbol.
+ */
 export class DateDataTypeSetup extends BaseDataTypeSetup {
     public name = 'Date';
 

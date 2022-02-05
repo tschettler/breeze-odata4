@@ -5,8 +5,17 @@ import { AnnotationDecorator } from '../decorators/annotation-decorator';
 import { MetadataAdapter } from './metadata-adapter';
 
 export const TargetNotFound = 'Could not find element with type name';
+
+/**
+ * @classdesc Adapts the elements in the metadata based on designated annotations.
+ * @see {Edm.Annotation}
+ */
 export class AnnotationAdapter implements MetadataAdapter {
   private metadata: Edmx.DataServices;
+
+  /**
+   * Annotation decorators used by the annotation adapter.
+   */
   public decorators: AnnotationDecorator[] = [];
 
   private edmTypes: { [key: string]: string[] } = {
@@ -20,6 +29,10 @@ export class AnnotationAdapter implements MetadataAdapter {
     typeDefinition: []
   };
 
+  /**
+   * @constructor
+   * Creates the adapter and loads up annotation decorators.
+   */
   constructor() {
     this.decorators = ClassRegistry.AnnotationDecorators.get();
   }

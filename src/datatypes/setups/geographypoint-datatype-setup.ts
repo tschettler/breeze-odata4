@@ -2,6 +2,9 @@ import { DataType, Validator } from 'breeze-client';
 
 import { BaseDataTypeSetup } from './base-datatype-setup';
 
+/**
+ * @classdesc Sets up the breeze DataType.GeographyPoint enum symbol.
+ */
 export class GeographyPointDataTypeSetup extends BaseDataTypeSetup {
     public name = 'GeographyPoint';
 

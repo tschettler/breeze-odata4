@@ -2,6 +2,9 @@ import { core, DataType } from 'breeze-client';
 
 import { BaseDataTypeSetup } from './base-datatype-setup';
 
+/**
+ * @classdesc Sets up the breeze DataType.Duration enum symbol.
+ */
 export class DurationDataTypeSetup extends BaseDataTypeSetup {
     public name = 'Duration';
 

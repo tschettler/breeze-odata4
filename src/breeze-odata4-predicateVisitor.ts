@@ -1,7 +1,12 @@
 import { Predicate, PredicateContext, PredicateVisitor } from 'breeze-client';
 
-
+/**
+ * The OData4 predicate visitor.
+ */
 export class OData4PredicateVisitor implements PredicateVisitor {
+    /**
+     * Initializes the predicate visitor.
+     */
     public static initialize(): void {
         const visitor = new OData4PredicateVisitor();
         Predicate.prototype.toODataFragment = function (context) {
@@ -9,17 +14,34 @@ export class OData4PredicateVisitor implements PredicateVisitor {
         };
     }
 
+    /**
+     * Handles the pass-thru predicate.
+     * @param this The PassthruPredicate instance.
+     * @returns The predicate string.
+     */
     public passthruPredicate(this: any): string {
         return this.value;
     }
 
+    /**
+     * Handles the unary predicate.
+     * @param this The UnaryPredicate instance.
+     * @param context The predicate context.
+     * @returns The predicate string.
+     */
     public unaryPredicate(this: any, context: PredicateContext): string {
         const predVal = this.pred.visit(context);
         const op = this.op.key;
         return `${op} (${predVal})`;
     }
 
-    public binaryPredicate(this: any, context: any): string {
+    /**
+     * Handles the binary predicate.
+     * @param this The BinaryPredicate instance.
+     * @param context The predicate context.
+     * @returns The predicate string.
+     */
+    public binaryPredicate(this: any, context: PredicateContext): string {
         let expr1Val = this.expr1.visit(context);
         const expr2Val = this.expr2.visit(context);
         const prefix = context.prefix;
@@ -42,6 +64,12 @@ export class OData4PredicateVisitor implements PredicateVisitor {
         }
     }
 
+    /**
+     * Handles the and/or predicate.
+     * @param this The AndOrPredicate instance.
+     * @param context The predicate context.
+     * @returns The predicate string.
+     */
     public andOrPredicate(this: any, context: PredicateContext): string {
         const op = this.op.key;
         const result = this.preds
@@ -50,6 +78,12 @@ export class OData4PredicateVisitor implements PredicateVisitor {
         return result;
     }
 
+    /**
+     * Handles the any/all predicate.
+     * @param this The AnyAllPredicate instance.
+     * @param context The predicate context.
+     * @returns The predicate string.
+     */
     public anyAllPredicate(this: any, context: PredicateContext): string {
         const op = this.op.key;
         let exprVal = this.expr.visit(context);
@@ -72,6 +106,11 @@ export class OData4PredicateVisitor implements PredicateVisitor {
         return `${exprVal}/${op}(${prefix}: ${newPredVal})`;
     }
 
+    /**
+     * Handles the literal predicate expression.
+     * @param this The LitExpr instance.
+     * @returns The OData formatted value.
+     */
     public litExpr(this: any) {
         if (Array.isArray(this.value)) {
             return this.value
@@ -81,6 +120,12 @@ export class OData4PredicateVisitor implements PredicateVisitor {
         }
     }
 
+    /**
+     * Handles the property expression predicate.
+     * @param this The PropExpr instance.
+     * @param context The predicate context.
+     * @returns The predicate string.
+     */
     public propExpr(this: any, context: PredicateContext): string {
         const entityType = context.entityType;
         // '/' is the OData path delimiter
@@ -89,6 +134,12 @@ export class OData4PredicateVisitor implements PredicateVisitor {
             : this.propertyPath;
     }
 
+    /**
+     * Handles the function expression predicate expression.
+     * @param this The FnExpr instance.
+     * @param context The predicate context.
+     * @returns The predicate string.
+     */
     public fnExpr(this: any, context: PredicateContext): string {
         const exprVals = this.exprs
             .map(expr => expr.visit(context));
@@ -96,4 +147,3 @@ export class OData4PredicateVisitor implements PredicateVisitor {
         return `${this.fnName}(${exprVals})`;
     }
 }
-

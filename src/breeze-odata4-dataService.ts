@@ -27,12 +27,22 @@ import { ODataError } from './odata-error';
 import { ODataHttpClient } from './odata-http-client';
 import { InvokableEntry, Utilities } from './utilities';
 
-// Seems crazy, but this is the only way I can find to do the inheritance
+/**
+ * @classdesc Proxy data service
+ * @summary Seems crazy, but this is the only way I can find to do the inheritance
+ */
 export class ProxyDataService { }
 
 Object.setPrototypeOf(ProxyDataService.prototype, config.getAdapter('dataService', 'WebApi').prototype);
 
+/**
+ * @classdesc OData4 data service
+ */
 export class OData4DataService extends ProxyDataService implements DataServiceAdapter {
+
+  /**
+   * The breeze adapter name.
+   */
   public static BreezeAdapterName = 'OData4';
 
   // I don't like this, but I'm not able to find a better way
@@ -40,37 +50,79 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
 
   private actions: InvokableEntry[] = [];
 
+  /**
+   * The name of the data service.
+   */
   public name = OData4DataService.BreezeAdapterName;
 
+  /**
+   * The headers used by the data service when calling the OData 4 service.
+   * @default
+   * ```json
+   * {'OData-Version': '4.0'}
+   * ```
+   */
   public headers: { [name: string]: string } = {
     'OData-Version': '4.0'
   };
 
+  /**
+   * The metadata accept header.
+   */
   public metadataAcceptHeader = 'application/json;odata.metadata=full';
 
+  /**
+   * The metadata of the odata4 data service.
+   */
   public metadata: Edmx.Edmx;
 
+  /**
+   * Http client of the data service.
+   */
   public httpClient: ODataHttpClient;
 
+  /**
+   * Json results adapter of the data service.
+   */
   public jsonResultsAdapter: JsonResultsAdapter;
 
+  /**
+   * Change request interceptor of data service.
+   */
   public changeRequestInterceptor: {
     getRequest: <T>(request: T, entity: Entity, index: number) => T;
     done: (requests: Object[]) => void;
   } = this.innerAdapter.changeRequestInterceptor;
 
+  /**
+   * Registers the OData4 data service as a `dataService` breeze interface.
+   */
   public static register() {
     config.registerAdapter('dataService', OData4DataService);
   }
 
+  /**
+   * @constructor Creates an instance of odata4 data service.
+   */
   constructor() {
     super();
   }
 
+  /**
+   * Catches no connection error
+   * @param err The error
+   * @returns Deferred rejection with the error.
+   */
   public _catchNoConnectionError(err: Error): any {
     return this.innerAdapter._catchNoConnectionError(err);
   }
 
+  /**
+   * Creates change request interceptor
+   * @param saveContext The save context.
+   * @param saveBundle The save bundle.
+   * @returns The change request interceptor instance.
+   */
   public _createChangeRequestInterceptor(
     saveContext: DataServiceSaveContext,
     saveBundle: SaveBundle
@@ -81,22 +133,47 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     return this.innerAdapter._createChangeRequestInterceptor(saveContext, saveBundle);
   }
 
+  /**
+   * Checks for recomposition of the interface.
+   * @param interfaceInitializedArgs The interface initialization.
+   */
   public checkForRecomposition(interfaceInitializedArgs: { interfaceName: string; isDefault: boolean }): void {
     this.innerAdapter.checkForRecomposition(interfaceInitializedArgs);
   }
 
+  /**
+   * Prepares the save bundle.
+   * @param saveContext The save context.
+   * @param saveBundle The save bundle.
+   * @returns The save bundle.
+   */
   public _prepareSaveBundle(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): SaveBundle {
     return this.innerAdapter._prepareSaveBundle(saveContext, saveBundle);
   }
 
+  /**
+   * Prepares the save result.
+   * @param saveContext The save context.
+   * @param saveResult The save result.
+   * @returns The save result.
+   */
   public _prepareSaveResult(saveContext: DataServiceSaveContext, saveResult: SaveResult): SaveResult {
     return this.innerAdapter._prepareSaveResult(saveContext, saveResult);
   }
 
+  /**
+   * Initializes the data service.
+   */
   public initialize(): void {
     this.jsonResultsAdapter = JsonResultsAdapterFactory.create();
   }
 
+  /**
+   * Gets the absolute url.
+   * @param dataService The data service.
+   * @param url The url path.
+   * @returns The full absolute url.
+   */
   public getAbsoluteUrl(dataService: DataService, url: string): string {
     const serviceName = dataService.qualifyUrl('');
     // only prefix with serviceName if not already on the url
@@ -110,6 +187,12 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     return base + url;
   }
 
+  /**
+   * Fetches metadata from the server.
+   * @param metadataStore The metadata store.
+   * @param dataService The data service.
+   * @returns A promise with the EDMX metadata.
+   */
   public fetchMetadata(metadataStore: MetadataStore, dataService: DataService): Promise<Edmx.DataServices> {
     const serviceName = dataService.serviceName;
     const url = this.getAbsoluteUrl(dataService, '$metadata');
@@ -160,6 +243,11 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     });
   }
 
+  /**
+   * Executes the query against the server.
+   * @param mappingContext The mapping context.
+   * @returns The query result from the server.
+   */
   public executeQuery(mappingContext: MappingContext): Promise<QueryResult> {
     const query = mappingContext.query as EntityQuery;
 
@@ -189,7 +277,12 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     });
   }
 
-  // TODO: Add unit tests (193-332)
+  /**
+   * Saves changes from breeze.
+   * @param saveContext The save context.
+   * @param saveBundle The save bundle.
+   * @returns The save result from the server.
+   */
   public saveChanges(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): Promise<SaveResult> {
     saveContext.adapter = this;
 
@@ -222,8 +315,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                 return;
               }
 
-              // The server is required to provide the Content-ID header
-
+              // The server is required to provide the Content-ID header starting at 1, use 0 and effectively ignore it if not provided.
               const contentId = Number((chResponse.headers || {})['Content-ID'] ?? 0);
 
               const origEntity = contentKeys[contentId];
@@ -458,7 +550,6 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     return url;
   }
 
-  // TODO: Add unit tests (468-516)
   private transformValue(prop: DataProperty, val: any): any {
     // TODO: Split these into separate parsers
     if (prop.isUnmapped) {

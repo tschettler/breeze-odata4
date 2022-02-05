@@ -4,13 +4,34 @@ import { Edm } from 'ts-odatajs';
 import { Utilities } from '../utilities';
 import { AnnotationDecorator } from './annotation-decorator';
 
+/**
+ * Annotatable expression with a custom property used to populate the custom property
+ * on a breeze structural type or property.
+ */
 export interface ExpressionWithCustom extends Edm.Base.Annotatable {
     custom?: any;
 }
 
 const CustomTerm = 'Custom';
 
+/**
+ * @classdesc Decorates an annotatable expression with a custom property.
+ *
+ * @example The following example metadata to set the custom property of the Article Title data property.
+ * ```xml
+ *
+ *     <Annotations Target="OData4Test.Models.Article/Title">
+ *         <Annotation Term="Metadata.Custom.FieldDescription" String="The title of the article." />
+ *     </Annotations>
+ * ```
+ */
 export class CustomDecorator implements AnnotationDecorator {
+
+    /**
+     * Determines whether or not to process the specified annotation.
+     * @param  {Edm.Annotation} annotation The annotation to check.
+     * @returns true if the annotation term contains `.Custom.`.
+     */
     public canDecorate(annotation: Edm.Annotation): boolean {
         return /.\.Custom\./.test(annotation.term);
     }

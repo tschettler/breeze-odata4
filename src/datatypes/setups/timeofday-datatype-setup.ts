@@ -2,6 +2,9 @@ import { DataType, Validator } from 'breeze-client';
 
 import { BaseDataTypeSetup } from './base-datatype-setup';
 
+/**
+ * @classdesc Sets up the breeze DataType.TimeOfDay enum symbol.
+ */
 export class TimeOfDayDataTypeSetup extends BaseDataTypeSetup {
     public name = 'TimeOfDay';
 
