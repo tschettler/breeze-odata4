@@ -8,16 +8,20 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2
+
       # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v2
+      - name: NPM Setup ⚙
+        uses: actions/setup-node@v2
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Build 🔧
-      - run: |
+        run: |
           npm ci
           npm run build
 
@@ -32,6 +36,6 @@ jobs:
           target-folder: docs
 
       - name: Publish 🚀
-          npm publish --access public
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

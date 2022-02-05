@@ -1,6 +1,6 @@
 {
   "name": "breeze-odata4",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0",
   "description": "Library to allow OData 4 support for breezejs",
   "author": "Travis Schettler",
   "homepage": "https://github.com/tschettler/breeze-odata4#readme",
@@ -45,7 +45,6 @@
     "build:prod": "npm run build && npm run typedoc",
     "lint": "tslint --project tsconfig.json",
     "prebuild": "rimraf dist docs",
-    "prepublishOnly": "npm run test:prod && npm run build",
     "pretest": "clear",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
     "start": "rollup -c rollup.config.ts -w",
