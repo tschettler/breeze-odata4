@@ -8,9 +8,16 @@ import { ClassRegistry } from './class-registry';
 import * as datatypeSetups from './datatypes/setups';
 import * as annotationDecorators from './decorators';
 
+/**
+ * @classdesc Intializes the breeze OData4 configuration.
+ */
 export class BreezeOData4 {
   private static isConfigured = false;
 
+  /**
+   * Configures breeze OData4.
+   * @param [options] The OData4 initialization options.
+   */
   public static configure(options?: Partial<BreezeOData4Options>): void {
     const opts: BreezeOData4Options = Object.assign({}, DefaultOptions, options || {});
 
@@ -38,6 +45,9 @@ export class BreezeOData4 {
     }
   }
 
+  /**
+   * Allows reconfiguring breeze OData4.
+   */
   public static reset(): void {
     this.isConfigured = false;
   }

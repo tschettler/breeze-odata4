@@ -4,12 +4,35 @@ import { Edm } from 'ts-odatajs';
 import { Utilities } from '../utilities';
 import { AnnotationDecorator } from './annotation-decorator';
 
+/**
+ * Annotatable expression with a validators property.
+ */
 export interface ExpressionWithValidators extends Edm.Base.Annotatable {
   validators?: any[];
 }
 
 const ValidatorTerm = 'Validator';
+
+/**
+ * @classdesc Decorates an annotatable expression with a validators property.
+ *
+ * @example The following example metadata to add required validator configuration for the Article Title data property.
+ * ```xml
+ *
+ *     <Annotations Target="OData4Test.Models.Article/Title">
+ *        <Annotation Term="Metadata.Validator.required.ErrorMessage" String="The Title field is required." />
+ *        <Annotation Term="Metadata.Validator.required.AllowEmptyStrings" Bool="false" />
+ *        <Annotation Term="Metadata.Validator.required.ErrorMessageString" String="The {0} field is required." />
+ *     </Annotations>
+ * ```
+ */
 export class ValidatorDecorator implements AnnotationDecorator {
+
+  /**
+   * Determines whether or not to process the specified annotation.
+   * @param  {Edm.Annotation} annotation The annotation to check.
+   * @returns true if the annotation term contains `.Validator`.
+   */
   public canDecorate(annotation: Edm.Annotation): boolean {
     return annotation.term.indexOf(`.${ValidatorTerm}`) > -1;
   }

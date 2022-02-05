@@ -1,24 +1,85 @@
 import { core, DataTypeSymbol, Validator } from 'breeze-client';
 
+/**
+ * @classdesc Edm enum member
+ */
 export class EdmEnumMember implements core.EnumSymbol {
+
+    /**
+     * Parent enum of edm enum member.
+     */
     public parentEnum: core.IEnum;
+
+    /**
+     * Display name of edm enum member.
+     */
     public displayName: string;
+
+    /**
+     * Name of edm enum member.
+     */
     public name: string;
+
+    /**
+     * Raw value from server for edm enum member.
+     */
     public rawValue: string;
+
+    /**
+     * Value of edm enum member.
+     */
     public value: number;
+
+    /**
+     * Gets name of edm enum member.
+     */
     public getName: () => '';
+
+    /**
+     * Returns a string representation of the edm enum member.
+     */
     public toString: () => '';
 }
 
+/**
+ * Edm enum options.
+ */
 export interface EdmEnumOptions {
+
+    /**
+     * True if this is a flags enum, false otherwise.
+     */
     isFlags: boolean;
+
+    /**
+     * The enum name.
+     */
     name: string;
+
+    /**
+     * The underlying data type for the enum.
+     */
     underlyingDataType: DataTypeSymbol;
 }
 
+/**
+ * @classdesc Edm enum
+ */
 export class EdmEnum extends core.Enum {
+
+    /**
+     * True if this is a flags enum, false otherwise.
+     */
     public readonly isFlags: boolean;
+
+    /**
+     * The enum name.
+     */
     public readonly name: string;
+
+    /**
+     * Validator constructor of the edm enum.
+     */
     public validatorCtor = Validator.none;
 
     private _symbolPrototype: core.EnumSymbol;
@@ -27,6 +88,10 @@ export class EdmEnum extends core.Enum {
     private defaultValue: EdmEnumMember;
     private members: EdmEnumMember[] = [];
 
+    /**
+     * Creates an instance of edm enum.
+     * @param options The initialization options for the enum.
+     */
     public constructor(options: EdmEnumOptions) {
         super(options.name);
 
@@ -35,6 +100,11 @@ export class EdmEnum extends core.Enum {
         this.underlyingDataType = options.underlyingDataType;
     }
 
+    /**
+     * Adds symbol to the enum.
+     * @param [enumMember] The enum member.
+     * @returns The breeze symbol for the enum member.
+     */
     public addSymbol(enumMember?: Partial<EdmEnumMember>): core.EnumSymbol {
         enumMember.displayName ??= enumMember.name;
         enumMember.value = this.underlyingDataType.parse(enumMember.rawValue, 'string');
@@ -53,6 +123,11 @@ export class EdmEnum extends core.Enum {
         return result;
     }
 
+    /**
+     * Gets the enum member from the specified value.
+     * @param value The value.
+     * @returns The enum symbol.
+     */
     public fromValue(value: number): core.EnumSymbol {
         let result: core.EnumSymbol;
 
@@ -65,6 +140,11 @@ export class EdmEnum extends core.Enum {
         return result;
     }
 
+    /**
+    * Gets the enum member from the specified name.
+    * @param name The name.
+    * @returns The enum symbol.
+    */
     public fromName(name: string): core.EnumSymbol {
         const value = Number(name);
         if (!isNaN(value)) {
@@ -78,6 +158,11 @@ export class EdmEnum extends core.Enum {
         return result;
     }
 
+    /**
+    * Parses the value into the corresponding enum symbol.
+    * @param name The value of the enum.
+    * @returns The enum symbol.
+    */
     public parse = (val: any, sourceTypeName?: string): any => {
         if (typeof val === 'undefined' || val === null) {
             return null;
@@ -98,6 +183,11 @@ export class EdmEnum extends core.Enum {
         return null;
     }
 
+    /**
+    * Parses the raw value into the corresponding enum symbol.
+    * @param name The value of the enum.
+    * @returns The enum symbol.
+    */
     public parseRawValue = (val: any): any => {
         return this.parse(val, 'string');
     }

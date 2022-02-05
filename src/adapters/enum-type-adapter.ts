@@ -10,7 +10,11 @@ const DefaultIsFlags = 'false';
 const DefaultUnderlyingType = 'Edm.Int32';
 const TrueValue = 'true';
 
-export class EnumTypeAdapter implements MetadataAdapter {
+/**
+ * @classdesc Metadata adapter used to configure entityType elements as breeze data type symbols.
+ * @see {Edm.EnumType}
+ */
+ export class EnumTypeAdapter implements MetadataAdapter {
 
     public adapt(metadata: Edmx.DataServices): void {
         oData.utils.forEachSchema(metadata.schema, this.adaptSchema.bind(this));

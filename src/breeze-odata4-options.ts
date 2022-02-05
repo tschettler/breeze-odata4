@@ -55,6 +55,9 @@ export interface BreezeOData4Options {
     metadataAdapters: Type<MetadataAdapter>[];
 }
 
+/**
+ * The default OData 4 options.
+ */
 export const DefaultOptions: BreezeOData4Options = {
     allowManyToManyRelationships: false,
     annotationDecorators: [],

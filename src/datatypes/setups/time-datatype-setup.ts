@@ -3,6 +3,10 @@ import { core, DataType } from 'breeze-client';
 import { nameof } from '../../utilities';
 import { BaseDataTypeSetup } from './base-datatype-setup';
 
+/**
+ * @classdesc Sets up the breeze DataType.Time enum symbol.
+ * @see {DataType.Time}
+ */
 export class TimeDataTypeSetup extends BaseDataTypeSetup {
     public name = nameof<DataType>('Time');
 

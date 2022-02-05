@@ -15,12 +15,18 @@ import {
 import { ExpandParamsKey } from './breeze-odata4-entity-query';
 import { OData4PredicateVisitor } from './breeze-odata4-predicateVisitor';
 
+/**
+ * The query options base interface.
+ */
 export interface QueryOptionsBase {
   expand?: ExpandOptions[];
   filter?: string;
   select?: string[];
 }
 
+/**
+ * The query options.
+ */
 export interface QueryOptions extends QueryOptionsBase {
   count?: boolean;
   orderby?: string;
@@ -28,23 +34,41 @@ export interface QueryOptions extends QueryOptionsBase {
   top?: number;
 }
 
+/**
+ * The expand query options.
+ */
 export interface ExpandOptions extends QueryOptionsBase {
   name: string;
 }
 
+/**
+ * @classdesc The OData4 uri builder implementation.
+ */
 export class OData4UriBuilder implements UriBuilder {
   public static BreezeAdapterName = 'OData4';
   public name = OData4UriBuilder.BreezeAdapterName;
 
+  /**
+   * Registers the uri builder.
+   */
   public static register() {
     config.registerAdapter('uriBuilder', OData4UriBuilder);
   }
 
+  /**
+   * Initializes the uri builder.
+   */
   public initialize(): void {
     OData4PredicateVisitor.initialize();
   }
 
-  public buildUri(entityQuery: EntityQuery, metadataStore: MetadataStore) {
+  /**
+   * Builds the uri from the entity query.
+   * @param entityQuery The entity query.
+   * @param metadataStore The metadata store.
+   * @returns  The entity query uri.
+   */
+  public buildUri(entityQuery: EntityQuery, metadataStore: MetadataStore): string {
     const queryOptions = this.buildQueryOptions({ expand: [] }, entityQuery, metadataStore);
 
     const qoText = this.toQueryOptionsString(queryOptions);
@@ -58,7 +82,7 @@ export class OData4UriBuilder implements UriBuilder {
     // force entityType validation;
     let entityType = (<any>entityQuery)._getFromEntityType(metadataStore, false);
     if (!entityType) {
-      // anonymous type but still has naming convention info avail
+      // anonymous type but still has naming convention info available
       entityType = new EntityType(metadataStore);
     }
 

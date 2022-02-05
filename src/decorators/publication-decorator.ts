@@ -16,13 +16,33 @@ export interface Publication {
   termsOfUseUrl?: string;
 }
 
+/**
+ * Annotatable expression with a publication property.
+ */
 export interface ExpressionWithPublication extends Edm.Base.Annotatable {
   publication?: { [key: string]: any };
 }
 
 const PublicationTerm = 'Org.OData.Publication.V1.';
 
+/**
+ * @classdesc Decorates an annotatable expression with a publication property.
+ *
+ * @example The following example metadata to set the publication property of the Article entity type.
+ * ```xml
+ *
+ *     <Annotations Target="OData4Test.Models.Article">
+ *         <Annotation Term="Org.OData.Publication.V1.publisherName" String="Testinghouse" />
+ *     </Annotations>
+ * ```
+ */
 export class PublicationDecorator implements AnnotationDecorator {
+
+  /**
+   * Determines whether or not to process the specified annotation.
+   * @param  {Edm.Annotation} annotation The annotation to check.
+   * @returns true if the annotation term starts with `Org.OData.Publication.V1.`.
+   */
   public canDecorate(annotation: Edm.Annotation): boolean {
     return annotation.term.startsWith(PublicationTerm);
   }
