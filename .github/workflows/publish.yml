@@ -1,0 +1,37 @@
+name: publish
+on:
+  release:
+    types: [published]
+
+  # Allows running this workflow manually from the Actions tab
+  workflow_dispatch:
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Build 🔧
+      - run: |
+          npm ci
+          npm run build
+
+      - name: Generate Docs 📝
+        run: npm run typedoc
+
+      - name: Deploy GitHub Pages 🚀
+        uses: JamesIves/github-pages-deploy-action@v4.2.3
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: docs # The source folder the action should deploy.
+          target-folder: docs
+
+      - name: Publish 🚀
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
