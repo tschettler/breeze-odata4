@@ -1,8 +1,8 @@
-import builtins from 'rollup-plugin-node-builtins';
 import camelCase from 'camelcase';
 import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
 import resolve from 'rollup-plugin-node-resolve';
+import nodePolyfills from 'rollup-plugin-polyfill-node';
 import sourceMaps from 'rollup-plugin-sourcemaps';
 import typescript from 'rollup-plugin-typescript2';
 
@@ -30,7 +30,7 @@ export default {
   },
   plugins: [
     // Allow shim for node modules
-    builtins(),
+    nodePolyfills(),
     // Allow json resolution
     json(),
     // Compile TypeScript files
@@ -40,7 +40,7 @@ export default {
     // Allow node_modules resolution, so you can use 'external' to control
     // which external modules to include in the bundle
     // https://github.com/rollup/rollup-plugin-node-resolve#usage
-    resolve({preferBuiltins: true}),
+    resolve({ preferBuiltins: true }),
 
     // Resolve source maps to the original source
     sourceMaps()
