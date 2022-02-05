@@ -30,7 +30,7 @@ jobs:
       - name: Run Tests 🧪
         uses: ArtiomTr/jest-coverage-report-action@v2.0.3
         with:
-          skip: install
+          skip-step: install
 
       - name: Report Code Coverage 💯
         uses: coverallsapp/github-action@master
