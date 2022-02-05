@@ -31,8 +31,8 @@ jobs:
           npm ci
           npm run build
       
-      - name: Run tests 🧪
-        run: npm run test:prod
+      - name: Jest coverage report
+        uses: ArtiomTr/jest-coverage-report-action@v2.0.3
         
       - name: Coveralls 🧮
         uses: coverallsapp/github-action@master
