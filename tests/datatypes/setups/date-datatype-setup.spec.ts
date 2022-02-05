@@ -1,6 +1,6 @@
 import { DataType, DataTypeSymbol } from 'breeze-client';
 
-import { DateDataTypeSetup } from '../../../src/datatypes/setups/Date-datatype-setup';
+import { DateDataTypeSetup } from '../../../src/datatypes/setups/date-datatype-setup';
 import { Utilities } from '../../../src/utilities';
 
 describe('DateDataTypeSetup', () => {

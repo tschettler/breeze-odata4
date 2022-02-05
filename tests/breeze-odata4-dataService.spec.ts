@@ -861,7 +861,7 @@ describe('OData4DataService', () => {
             await expect(
                 ds.fetchMetadata(metadataStore, dataService)
             ).rejects.toThrowError(
-                'Metadata query failed for: http://localhost/$metadata; Cannot read property \'documentElement\' of undefined'
+                'Metadata query failed for: http://localhost/$metadata; Cannot read propert'
             );
         });
 
