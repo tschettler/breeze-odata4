@@ -41,7 +41,8 @@
     "node": ">=6.0.0"
   },
   "scripts": {
-    "build": "tsc --module commonjs --target es5 && rollup -c rollup.config.ts && typedoc src",
+    "build": "tsc --module commonjs --target es5 && rollup -c rollup.config.ts",
+    "build:prod": "npm run build && npm run typedoc",
     "lint": "tslint --project tsconfig.json",
     "prebuild": "rimraf dist docs",
     "prepublishOnly": "npm run test:prod && npm run build",
@@ -50,7 +51,8 @@
     "start": "rollup -c rollup.config.ts -w",
     "test": "jest --verbose",
     "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "typedoc": "typedoc src"
   },
   "dependencies": {
     "breeze-client": "^1.7.0",
