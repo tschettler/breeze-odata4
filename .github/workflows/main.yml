@@ -1,4 +1,4 @@
-name: Build and Test
+name: build
 
 on:
   push:
@@ -36,6 +36,10 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate Docs 📝
+        if: github.event_name != 'pull_request'
+        run: npm run typedoc
 
       - name: Deploy GitHub Pages 🚀
         if: github.event_name != 'pull_request'
