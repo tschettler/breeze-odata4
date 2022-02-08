@@ -1,4 +1,7 @@
 import { EntityManager, EntityQuery, JsonResultsAdapter, MappingContext, MetadataStore, NodeContext } from 'breeze-client';
+import { AjaxFetchAdapter } from 'breeze-client/adapter-ajax-fetch';
+import { DataServiceWebApiAdapter } from 'breeze-client/adapter-data-service-webapi';
+import { ModelLibraryBackingStoreAdapter } from 'breeze-client/adapter-model-library-backing-store';
 
 import { JsonResultsAdapterFactory } from './../src/breeze-jsonResultsAdapter-factory';
 
@@ -10,6 +13,12 @@ let mappingContext: MappingContext;
 let nodeContext: NodeContext;
 
 describe('JsonResultsAdapterFactory', () => {
+  beforeAll(() => {
+    ModelLibraryBackingStoreAdapter.register();
+    AjaxFetchAdapter.register();
+    DataServiceWebApiAdapter.register();
+  });
+
   beforeEach(() => {
     metadataStore = new MetadataStore();
     metadataStore.importMetadata(jsonMetadata);
@@ -87,7 +96,7 @@ describe('JsonResultsAdapterFactory', () => {
     const sut = JsonResultsAdapterFactory.create();
     const node = {};
     nodeContext.nodeType = 'navProp';
-    nodeContext.navigationProperty = { entityTypeName: 'Person' };
+    nodeContext.navigationProperty = <any>{ entityTypeName: 'Person' };
 
     const result = sut.visitNode(node, mappingContext, nodeContext);
     expect(result.entityType.shortName).toBe('Person');
@@ -97,7 +106,7 @@ describe('JsonResultsAdapterFactory', () => {
     const sut = JsonResultsAdapterFactory.create();
     const node = {};
     nodeContext.nodeType = 'navPropItem';
-    nodeContext.navigationProperty = { entityTypeName: 'Person' };
+    nodeContext.navigationProperty = <any>{ entityTypeName: 'Person' };
 
     const result = sut.visitNode(node, mappingContext, nodeContext);
     expect(result.entityType.shortName).toBe('Person');

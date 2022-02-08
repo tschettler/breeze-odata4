@@ -21,7 +21,7 @@ export class DurationDataTypeSetup extends BaseDataTypeSetup {
     }
 
     public addSymbol = () => {
-        const result = DataType.addSymbol(Object.assign({}, DataType.Time,
+        const result = new DataType(Object.assign({}, DataType.Time,
             {
                 name: this.name,
                 parseRawValue: DataType.parseTimeFromServer

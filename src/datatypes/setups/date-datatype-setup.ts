@@ -37,7 +37,7 @@ export class DateDataTypeSetup extends BaseDataTypeSetup {
     }
 
     public addSymbol = () => {
-        const result = DataType.addSymbol({
+        const result = new DataType({
             defaultValue: '0000-01-01',
             name: this.name,
             isDate: true,

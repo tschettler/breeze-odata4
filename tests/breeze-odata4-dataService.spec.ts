@@ -4,8 +4,7 @@ import {
     DataProperty,
     DataService,
     DataServiceAdapter,
-    DataServiceOptions,
-    DataServiceSaveContext,
+    DataServiceConfig,
     DataType,
     Entity,
     EntityManager,
@@ -18,13 +17,16 @@ import {
     SaveOptions,
     SaveResult
 } from 'breeze-client';
+import { AjaxFetchAdapter } from 'breeze-client/adapter-ajax-fetch';
+import { DataServiceWebApiAdapter } from 'breeze-client/adapter-data-service-webapi';
+import { ModelLibraryBackingStoreAdapter } from 'breeze-client/adapter-model-library-backing-store';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Batch, HttpOData } from 'ts-odatajs';
 
 import { NavigationAdapter } from '../src/adapters';
 import { BreezeOData4 } from '../src/breeze-odata4';
-import { OData4DataService } from '../src/breeze-odata4-dataService';
+import { DataServiceSaveContext, OData4DataService } from '../src/breeze-odata4-dataService';
 import { ClassRegistry } from '../src/class-registry';
 import { DataTypeSetup } from '../src/datatypes/setups/datatype-setup';
 import { ODataError } from '../src/odata-error';
@@ -45,7 +47,7 @@ const DefaultDataService: DataServiceAdapter = <DataServiceAdapter>config.getAda
 const MockWebApiDataService = jest.fn<DataServiceAdapter, []>(
     () =>
         <any>{
-            name: 'WebApi',
+            name: 'webApi',
             _catchNoConnectionError: jest.fn(),
             _createChangeRequestInterceptor: jest.fn(),
             checkForRecomposition: jest.fn(),
@@ -59,6 +61,12 @@ describe('OData4DataService', () => {
     let sut: OData4DataService;
     let innerAdapter: DataServiceAdapter;
 
+    beforeAll(() => {
+        ModelLibraryBackingStoreAdapter.register();
+        AjaxFetchAdapter.register();
+        DataServiceWebApiAdapter.register();
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         config.registerAdapter('dataService', MockWebApiDataService);
@@ -71,7 +79,7 @@ describe('OData4DataService', () => {
 
         sut = <OData4DataService>config.getAdapterInstance('dataService');
         innerAdapter = <DataServiceAdapter>(
-            config.getAdapterInstance('dataService', 'WebApi')
+            config.getAdapterInstance('dataService', 'webApi')
         );
     });
 
@@ -96,7 +104,7 @@ describe('OData4DataService', () => {
     });
 
     it('should call inner adapter when _catchNoConnectionError is called', () => {
-        sut._catchNoConnectionError(null);
+        sut._catchNoConnectionError(new ODataError());
 
         expect((<any>innerAdapter)._catchNoConnectionError)
             .toHaveBeenCalledTimes(1);
@@ -167,7 +175,7 @@ describe('OData4DataService', () => {
             delete global['window'];
             global['location'] = <any>{ origin: serviceName };
 
-            const opts: DataServiceOptions = {
+            const opts: DataServiceConfig = {
                 serviceName: serviceName,
             };
 
@@ -328,7 +336,7 @@ describe('OData4DataService', () => {
             ctx.query = query;
 
             ctx.metadataStore = new MetadataStore();
-            ctx.entityManager = new EntityManager();
+            ctx.entityManager = new EntityManager('http://localhost');
 
             let result: object;
             httpClient.request = (req, success, error) => {
@@ -353,7 +361,7 @@ describe('OData4DataService', () => {
 
             ctx.metadataStore = new MetadataStore();
             ctx.metadataStore.namingConvention = NamingConvention.camelCase;
-            ctx.entityManager = new EntityManager();
+            ctx.entityManager = new EntityManager('http://localhost');
 
             let result: object;
             httpClient.request = (req, success, error) => {
@@ -374,13 +382,15 @@ describe('OData4DataService', () => {
                 $method: method,
                 $data: {
                     id: 123,
+                    // entityAspect is now required to fake an entityType or else breeze will consider it to be a complex type
+                    entityAspect: {},
                     entityType: { dataProperties: [] }
                 }
             };
             ctx.query = query;
 
             ctx.metadataStore = new MetadataStore();
-            ctx.entityManager = new EntityManager();
+            ctx.entityManager = new EntityManager('http://localhost');
 
             let result: object;
             httpClient.request = (req, success, error) => {
@@ -658,7 +668,7 @@ describe('OData4DataService', () => {
 
             it('should return relative url when window exists and url starts with double slash', () => {
                 const serviceName = '//TestService';
-                const opts: DataServiceOptions = {
+                const opts: DataServiceConfig = {
                     serviceName: serviceName,
                 };
 
@@ -672,7 +682,7 @@ describe('OData4DataService', () => {
 
             it('should return correct url when window exists and url starts with http', () => {
                 const serviceName = 'http://TestService';
-                const opts: DataServiceOptions = {
+                const opts: DataServiceConfig = {
                     serviceName: serviceName,
                 };
 
@@ -686,7 +696,7 @@ describe('OData4DataService', () => {
 
             it('should return correct url when window exists and url starts with https', () => {
                 const serviceName = 'https://TestService';
-                const opts: DataServiceOptions = {
+                const opts: DataServiceConfig = {
                     serviceName: serviceName,
                 };
 
@@ -700,7 +710,7 @@ describe('OData4DataService', () => {
 
             it('should return absolute url when window exists and url does not start with double slash', () => {
                 const serviceName = 'TestService';
-                const opts: DataServiceOptions = {
+                const opts: DataServiceConfig = {
                     serviceName: serviceName,
                 };
 
@@ -716,7 +726,7 @@ describe('OData4DataService', () => {
 
             it('should return absolute url when window exists and url does not start with double slash', () => {
                 const serviceName = '/TestService/';
-                const opts: DataServiceOptions = {
+                const opts: DataServiceConfig = {
                     serviceName: serviceName,
                 };
 
@@ -732,7 +742,7 @@ describe('OData4DataService', () => {
 
             it('should return absolute url when window exists and url does not contain service name', () => {
                 const serviceName = 'TestService';
-                const opts: DataServiceOptions = {
+                const opts: DataServiceConfig = {
                     serviceName: serviceName,
                 };
 
@@ -755,7 +765,7 @@ describe('OData4DataService', () => {
 
             it('should return valid url when url does not contain service name', () => {
                 const serviceName = 'TestService';
-                const opts: DataServiceOptions = {
+                const opts: DataServiceConfig = {
                     serviceName: serviceName,
                 };
 
@@ -769,7 +779,7 @@ describe('OData4DataService', () => {
 
             it('should return valid url when url contains service name', () => {
                 const serviceName = 'TestService';
-                const opts: DataServiceOptions = {
+                const opts: DataServiceConfig = {
                     serviceName: serviceName,
                 };
 
@@ -1180,12 +1190,12 @@ describe('OData4DataService', () => {
                 .fn()
                 .mockImplementation(() => <DataTypeSetup[]>[]);
 
-            innerAdapter._createChangeRequestInterceptor = jest.fn<{
+            (innerAdapter as any)._createChangeRequestInterceptor = jest.fn<{
                 getRequest: <T>(request: T, entity: Entity, index: number) => T;
                 done: (requests: Object[]) => void;
             }, [DataServiceSaveContext, SaveBundle]>(
                 (sc, sb) => {
-                    return DefaultDataService._createChangeRequestInterceptor(sc, sb);
+                    return (DefaultDataService as any)._createChangeRequestInterceptor(sc, sb);
                 });
 
             ds = new OData4DataService();
@@ -1222,7 +1232,7 @@ describe('OData4DataService', () => {
                 metadataStore: metadataStore
             });
 
-            saveContext = <DataServiceSaveContext>{
+            saveContext = <DataServiceSaveContext><any>{
                 adapter: ds,
                 dataService: dataService,
                 resourceName: '',

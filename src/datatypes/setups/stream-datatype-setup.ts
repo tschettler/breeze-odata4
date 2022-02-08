@@ -9,7 +9,7 @@ export class StreamDataTypeSetup extends BaseDataTypeSetup {
     public name = 'Stream';
 
     public addSymbol = () => {
-        const result = DataType.addSymbol({
+        const result = new DataType({
             defaultValue: '',
             fmtOData: DataType.String.fmtOData,
             name: this.name,

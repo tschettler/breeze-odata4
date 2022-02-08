@@ -1,6 +1,3 @@
-import { DataType } from 'breeze-client';
-
-import { nameof } from '../../utilities';
 import { BaseDataTypeSetup } from './base-datatype-setup';
 
 /**
@@ -8,7 +5,7 @@ import { BaseDataTypeSetup } from './base-datatype-setup';
  * @see {DataType.DateTime}
  */
 export class DateTimeDataTypeSetup extends BaseDataTypeSetup {
-    public name = nameof<DataType>('DateTime');
+    public name = 'DateTime';
 
     public fmtOData = (val: any) => {
         if (!val) {
