@@ -84,7 +84,7 @@ export class AnnotationAdapter implements MetadataAdapter {
         continue;
       } else if (schemaProperty instanceof Array) {
         result = oData.utils.lookupInMetadata(typeName, this.metadata.schema, kind);
-      } else if (`${schema.namespace}.${(<Edm.Base.NamedExpression>schemaProperty).name}` === typeName) {
+      } else if (`${schema.namespace}.${(schemaProperty as Edm.Base.NamedExpression).name}` === typeName) {
         result = schemaProperty;
       }
       if (result) {
@@ -112,13 +112,13 @@ export class AnnotationAdapter implements MetadataAdapter {
       }
 
       if (typeProperty instanceof Array) {
-        item = (<Edm.Base.NamedExpression[]>typeProperty).find(e => e.name === propertyName);
+        item = (typeProperty as Edm.Base.NamedExpression[]).find(e => e.name === propertyName);
       } else if (typeProperty.name === propertyName) {
         item = typeProperty;
       }
 
       if (item) {
-        result = <Edm.Base.Annotatable>item;
+        result = (item as Edm.Base.Annotatable);
       }
     });
 

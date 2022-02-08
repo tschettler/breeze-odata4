@@ -39,7 +39,7 @@ export interface DataServiceSaveContext extends SaveContext {
  * @classdesc Proxy data service
  * @summary Seems crazy, but this is the only way I can find to do the inheritance
  */
-export class ProxyDataService {}
+export class ProxyDataService { }
 
 Object.setPrototypeOf(ProxyDataService, config.getAdapter('dataService', 'webApi'));
 
@@ -54,22 +54,22 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
   public static BreezeAdapterName = 'OData4';
 
   // I don't like this, but I'm not able to find a better way
-  private innerAdapter: DataServiceAdapter = <DataServiceAdapter>config.getAdapterInstance('dataService', 'webApi');
+  private innerAdapter: DataServiceAdapter = config.getAdapterInstance('dataService', 'webApi');
 
   private actions: InvokableEntry[] = [];
 
   /**
- * The name of the data service.
- */
+   * The name of the data service.
+   */
   public name = OData4DataService.BreezeAdapterName;
 
   /**
-    * The headers used by the data service when calling the OData 4 service.
-    * @default
-    * ```json
-    * {'OData-Version': '4.0'}
-    * ```
-    */
+   * The headers used by the data service when calling the OData 4 service.
+   * @default
+   * ```json
+   * {'OData-Version': '4.0'}
+   * ```
+   */
   public headers: { [name: string]: string } = {
     'OData-Version': '4.0'
   };
@@ -135,7 +135,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     saveBundle: SaveBundle
   ): {
     getRequest: <T>(request: T, entity: Entity, index: number) => T;
-    done: (requests: Object[]) => void;
+    done: (requests: any[]) => void;
   } {
     return (this.innerAdapter as any)._createChangeRequestInterceptor(saveContext, saveBundle);
   }
@@ -208,7 +208,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
       oData.read(
         {
           requestUri: url,
-          headers: Object.assign({}, this.headers, { Accept: this.metadataAcceptHeader })
+          headers: {...this.headers,  Accept: this.metadataAcceptHeader}
         },
         (data: Edmx.Edmx) => {
           // data.dataServices.schema is an array of schemas. with properties of
@@ -272,9 +272,9 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
             results = data.value;
           }
 
-          resolve({ results: results, query: query, inlineCount: inlineCount, httpResponse: response });
+          resolve({ results, query, inlineCount, httpResponse: response });
         },
-        (error: Object) => {
+        (error: any) => {
           const err = this.createError(error, request.requestUri);
           reject(err);
         },
@@ -305,16 +305,16 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         {
           method: 'POST',
           requestUri: url,
-          headers: Object.assign({}, this.headers),
+          headers: {...this.headers},
           data: requestData
         },
         (data: Batch.BatchResponse) => {
           const entities: Entity[] = [];
           const keyMappings: KeyMapping[] = [];
-          const saveResult: SaveResult = { entities: entities, keyMappings: keyMappings, deletedKeys: null };
+          const saveResult: SaveResult = { entities, keyMappings, deletedKeys: null };
           data.__batchResponses.forEach((br: Batch.ChangeResponseSet) => {
             br.__changeResponses.forEach((cr: Batch.ChangeResponse | Batch.FailedResponse, index: number) => {
-              const chResponse = (<Batch.FailedResponse>cr).response || <Batch.ChangeResponse>cr;
+              const chResponse = (cr as Batch.FailedResponse).response || (cr as Batch.ChangeResponse);
               const statusCode = chResponse.statusCode;
               if (!statusCode || Number(statusCode) >= 400) {
                 const err = this.createError(cr, url);
@@ -336,7 +336,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
                     const realKey = entityType.getEntityKeyFromRawEntity(rawEntity, DataProperty.getRawValueFromServer);
                     const keyMapping: KeyMapping = {
                       entityTypeName: entityType.name,
-                      tempValue: tempValue,
+                      tempValue,
                       realValue: realKey.values[0]
                     };
                     keyMappings.push(keyMapping);
@@ -376,13 +376,11 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
       const aspect = entity.entityAspect;
 
       let request: Batch.ChangeRequest = {
-        headers: Object.assign(
-          {
+        headers: {
             'Content-ID': contentId.toString(),
-            'Content-Type': 'application/json;IEEE754Compatible=true'
-          },
-          this.headers
-        ),
+            'Content-Type': 'application/json;IEEE754Compatible=true',
+          ...this.headers
+        },
         requestUri: null,
         method: null
       };
@@ -431,9 +429,9 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     const query = mappingContext.query as EntityQuery;
     let method = 'GET';
     let request: HttpOData.Request = {
-      method: method,
+      method,
       requestUri: this.getUrl(mappingContext),
-      headers: Object.assign({}, this.headers)
+      headers: {...this.headers}
     };
 
     if (!query?.parameters) {
@@ -444,10 +442,10 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     delete query.parameters['$method'];
 
     if (method === 'GET') {
-      request = Object.assign({}, request, { requestUri: this.addQueryString(request.requestUri, query.parameters) });
+      request = {...request,  requestUri: this.addQueryString(request.requestUri, query.parameters)};
     } else {
       const data = this.getData(mappingContext, query.parameters['$data']) ?? query.parameters;
-      request = Object.assign({}, request, { method: method, data: data });
+      request = {...request,  method, data};
     }
 
     return request;
@@ -469,7 +467,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     }
 
     // check if action exists
-    const invokeConfig = this.getInvokableConfig((<EntityQuery>mappingContext.query).resourceName);
+    const invokeConfig = this.getInvokableConfig((mappingContext.query as EntityQuery).resourceName);
     const actionEntry = this.actions.find(e => e.config === invokeConfig);
 
     if (!actionEntry) {
@@ -499,10 +497,10 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     const structuralType = Utilities.adaptStructuralType(mappingContext.metadataStore, edmType);
 
     if (structuralType instanceof EntityType) {
-      data = (<EntityType>structuralType).createEntity(data);
+      data = structuralType.createEntity(data);
       return helper.unwrapInstance(data, null);
     } else if (structuralType instanceof ComplexType) {
-      data = (<ComplexType>structuralType).createInstance(data);
+      data = structuralType.createInstance(data);
       return helper.unwrapInstance(data, null);
     }
 
@@ -544,7 +542,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
   }
 
   // TODO: Refactor to a request factory
-  private addQueryString(url: string, parameters: Object): string {
+  private addQueryString(url: string, parameters: any): string {
     // Add query params if .withParameters was used
     const queryString = this.toQueryString(parameters);
     if (!queryString) {
@@ -617,7 +615,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     // OData errors can have the message buried very deeply - and nonobviously
     // this code is tricky so be careful changing the response.body parsing.
     const result = new ODataError();
-    const response = error && (<Batch.FailedResponse>error).response;
+    const response = error && (error as Batch.FailedResponse).response;
 
     result.message = error.message || error;
     result.statusText = error.message || error;

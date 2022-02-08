@@ -13,7 +13,7 @@ describe('BreezeOData4', () => {
 
   beforeEach(() => {
     BreezeOData4.reset();
-    options = Object.assign({}, DefaultOptions, { initializeAdapters: false });
+    options = {...DefaultOptions,  initializeAdapters: false};
   });
 
   it('should register UriBuilder when configure is called', () => {

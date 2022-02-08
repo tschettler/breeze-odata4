@@ -80,7 +80,7 @@ export class OData4UriBuilder implements UriBuilderAdapter {
 
   private buildQueryOptions(queryOptions: QueryOptions, entityQuery: EntityQuery, metadataStore: MetadataStore): QueryOptions {
     // force entityType validation;
-    let entityType = (<any>entityQuery)._getFromEntityType(metadataStore, false);
+    let entityType = (entityQuery as any)._getFromEntityType(metadataStore, false);
     if (!entityType) {
       // anonymous type but still has naming convention info available
       entityType = new EntityType(metadataStore);
@@ -206,7 +206,7 @@ export class OData4UriBuilder implements UriBuilderAdapter {
     }
 
     // validation occurs inside of the toODataFragment call here.
-    return (wherePredicate as any).toODataFragment({ entityType: entityType });
+    return (wherePredicate as any).toODataFragment({ entityType });
   }
 
   private toOrderByODataFragment(entityType: EntityType, orderByClause: OrderByClause): string {

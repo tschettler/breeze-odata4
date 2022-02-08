@@ -5,7 +5,7 @@ import { ModelLibraryBackingStoreAdapter } from 'breeze-client/adapter-model-lib
 
 import { JsonResultsAdapterFactory } from './../src/breeze-jsonResultsAdapter-factory';
 
-const jsonMetadata = require('./breeze_metadata.json');
+import jsonMetadata = require('./breeze_metadata.json');
 
 let metadataStore: MetadataStore;
 let entityManager: EntityManager;
@@ -23,9 +23,9 @@ describe('JsonResultsAdapterFactory', () => {
     metadataStore = new MetadataStore();
     metadataStore.importMetadata(jsonMetadata);
 
-    entityManager = new EntityManager({ metadataStore: metadataStore });
-    mappingContext = <MappingContext>{ entityManager: entityManager };
-    nodeContext = <NodeContext>{ nodeType: 'root' };
+    entityManager = new EntityManager({ metadataStore });
+    mappingContext = { entityManager } as MappingContext;
+    nodeContext = { nodeType: 'root' } as NodeContext;
   });
 
   it('should return JsonResultsAdapter when create is called', () => {
@@ -74,7 +74,7 @@ describe('JsonResultsAdapterFactory', () => {
   it('should return result with EntityType when visitNode is called for query with resultEntityType', () => {
     const sut = JsonResultsAdapterFactory.create();
     const query = new EntityQuery('Person');
-    query.resultEntityType = <any>metadataStore.getEntityType('Person');
+    query.resultEntityType = (metadataStore.getEntityType('Person') as any);
     mappingContext.query = query;
     const node = {};
 
@@ -96,7 +96,7 @@ describe('JsonResultsAdapterFactory', () => {
     const sut = JsonResultsAdapterFactory.create();
     const node = {};
     nodeContext.nodeType = 'navProp';
-    nodeContext.navigationProperty = <any>{ entityTypeName: 'Person' };
+    nodeContext.navigationProperty = { entityTypeName: 'Person' } as any;
 
     const result = sut.visitNode(node, mappingContext, nodeContext);
     expect(result.entityType.shortName).toBe('Person');
@@ -106,7 +106,7 @@ describe('JsonResultsAdapterFactory', () => {
     const sut = JsonResultsAdapterFactory.create();
     const node = {};
     nodeContext.nodeType = 'navPropItem';
-    nodeContext.navigationProperty = <any>{ entityTypeName: 'Person' };
+    nodeContext.navigationProperty = { entityTypeName: 'Person' } as any;
 
     const result = sut.visitNode(node, mappingContext, nodeContext);
     expect(result.entityType.shortName).toBe('Person');

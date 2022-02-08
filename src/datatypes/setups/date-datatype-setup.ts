@@ -27,7 +27,7 @@ export class DateDataTypeSetup extends BaseDataTypeSetup {
         }
 
         const dateVal = val instanceof Date ? val : new Date(`${val} `);
-        if (isNaN(<any>dateVal)) {
+        if (isNaN(dateVal as any)) {
             this.handleInvalidValue(val);
         }
 

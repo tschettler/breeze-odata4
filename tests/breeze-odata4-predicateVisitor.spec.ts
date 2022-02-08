@@ -85,13 +85,13 @@ describe('OData4PredicateVisitor', () => {
         const mockVisitor2 = jest.fn();
 
         const input = {
-            op: Object.assign({}, defaultOp),
+            op: {...defaultOp},
             expr1: { visit: mockVisitor1 },
             expr2: { visit: mockVisitor2 }
         };
 
         beforeEach(() => {
-            input.op = Object.assign({}, defaultOp);
+            input.op = {...defaultOp};
             mockVisitor1.mockReset();
             mockVisitor2.mockReset();
         });
@@ -242,11 +242,11 @@ describe('OData4PredicateVisitor', () => {
         const input = {
             expr: mockExpr,
             op: { key: 'and' },
-            pred: Object.assign({}, mockPred)
+            pred: {...mockPred}
         };
 
         beforeEach(() => {
-            input.pred = Object.assign({}, mockPred);
+            input.pred = {...mockPred};
             mockExpr.visit.mockReset();
             mockPred.visit.mockReset();
         });
@@ -365,7 +365,7 @@ describe('OData4PredicateVisitor', () => {
                 propertyPath: 'Test.Property.Path'
             };
             const context: VisitContext = {
-                entityType: <EntityType>null
+                entityType: null as EntityType
             };
 
             const result = sut.propExpr.bind(input)(context);
@@ -390,7 +390,7 @@ describe('OData4PredicateVisitor', () => {
 
         it('should call visit for each expression', () => {
             const context: VisitContext = {
-                entityType: <EntityType>null
+                entityType: null as EntityType
             };
 
             const result = sut.fnExpr.bind(input)(context);
@@ -404,7 +404,7 @@ describe('OData4PredicateVisitor', () => {
             expr1.visit.mockReturnValue(expr1Value);
             expr2.visit.mockReturnValue(expr2Value);
             const context: VisitContext = {
-                entityType: <EntityType>null
+                entityType: null as EntityType
             };
 
             const result = sut.fnExpr.bind(input)(context);

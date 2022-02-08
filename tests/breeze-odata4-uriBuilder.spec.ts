@@ -9,7 +9,7 @@ import { OData4PredicateVisitor } from '../src/breeze-odata4-predicateVisitor';
 import { OData4UriBuilder } from '../src/breeze-odata4-uriBuilder';
 
 jest.mock('../src/breeze-odata4-predicateVisitor');
-const jsonMetadata = require('./breeze_metadata.json');
+import jsonMetadata = require('./breeze_metadata.json');
 
 describe('OData4UriBuilder', () => {
     beforeAll(() => {
