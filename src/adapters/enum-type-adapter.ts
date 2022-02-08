@@ -33,7 +33,7 @@ export class EnumTypeAdapter implements MetadataAdapter {
         const dataType = Utilities.getDataType(underlyingType);
         const isFlags = enumType.isFlags.toLowerCase() === TrueValue;
         const enumValue = new EdmEnum({
-            isFlags: isFlags,
+            isFlags,
             name: enumName,
             underlyingDataType: dataType
         });
@@ -46,10 +46,12 @@ export class EnumTypeAdapter implements MetadataAdapter {
     }
 
     private adaptEnumMember(enumValue: EdmEnum, member: Edm.Member): void {
-        enumValue.addSymbol(<Partial<EdmEnumMember>>{
+        const options: Partial<EdmEnumMember> = {
             name: member.name,
-            displayName: (<ExpressionWithDisplayName>member).displayName,
+            displayName: (member as ExpressionWithDisplayName).displayName,
             rawValue: member.value
-        });
+        };
+
+        enumValue.addSymbol(options);
     }
 }

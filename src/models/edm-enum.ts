@@ -110,22 +110,18 @@ export class EdmEnum extends BreezeEnum {
      * @returns The enum symbol.
      */
     public fromValue(value: number): EdmEnumMember {
-        let result: EdmEnumMember;
-
-        if (this.isFlags && value) {
-            result = this.fromFlagsEnumValue(value);
-        } else {
-            result = this.members.find(m => m.value === value);
-        }
+        const result = this.isFlags && value
+            ? this.fromFlagsEnumValue(value)
+            : this.members.find(m => m.value === value);
 
         return result;
     }
 
     /**
-    * Gets the enum member from the specified name.
-    * @param name The name.
-    * @returns The enum symbol.
-    */
+     * Gets the enum member from the specified name.
+     * @param name The name.
+     * @returns The enum symbol.
+     */
     public fromName(name: string): EdmEnumMember {
         const value = Number(name);
         if (!isNaN(value)) {
@@ -148,10 +144,10 @@ export class EdmEnum extends BreezeEnum {
     }
 
     /**
-    * Parses the value into the corresponding enum symbol.
-    * @param name The value of the enum.
-    * @returns The enum symbol.
-    */
+     * Parses the value into the corresponding enum symbol.
+     * @param name The value of the enum.
+     * @returns The enum symbol.
+     */
     public parse = (val: any, sourceTypeName?: string): any => {
         if (typeof val === 'undefined' || val === null) {
             return null;
@@ -173,10 +169,10 @@ export class EdmEnum extends BreezeEnum {
     }
 
     /**
-    * Parses the raw value into the corresponding enum symbol.
-    * @param name The value of the enum.
-    * @returns The enum symbol.
-    */
+     * Parses the raw value into the corresponding enum symbol.
+     * @param name The value of the enum.
+     * @returns The enum symbol.
+     */
     public parseRawValue = (val: any): any => {
         return this.parse(val, 'string');
     }
@@ -206,7 +202,7 @@ export class EdmEnum extends BreezeEnum {
         name.split(',')
             .filter(n => this.members.some(m => m.name === n))
             .forEach(memberName => {
-                const symbol = this.fromName(memberName.trim()) as EdmEnumMember;
+                const symbol = this.fromName(memberName.trim());
                 if (!result) {
                     result = Object.assign(this.createEdmEnumMember(), symbol);
                     result.name = name;

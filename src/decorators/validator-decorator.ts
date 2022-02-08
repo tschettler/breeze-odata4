@@ -59,7 +59,7 @@ export class ValidatorDecorator implements AnnotationDecorator {
     });
 
     if (!validator) {
-      validator = { name: name };
+      validator = { name };
       expression.validators.push(validator);
     }
 

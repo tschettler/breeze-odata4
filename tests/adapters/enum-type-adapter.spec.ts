@@ -6,12 +6,12 @@ import { EnumTypeAdapter } from '../../src/adapters';
 let sut: EnumTypeAdapter;
 let metadata: Edmx.Edmx;
 
-const schema: Edm.Schema = <any>{
+const schema: Edm.Schema = {
     namespace: 'UnitTesting',
     entityContainer: {
         name: 'Default',
     },
-};
+} as any;
 
 let enumType: Edm.EnumType;
 
@@ -35,12 +35,12 @@ describe('EnumTypeAdapter', () => {
         beforeEach(() => {
             schema.enumType = [];
 
-            enumType = <Edm.EnumType>{
+            enumType = ({
                 name: 'TestEnum',
                 underlyingType: 'Edm.Int64',
                 isFlags: 'false',
                 member: []
-            };
+            } as Edm.EnumType);
         });
 
         it('should not throw error when adapt is called with null enumType', () => {

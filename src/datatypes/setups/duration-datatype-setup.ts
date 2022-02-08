@@ -21,11 +21,10 @@ export class DurationDataTypeSetup extends BaseDataTypeSetup {
     }
 
     public addSymbol = () => {
-        const result = new DataType(Object.assign({}, DataType.Time,
-            {
+        const result = new DataType({...DataType.Time,
+            
                 name: this.name,
-                parseRawValue: DataType.parseTimeFromServer
-            }));
+                parseRawValue: DataType.parseTimeFromServer});
         DataType[this.name] = result;
 
         return result;

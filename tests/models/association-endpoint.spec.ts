@@ -17,7 +17,7 @@ describe('AssociationEndpoint', () => {
 
         it('should set navigationProperty', () => {
             const props: Partial<AssociationEndpoint> = {
-                navigationProperty: <Edm.NavigationProperty>{}
+                navigationProperty: {} as Edm.NavigationProperty
             };
 
             const result = new AssociationEndpoint(props);
@@ -76,9 +76,9 @@ describe('AssociationEndpoint', () => {
             const entityName = 'Test.Entity';
 
             const props: Partial<AssociationEndpoint> = {
-                navigationProperty: <Edm.NavigationProperty>{
+                navigationProperty: {
                     type: entityName
-                }
+                } as Edm.NavigationProperty
             };
 
             const sut = new AssociationEndpoint(props);
@@ -92,9 +92,9 @@ describe('AssociationEndpoint', () => {
             const entityName = 'Collection(Test.Entity)';
 
             const props: Partial<AssociationEndpoint> = {
-                navigationProperty: <Edm.NavigationProperty>{
+                navigationProperty: {
                     type: entityName
-                }
+                } as Edm.NavigationProperty
             };
 
             const sut = new AssociationEndpoint(props);
@@ -118,9 +118,9 @@ describe('AssociationEndpoint', () => {
             const entityName = 'Test.Entity';
 
             const props: Partial<AssociationEndpoint> = {
-                navigationProperty: <Edm.NavigationProperty>{
+                navigationProperty: {
                     type: entityName
-                }
+                } as Edm.NavigationProperty
             };
 
             const sut = new AssociationEndpoint(props);
@@ -144,9 +144,9 @@ describe('AssociationEndpoint', () => {
             const entityName = 'Test.Entity';
 
             const props: Partial<AssociationEndpoint> = {
-                navigationProperty: <Edm.NavigationProperty>{
+                navigationProperty: {
                     type: entityName
-                }
+                } as Edm.NavigationProperty
             };
 
             const sut = new AssociationEndpoint(props);
@@ -160,9 +160,9 @@ describe('AssociationEndpoint', () => {
             const entityName = 'Collection(Test.Entity)';
 
             const props: Partial<AssociationEndpoint> = {
-                navigationProperty: <Edm.NavigationProperty>{
+                navigationProperty: {
                     type: entityName
-                }
+                } as Edm.NavigationProperty
             };
 
             const sut = new AssociationEndpoint(props);
@@ -178,9 +178,9 @@ describe('AssociationEndpoint', () => {
             const entityName = 'Test.Entity';
 
             const props: Partial<AssociationEndpoint> = {
-                navigationProperty: <Edm.NavigationProperty>{
+                navigationProperty: {
                     type: entityName
-                }
+                } as Edm.NavigationProperty
             };
 
             const sut = new AssociationEndpoint(props);
@@ -194,9 +194,9 @@ describe('AssociationEndpoint', () => {
             const entityName = 'Collection(Test.Entity)';
 
             const props: Partial<AssociationEndpoint> = {
-                navigationProperty: <Edm.NavigationProperty>{
+                navigationProperty: {
                     type: entityName
-                }
+                } as Edm.NavigationProperty
             };
 
             const sut = new AssociationEndpoint(props);
@@ -236,9 +236,9 @@ describe('AssociationEndpoint', () => {
     describe('propertyName', () => {
         it('should return navigation property name', () => {
             const props: Partial<AssociationEndpoint> = {
-                navigationProperty: <Edm.NavigationProperty>{
+                navigationProperty: {
                     name: 'Item'
-                }
+                } as Edm.NavigationProperty
             };
 
             const sut = new AssociationEndpoint(props);
@@ -275,9 +275,9 @@ describe('AssociationEndpoint', () => {
         it('should return role with navigation property name with no navigation property', () => {
             const props: Partial<AssociationEndpoint> = {
                 containingEntityType: 'Test.Entity',
-                navigationProperty: <Edm.NavigationProperty>{
+                navigationProperty: {
                     name: 'TestProperty'
-                }
+                } as Edm.NavigationProperty
             };
 
             const sut = new AssociationEndpoint(props);

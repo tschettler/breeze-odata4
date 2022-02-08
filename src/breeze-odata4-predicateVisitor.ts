@@ -2,10 +2,12 @@ import {
     AndOrPredicate,
     AnyAllPredicate,
     BinaryPredicate,
+    EntityType,
     FnExpr,
     LitExpr,
     Predicate,
     PropExpr,
+    StructuralType,
     UnaryPredicate,
     VisitContext
 } from 'breeze-client';
@@ -110,7 +112,7 @@ export class OData4PredicateVisitor {
         prefix = `x${idx}`;
 
         // need to create a new context because of 'prefix'
-        const newContext: VisitContext = Object.assign({}, context, { entityType: this.expr.dataType, prefix: prefix });
+        const newContext: VisitContext = {...context,  entityType: this.expr.dataType as EntityType, prefix} as any;
 
         const newPredVal = this.pred.visit(newContext);
         return `${exprVal}/${op}(${prefix}: ${newPredVal})`;

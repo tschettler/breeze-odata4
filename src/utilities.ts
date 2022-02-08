@@ -91,7 +91,7 @@ export namespace Utilities {
    * @returns The complex type.
    */
   export function adaptComplexType(metadataStore: MetadataStore, complexType: Edm.ComplexType): ComplexType {
-    return <ComplexType>adaptStructuralType(metadataStore, complexType);
+    return adaptStructuralType(metadataStore, complexType) as ComplexType;
   }
 
   /**
@@ -101,7 +101,7 @@ export namespace Utilities {
    * @returns The entity type.
    */
   export function adaptEntityType(metadataStore: MetadataStore, entityType: Edm.EntityType): EntityType {
-    return <EntityType>adaptStructuralType(metadataStore, entityType);
+    return adaptStructuralType(metadataStore, entityType) as EntityType;
   }
 
   /**
@@ -129,11 +129,11 @@ export namespace Utilities {
   }
 
   /**
-  * Gets available functions.
-  * @param metadata The metadata.
-  * @param metadataStore The metadata store.
-  * @returns The functions represented as invokable entries.
-  */
+   * Gets available functions.
+   * @param metadata The metadata.
+   * @param metadataStore The metadata store.
+   * @returns The functions represented as invokable entries.
+   */
   export function getFunctions(metadata: Edmx.Edmx, metadataStore: MetadataStore): InvokableEntry[] {
     const result = getInvokableEntries(metadata, metadataStore, s => s.function);
 
@@ -163,8 +163,8 @@ export namespace Utilities {
 
       const entries = items.map((config: Edm.Action | Edm.Function) => {
         const entry: InvokableEntry = {
-          config: config,
-          namespace: namespace,
+          config,
+          namespace,
           url: getInvokableUrl(metadata, metadataStore, config, namespace)
         };
 

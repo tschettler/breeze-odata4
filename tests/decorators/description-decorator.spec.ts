@@ -64,7 +64,7 @@ describe('DescriptionDecorator', () => {
 
       sut.decorate(expression, annotation);
 
-      expect(expression.description).toBe((<Edm.Base.Text>annotation.string).text);
+      expect(expression.description).toBe((annotation.string as Edm.Base.Text).text);
     });
   });
 });

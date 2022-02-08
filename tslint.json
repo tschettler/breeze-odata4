@@ -1,5 +1,7 @@
 {
   "extends": [
+    "tslint:latest",
+    "tslint:recommended",
     "tslint-config-standard",
     "tslint-config-prettier"
   ],
@@ -22,6 +24,7 @@
     "import-blacklist": [true],
     "interface-over-type-literal": true,
     "label-position": true,
+    "max-classes-per-file": false,
     "member-access": true,
     "no-arg": true,
     "no-bitwise": true,
@@ -40,9 +43,12 @@
     "no-empty-interface": true,
     "no-eval": true,
     "no-inferrable-types": [true, "ignore-params"],
+    "no-namespace": false,
+    "no-object-literal-type-assertion": false,
     "no-shadowed-variable": true,
     "no-string-literal": false,
     "no-string-throw": true,
+    "no-submodule-imports": false,
     "no-switch-case-fall-through": true,
     "no-unused-expression": true,
     "no-var-keyword": true,

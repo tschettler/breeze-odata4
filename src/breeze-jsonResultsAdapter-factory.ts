@@ -41,7 +41,7 @@ export class JsonResultsAdapterFactory {
     let entityTypeName: string;
     if (nodeContext.nodeType === 'root') {
       if (mappingContext.query instanceof EntityQuery) {
-        const eq = mappingContext.query as EntityQuery;
+        const eq = mappingContext.query;
         if (eq.resultEntityType) {
           entityType = eq.resultEntityType as EntityType;
         } else {
@@ -56,7 +56,7 @@ export class JsonResultsAdapterFactory {
       entityTypeName = nodeContext.navigationProperty.entityTypeName;
     }
 
-    entityType = entityType || (entityTypeName && <EntityType>metadataStore.getEntityType(entityTypeName, true));
+    entityType = entityType || (entityTypeName && (metadataStore.getEntityType(entityTypeName, true) as EntityType));
     if (entityType) {
       result.entityType = entityType;
       result.extraMetadata = {};
