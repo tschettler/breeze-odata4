@@ -1,4 +1,4 @@
-import { DataType, DataTypeSymbol } from 'breeze-client';
+import { DataType } from 'breeze-client';
 
 import { GeographyPointDataTypeSetup } from '../../../src/datatypes/setups/geographypoint-datatype-setup';
 import { Utilities } from '../../../src/utilities';
@@ -26,7 +26,7 @@ describe('GeographyPointDataTypeSetup', () => {
         });
 
         describe('DataType.GeographyPoint', () => {
-            let dataType: DataTypeSymbol;
+            let dataType: DataType;
             beforeAll(() => {
                 dataType = DataType['GeographyPoint'];
             });

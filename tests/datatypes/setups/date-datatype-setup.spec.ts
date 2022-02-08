@@ -1,4 +1,4 @@
-import { DataType, DataTypeSymbol } from 'breeze-client';
+import { DataType } from 'breeze-client';
 
 import { DateDataTypeSetup } from '../../../src/datatypes/setups/date-datatype-setup';
 import { Utilities } from '../../../src/utilities';
@@ -26,7 +26,7 @@ describe('DateDataTypeSetup', () => {
         });
 
         describe('DataType.Date', () => {
-            let dataType: DataTypeSymbol;
+            let dataType: DataType;
             beforeEach(() => {
                 dataType = DataType['Date'];
             });

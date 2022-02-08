@@ -6,7 +6,7 @@ import {
   DataProperty,
   DataService,
   DataServiceAdapter,
-  DataServiceSaveContext,
+  DataType,
   Entity,
   EntityAspect,
   EntityKey,
@@ -18,8 +18,11 @@ import {
   MetadataStore,
   QueryResult,
   SaveBundle,
-  SaveResult
+  SaveContext,
+  SaveResult,
+  ServerError
 } from 'breeze-client';
+import { ChangeRequestInterceptorCtor } from 'breeze-client/src/interface-registry';
 import { Batch, Edm, Edmx, HttpOData, oData } from 'ts-odatajs';
 
 import { JsonResultsAdapterFactory } from './breeze-jsonResultsAdapter-factory';
@@ -27,13 +30,18 @@ import { ODataError } from './odata-error';
 import { ODataHttpClient } from './odata-http-client';
 import { InvokableEntry, Utilities } from './utilities';
 
+export interface DataServiceSaveContext extends SaveContext {
+  tempKeys: any[];
+  contentKeys: any[];
+}
+
 /**
  * @classdesc Proxy data service
  * @summary Seems crazy, but this is the only way I can find to do the inheritance
  */
-export class ProxyDataService { }
+export class ProxyDataService {}
 
-Object.setPrototypeOf(ProxyDataService.prototype, config.getAdapter('dataService', 'WebApi').prototype);
+Object.setPrototypeOf(ProxyDataService, config.getAdapter('dataService', 'webApi'));
 
 /**
  * @classdesc OData4 data service
@@ -46,22 +54,22 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
   public static BreezeAdapterName = 'OData4';
 
   // I don't like this, but I'm not able to find a better way
-  private innerAdapter: DataServiceAdapter = <DataServiceAdapter>config.getAdapterInstance('dataService', 'WebApi');
+  private innerAdapter: DataServiceAdapter = <DataServiceAdapter>config.getAdapterInstance('dataService', 'webApi');
 
   private actions: InvokableEntry[] = [];
 
   /**
-   * The name of the data service.
-   */
+ * The name of the data service.
+ */
   public name = OData4DataService.BreezeAdapterName;
 
   /**
-   * The headers used by the data service when calling the OData 4 service.
-   * @default
-   * ```json
-   * {'OData-Version': '4.0'}
-   * ```
-   */
+    * The headers used by the data service when calling the OData 4 service.
+    * @default
+    * ```json
+    * {'OData-Version': '4.0'}
+    * ```
+    */
   public headers: { [name: string]: string } = {
     'OData-Version': '4.0'
   };
@@ -87,14 +95,6 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
   public jsonResultsAdapter: JsonResultsAdapter;
 
   /**
-   * Change request interceptor of data service.
-   */
-  public changeRequestInterceptor: {
-    getRequest: <T>(request: T, entity: Entity, index: number) => T;
-    done: (requests: Object[]) => void;
-  } = this.innerAdapter.changeRequestInterceptor;
-
-  /**
    * Registers the OData4 data service as a `dataService` breeze interface.
    */
   public static register() {
@@ -109,12 +109,19 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
   }
 
   /**
+   * Change request interceptor of data service.
+   */
+  public get changeRequestInterceptor(): ChangeRequestInterceptorCtor {
+    return this.innerAdapter.changeRequestInterceptor;
+  }
+
+  /**
    * Catches no connection error
    * @param err The error
    * @returns Deferred rejection with the error.
    */
-  public _catchNoConnectionError(err: Error): any {
-    return this.innerAdapter._catchNoConnectionError(err);
+  public _catchNoConnectionError(err: ServerError): any {
+    return (this.innerAdapter as any)._catchNoConnectionError(err);
   }
 
   /**
@@ -124,13 +131,13 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
    * @returns The change request interceptor instance.
    */
   public _createChangeRequestInterceptor(
-    saveContext: DataServiceSaveContext,
+    saveContext: SaveContext,
     saveBundle: SaveBundle
   ): {
     getRequest: <T>(request: T, entity: Entity, index: number) => T;
     done: (requests: Object[]) => void;
   } {
-    return this.innerAdapter._createChangeRequestInterceptor(saveContext, saveBundle);
+    return (this.innerAdapter as any)._createChangeRequestInterceptor(saveContext, saveBundle);
   }
 
   /**
@@ -147,8 +154,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
    * @param saveBundle The save bundle.
    * @returns The save bundle.
    */
-  public _prepareSaveBundle(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): SaveBundle {
-    return this.innerAdapter._prepareSaveBundle(saveContext, saveBundle);
+  public _prepareSaveBundle(saveContext: SaveContext, saveBundle: SaveBundle): SaveBundle {
+    return (this.innerAdapter as any)._prepareSaveBundle(saveContext, saveBundle);
   }
 
   /**
@@ -157,8 +164,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
    * @param saveResult The save result.
    * @returns The save result.
    */
-  public _prepareSaveResult(saveContext: DataServiceSaveContext, saveResult: SaveResult): SaveResult {
-    return this.innerAdapter._prepareSaveResult(saveContext, saveResult);
+  public _prepareSaveResult(saveContext: SaveContext, saveResult: SaveResult): SaveResult {
+    return (this.innerAdapter as any)._prepareSaveResult(saveContext, saveResult);
   }
 
   /**
@@ -304,7 +311,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         (data: Batch.BatchResponse) => {
           const entities: Entity[] = [];
           const keyMappings: KeyMapping[] = [];
-          const saveResult: SaveResult = { entities: entities, keyMappings: keyMappings, deletedKeys: null, XHR: null };
+          const saveResult: SaveResult = { entities: entities, keyMappings: keyMappings, deletedKeys: null };
           data.__batchResponses.forEach((br: Batch.ChangeResponseSet) => {
             br.__changeResponses.forEach((cr: Batch.ChangeResponse | Batch.FailedResponse, index: number) => {
               const chResponse = (<Batch.FailedResponse>cr).response || <Batch.ChangeResponse>cr;
@@ -556,7 +563,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
       return undefined;
     }
 
-    if (prop.dataType.quoteJsonOData) {
+    // TODO: Handle if dataType is a ComplexType
+    if ((prop.dataType as DataType).quoteJsonOData) {
       val = val != null ? val.toString() : val;
     }
 
@@ -601,7 +609,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
   }
 
   private fmtProperty(prop: DataProperty, aspect: EntityAspect): any {
-    return prop.dataType.fmtOData(aspect.getPropertyValue(prop.name));
+    // TODO: Handle if dataType is a ComplexType
+    return (prop.dataType as DataType).fmtOData(aspect.getPropertyValue(prop.name));
   }
 
   private createError(error: any, url: string): ODataError {

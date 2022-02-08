@@ -4,12 +4,12 @@ import {
   EntityQuery,
   EntityType,
   ExpandClause,
-  IProperty,
+  EntityProperty,
   MetadataStore,
   OrderByClause,
   Predicate,
   SelectClause,
-  UriBuilder
+  UriBuilderAdapter
 } from 'breeze-client';
 
 import { ExpandParamsKey } from './breeze-odata4-entity-query';
@@ -44,7 +44,7 @@ export interface ExpandOptions extends QueryOptionsBase {
 /**
  * @classdesc The OData4 uri builder implementation.
  */
-export class OData4UriBuilder implements UriBuilder {
+export class OData4UriBuilder implements UriBuilderAdapter {
   public static BreezeAdapterName = 'OData4';
   public name = OData4UriBuilder.BreezeAdapterName;
 
@@ -123,8 +123,8 @@ export class OData4UriBuilder implements UriBuilder {
     return resource;
   }
 
-  private getQueryOptions(rootOptions: QueryOptionsBase, propertyPath: IProperty[]): QueryOptionsBase {
-    const path: IProperty[] = [].concat(propertyPath);
+  private getQueryOptions(rootOptions: QueryOptionsBase, propertyPath: EntityProperty[]): QueryOptionsBase {
+    const path: EntityProperty[] = [].concat(propertyPath);
     const rootProperty = path.shift().nameOnServer;
 
     if (!path.length) {
@@ -206,7 +206,7 @@ export class OData4UriBuilder implements UriBuilder {
     }
 
     // validation occurs inside of the toODataFragment call here.
-    return wherePredicate.toODataFragment({ entityType: entityType });
+    return (wherePredicate as any).toODataFragment({ entityType: entityType });
   }
 
   private toOrderByODataFragment(entityType: EntityType, orderByClause: OrderByClause): string {

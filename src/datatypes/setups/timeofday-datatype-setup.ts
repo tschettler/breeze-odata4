@@ -9,7 +9,7 @@ export class TimeOfDayDataTypeSetup extends BaseDataTypeSetup {
     public name = 'TimeOfDay';
 
     public addSymbol = () => {
-        const result = DataType.addSymbol({
+        const result = new DataType({
             defaultValue: '00:00',
             fmtOData: DataType.String.fmtOData,
             parse: DataType.String.parse,

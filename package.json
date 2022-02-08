@@ -54,11 +54,11 @@
     "typedoc": "typedoc src"
   },
   "dependencies": {
-    "breeze-client": "^1.7.0",
+    "breeze-client": "^2.1.2",
     "ts-odatajs": "^4.0.8"
   },
   "peerDependencies": {
-    "breeze-client": "^1.7.0",
+    "breeze-client": "^2.1.2",
     "ts-odatajs": "^4.0.8"
   },
   "devDependencies": {

@@ -6,7 +6,7 @@ import {
   MappingContext,
   MetadataStore,
   NodeContext,
-  VisitNodeResult
+  NodeMeta,
 } from 'breeze-client';
 
 /**
@@ -27,8 +27,8 @@ export class JsonResultsAdapterFactory {
     return adapter;
   }
 
-  private static visitNode(node: any, mappingContext: MappingContext, nodeContext: NodeContext): VisitNodeResult {
-    const result: VisitNodeResult = {};
+  private static visitNode(node: any, mappingContext: MappingContext, nodeContext: NodeContext): NodeMeta {
+    const result: NodeMeta = {};
     const metadataStore = mappingContext.entityManager.metadataStore;
     const workingNode = node;
 
@@ -43,7 +43,7 @@ export class JsonResultsAdapterFactory {
       if (mappingContext.query instanceof EntityQuery) {
         const eq = mappingContext.query as EntityQuery;
         if (eq.resultEntityType) {
-          entityType = eq.resultEntityType;
+          entityType = eq.resultEntityType as EntityType;
         } else {
           entityTypeName = metadataStore.getEntityTypeNameForResourceName(eq.resourceName);
         }
@@ -63,8 +63,8 @@ export class JsonResultsAdapterFactory {
     }
 
     // OData v3 - projection arrays will be enclosed in a results array
-    if (workingNode.results) {
-      result.node = workingNode.results;
+    if (node.results) {
+      result['node'] = node.results;
     }
 
     const propertyName = nodeContext.propertyName;

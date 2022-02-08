@@ -1,4 +1,4 @@
-import { DataTypeSymbol } from 'breeze-client';
+import { DataType } from 'breeze-client';
 
 /**
  * Provides capability for adding or customizing data types.
@@ -18,7 +18,7 @@ export interface DataTypeSetup {
     /**
      * Adds the data type symbol to the breeze DataType enum.
      */
-    addSymbol?: () => DataTypeSymbol;
+    addSymbol?: () => DataType;
 
     /**
      * Registers the data type based on the configured setup.
