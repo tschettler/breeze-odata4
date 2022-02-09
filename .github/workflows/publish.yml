@@ -5,9 +5,13 @@ on:
 
   # Allows running this workflow manually from the Actions tab
   workflow_dispatch:
+
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+
+    env:
+      NPM_TAG: latest
 
     steps:
       - name: Checkout 🛎️
@@ -26,16 +30,22 @@ jobs:
           npm run build
 
       - name: Generate Docs 📝
+        if: "!github.event.release.prerelease"
         run: npm run typedoc
 
       - name: Deploy GitHub Pages 🚀
+        if: "!github.event.release.prerelease"
         uses: JamesIves/github-pages-deploy-action@v4.2.3
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: docs # The source folder the action should deploy.
           target-folder: docs
 
+      - if: "github.event.release.prerelease"
+        run: |
+          echo "NPM_TAG=next" >> $GITHUB_ENV
+
       - name: Publish 🚀
-        run: npm publish --access public
+        run: npm publish --access public --tag $NPM_TAG
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
