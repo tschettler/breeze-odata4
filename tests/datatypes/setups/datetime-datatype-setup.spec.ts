@@ -1,4 +1,4 @@
-import { DataType, DataTypeSymbol } from 'breeze-client';
+import { DataType } from 'breeze-client';
 
 import { DateTimeDataTypeSetup } from '../../../src/datatypes/setups/datetime-datatype-setup';
 import { Utilities } from '../../../src/utilities';
@@ -26,7 +26,7 @@ describe('DateTimeDataTypeSetup', () => {
         });
 
         describe('DataType.DateTime', () => {
-            let dataType: DataTypeSymbol;
+            let dataType: DataType;
             beforeEach(() => {
                 dataType = DataType.DateTime;
             });

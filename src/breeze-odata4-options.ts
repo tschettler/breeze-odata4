@@ -24,19 +24,19 @@ export interface BreezeOData4Options {
     dataTypeSetups: Type<DataTypeSetup>[];
 
     /** Additional conventions used to infer foreign key properties. These are preferred over the defaults.
-    * These conventions are used to define referential constraints for navigation properties.
-    * @default
-    *
-    *     [endpoint.propertyName][suffix]
-    *     [endpoint.propertyName]Id
-    *     [endpoint.partnerEntityShortName][suffix]
-    *     [endpoint.partnerEntityShortName]Id
-   */
+     * These conventions are used to define referential constraints for navigation properties.
+     * @default
+     *
+     *     [endpoint.propertyName][suffix]
+     *     [endpoint.propertyName]Id
+     *     [endpoint.partnerEntityShortName][suffix]
+     *     [endpoint.partnerEntityShortName]Id
+     */
     foreignKeyConventions: ((endpoint: AssociationEndpoint, suffix: string) => string)[];
 
     /** Determines whether to infer the partner when the partner attribute of a navigation property is missing.
-   * @default true
-   */
+     * @default true
+     */
     inferNavigationPropertyPartner: boolean;
 
     /** Determines whether to infer referential constraints when the referentialConstraint attribute is missing.

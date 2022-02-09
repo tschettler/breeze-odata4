@@ -4,8 +4,7 @@ import {
     DataProperty,
     DataService,
     DataServiceAdapter,
-    DataServiceOptions,
-    DataServiceSaveContext,
+    DataServiceConfig,
     DataType,
     Entity,
     EntityManager,
@@ -18,13 +17,16 @@ import {
     SaveOptions,
     SaveResult
 } from 'breeze-client';
+import { AjaxFetchAdapter } from 'breeze-client/adapter-ajax-fetch';
+import { DataServiceWebApiAdapter } from 'breeze-client/adapter-data-service-webapi';
+import { ModelLibraryBackingStoreAdapter } from 'breeze-client/adapter-model-library-backing-store';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Batch, HttpOData } from 'ts-odatajs';
 
 import { NavigationAdapter } from '../src/adapters';
 import { BreezeOData4 } from '../src/breeze-odata4';
-import { OData4DataService } from '../src/breeze-odata4-dataService';
+import { DataServiceSaveContext, OData4DataService } from '../src/breeze-odata4-dataService';
 import { ClassRegistry } from '../src/class-registry';
 import { DataTypeSetup } from '../src/datatypes/setups/datatype-setup';
 import { ODataError } from '../src/odata-error';
@@ -40,24 +42,30 @@ const invalidMetadataXml = fs.readFileSync(
 );
 jest.mock('../src/class-registry');
 
-const DefaultDataService: DataServiceAdapter = <DataServiceAdapter>config.getAdapterInstance('dataService');
+const DefaultDataService: DataServiceAdapter = config.getAdapterInstance('dataService');
 
 const MockWebApiDataService = jest.fn<DataServiceAdapter, []>(
     () =>
-        <any>{
-            name: 'WebApi',
+        ({
+            name: 'webApi',
             _catchNoConnectionError: jest.fn(),
             _createChangeRequestInterceptor: jest.fn(),
             checkForRecomposition: jest.fn(),
             _prepareSaveBundle: jest.fn(),
             _prepareSaveResult: jest.fn(),
             initialize: jest.fn(),
-        }
+        } as any)
 );
 
 describe('OData4DataService', () => {
     let sut: OData4DataService;
     let innerAdapter: DataServiceAdapter;
+
+    beforeAll(() => {
+        ModelLibraryBackingStoreAdapter.register();
+        AjaxFetchAdapter.register();
+        DataServiceWebApiAdapter.register();
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -69,10 +77,10 @@ describe('OData4DataService', () => {
             true
         );
 
-        sut = <OData4DataService>config.getAdapterInstance('dataService');
-        innerAdapter = <DataServiceAdapter>(
-            config.getAdapterInstance('dataService', 'WebApi')
-        );
+        sut = (config.getAdapterInstance('dataService'));
+        innerAdapter = ((
+            config.getAdapterInstance('dataService', 'webApi')
+        ));
     });
 
     it('should return value for metadataAcceptHeader', () => {
@@ -96,16 +104,16 @@ describe('OData4DataService', () => {
     });
 
     it('should call inner adapter when _catchNoConnectionError is called', () => {
-        sut._catchNoConnectionError(null);
+        sut._catchNoConnectionError(new ODataError());
 
-        expect((<any>innerAdapter)._catchNoConnectionError)
+        expect((innerAdapter as any)._catchNoConnectionError)
             .toHaveBeenCalledTimes(1);
     });
 
     it('should call inner adapter when _createChangeRequestInterceptor is called', () => {
         sut._createChangeRequestInterceptor(null, null);
 
-        expect((<any>innerAdapter)._createChangeRequestInterceptor)
+        expect((innerAdapter as any)._createChangeRequestInterceptor)
             .toHaveBeenCalledTimes(1);
     });
 
@@ -117,7 +125,7 @@ describe('OData4DataService', () => {
         sut._prepareSaveBundle(null, null);
 
         expect(
-            (<any>innerAdapter)._prepareSaveBundle
+            (innerAdapter as any)._prepareSaveBundle
         ).toHaveBeenCalledTimes(1);
     });
 
@@ -125,7 +133,7 @@ describe('OData4DataService', () => {
         sut._prepareSaveResult(null, null);
 
         expect(
-            (<any>innerAdapter)._prepareSaveResult
+            (innerAdapter as any)._prepareSaveResult
         ).toHaveBeenCalledTimes(1);
     });
 
@@ -147,7 +155,7 @@ describe('OData4DataService', () => {
         let response: HttpOData.Response;
 
         beforeEach(() => {
-            response = <HttpOData.Response>{
+            response = ({
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -155,20 +163,20 @@ describe('OData4DataService', () => {
                 requestUri: '',
                 statusCode: '200',
                 statusText: 'OK',
-            };
+            } as HttpOData.Response);
 
             httpClient = new ODataHttpClient();
             httpClient.request = (req, success, error) => {
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             const serviceName = 'http://localhost';
             delete global['window'];
-            global['location'] = <any>{ origin: serviceName };
+            global['location'] = ({ origin: serviceName } as any);
 
-            const opts: DataServiceOptions = {
-                serviceName: serviceName,
+            const opts: DataServiceConfig = {
+                serviceName,
             };
 
             ds = new OData4DataService();
@@ -176,16 +184,16 @@ describe('OData4DataService', () => {
             ds.httpClient = httpClient;
             const dataService = new DataService(opts);
 
-            ctx = <MappingContext>{
-                dataService: dataService,
+            ctx = ({
+                dataService,
                 getUrl: () => '',
-            };
+            } as MappingContext);
         });
 
         it('should throw error for OData Error', async () => {
             httpClient.request = (req, success, error) => {
-                error(<HttpOData.Error>{});
-                return <HttpOData.RequestWithAbort>{};
+                error({} as HttpOData.Error);
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await expect(
@@ -216,7 +224,7 @@ describe('OData4DataService', () => {
             httpClient.request = (req, success, error) => {
                 result = req.requestUri;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await ds.executeQuery(ctx);
@@ -237,7 +245,7 @@ describe('OData4DataService', () => {
             httpClient.request = (req, success, error) => {
                 result = req.requestUri;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await ds.executeQuery(ctx);
@@ -254,7 +262,7 @@ describe('OData4DataService', () => {
             httpClient.request = (req, success, error) => {
                 result = req.requestUri;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await ds.executeQuery(ctx);
@@ -275,7 +283,7 @@ describe('OData4DataService', () => {
             httpClient.request = (req, success, error) => {
                 result = req.method;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await ds.executeQuery(ctx);
@@ -310,7 +318,7 @@ describe('OData4DataService', () => {
             httpClient.request = (req, success, error) => {
                 result = req.data;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await ds.executeQuery(ctx);
@@ -328,13 +336,13 @@ describe('OData4DataService', () => {
             ctx.query = query;
 
             ctx.metadataStore = new MetadataStore();
-            ctx.entityManager = new EntityManager();
+            ctx.entityManager = new EntityManager('http://localhost');
 
             let result: object;
             httpClient.request = (req, success, error) => {
                 result = req.data;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await ds.executeQuery(ctx);
@@ -353,13 +361,13 @@ describe('OData4DataService', () => {
 
             ctx.metadataStore = new MetadataStore();
             ctx.metadataStore.namingConvention = NamingConvention.camelCase;
-            ctx.entityManager = new EntityManager();
+            ctx.entityManager = new EntityManager('http://localhost');
 
             let result: object;
             httpClient.request = (req, success, error) => {
                 result = req.data;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await ds.executeQuery(ctx);
@@ -374,19 +382,21 @@ describe('OData4DataService', () => {
                 $method: method,
                 $data: {
                     id: 123,
+                    // entityAspect is now required to fake an entityType or else breeze will consider it to be a complex type
+                    entityAspect: {},
                     entityType: { dataProperties: [] }
                 }
             };
             ctx.query = query;
 
             ctx.metadataStore = new MetadataStore();
-            ctx.entityManager = new EntityManager();
+            ctx.entityManager = new EntityManager('http://localhost');
 
             let result: object;
             httpClient.request = (req, success, error) => {
                 result = req.data;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await ds.executeQuery(ctx);
@@ -399,7 +409,7 @@ describe('OData4DataService', () => {
 
             beforeEach(async () => {
                 httpClient.request = (req, success, error) => {
-                    response = <HttpOData.Response>{
+                    response = ({
                         headers: {
                             'Content-Type': 'application/xml',
                         },
@@ -407,9 +417,9 @@ describe('OData4DataService', () => {
                         requestUri: req.requestUri,
                         statusCode: '200',
                         statusText: 'OK',
-                    };
+                    } as HttpOData.Response);
                     success(response);
-                    return <HttpOData.RequestWithAbort>{};
+                    return {} as HttpOData.RequestWithAbort;
                 };
 
                 metadataStore = new MetadataStore();
@@ -418,12 +428,12 @@ describe('OData4DataService', () => {
                     hasServerMetadata: true,
                 });
 
-                (<any>ClassRegistry.MetadataAdapters.get).mockReturnValue([
+                (ClassRegistry.MetadataAdapters.get as any).mockReturnValue([
                     new NavigationAdapter(),
                 ]);
-                (<any>ClassRegistry.DataTypeSetups.get) = jest
+                (ClassRegistry.DataTypeSetups.get as any) = jest
                     .fn()
-                    .mockImplementation(() => <DataTypeSetup[]>[]);
+                    .mockImplementation(() => [] as DataTypeSetup[]);
 
                 await ds.fetchMetadata(metadataStore, dataService);
             });
@@ -431,7 +441,7 @@ describe('OData4DataService', () => {
             it('should pass data to action request when parameter type is not valid', async () => {
                 const method = 'POST';
                 const query = new EntityQuery();
-                const entityManager = new EntityManager({ metadataStore: metadataStore });
+                const entityManager = new EntityManager({ metadataStore });
 
                 const data = {
                     Id: '1'
@@ -450,7 +460,7 @@ describe('OData4DataService', () => {
                 httpClient.request = (req, success, error) => {
                     result = req.data;
                     success(response);
-                    return <HttpOData.RequestWithAbort>{};
+                    return {} as HttpOData.RequestWithAbort;
                 };
 
                 await ds.executeQuery(ctx);
@@ -461,7 +471,7 @@ describe('OData4DataService', () => {
             it('should pass data to action request when structural type does not exist', async () => {
                 const method = 'POST';
                 const query = new EntityQuery();
-                const entityManager = new EntityManager({ metadataStore: metadataStore });
+                const entityManager = new EntityManager({ metadataStore });
 
                 const data = {
                     Id: '1'
@@ -480,7 +490,7 @@ describe('OData4DataService', () => {
                 httpClient.request = (req, success, error) => {
                     result = req.data;
                     success(response);
-                    return <HttpOData.RequestWithAbort>{};
+                    return {} as HttpOData.RequestWithAbort;
                 };
 
                 await ds.executeQuery(ctx);
@@ -491,7 +501,7 @@ describe('OData4DataService', () => {
             it('should pass entity to action request', async () => {
                 const method = 'POST';
                 const query = EntityQuery.from('Revisions/OData4Test.Actions.CreateRevision');
-                const entityManager = new EntityManager({ metadataStore: metadataStore });
+                const entityManager = new EntityManager({ metadataStore });
 
                 const entity = entityManager.createEntity('Revision', { Id: '1' });
 
@@ -509,7 +519,7 @@ describe('OData4DataService', () => {
                 httpClient.request = (req, success, error) => {
                     result = req.data;
                     success(response);
-                    return <HttpOData.RequestWithAbort>{};
+                    return {} as HttpOData.RequestWithAbort;
                 };
 
                 await ds.executeQuery(ctx);
@@ -521,7 +531,7 @@ describe('OData4DataService', () => {
             it('should create entity from data for action request requiring entity', async () => {
                 const method = 'POST';
                 const query = new EntityQuery();
-                const entityManager = new EntityManager({ metadataStore: metadataStore });
+                const entityManager = new EntityManager({ metadataStore });
 
                 const data = {
                     Id: '1'
@@ -540,7 +550,7 @@ describe('OData4DataService', () => {
                 httpClient.request = (req, success, error) => {
                     result = req.data;
                     success(response);
-                    return <HttpOData.RequestWithAbort>{};
+                    return {} as HttpOData.RequestWithAbort;
                 };
 
                 await ds.executeQuery(ctx);
@@ -555,7 +565,7 @@ describe('OData4DataService', () => {
             it('should create complex type from data for action request requiring complex type', async () => {
                 const method = 'POST';
                 const query = new EntityQuery();
-                const entityManager = new EntityManager({ metadataStore: metadataStore });
+                const entityManager = new EntityManager({ metadataStore });
 
                 const data = {
                     ArticleId: '1',
@@ -575,11 +585,11 @@ describe('OData4DataService', () => {
                 httpClient.request = (req, success, error) => {
                     result = req.data;
                     success(response);
-                    return <HttpOData.RequestWithAbort>{};
+                    return {} as HttpOData.RequestWithAbort;
                 };
 
                 // save off data because it gets modified
-                const expected = Object.assign({}, data);
+                const expected = {...data};
 
                 await ds.executeQuery(ctx);
 
@@ -589,7 +599,7 @@ describe('OData4DataService', () => {
             it('should pass data to action request without entity', async () => {
                 const method = 'POST';
                 const query = new EntityQuery();
-                const entityManager = new EntityManager({ metadataStore: metadataStore });
+                const entityManager = new EntityManager({ metadataStore });
 
                 const data = {
                     id: '1'
@@ -608,7 +618,7 @@ describe('OData4DataService', () => {
                 httpClient.request = (req, success, error) => {
                     result = req.data;
                     success(response);
-                    return <HttpOData.RequestWithAbort>{};
+                    return {} as HttpOData.RequestWithAbort;
                 };
 
                 await ds.executeQuery(ctx);
@@ -619,7 +629,7 @@ describe('OData4DataService', () => {
             it('should pass data to function request', async () => {
                 const method = 'POST';
                 const query = new EntityQuery();
-                const entityManager = new EntityManager({ metadataStore: metadataStore });
+                const entityManager = new EntityManager({ metadataStore });
 
                 const data = {
                     id: '1'
@@ -638,7 +648,7 @@ describe('OData4DataService', () => {
                 httpClient.request = (req, success, error) => {
                     result = req.data;
                     success(response);
-                    return <HttpOData.RequestWithAbort>{};
+                    return {} as HttpOData.RequestWithAbort;
                 };
 
                 await ds.executeQuery(ctx);
@@ -652,14 +662,14 @@ describe('OData4DataService', () => {
 
         describe('with window', () => {
             beforeAll(() => {
-                global['window'] = <any>{};
-                global['location'] = <any>{ origin: 'http://localhost' };
+                global['window'] = ({} as any);
+                global['location'] = ({ origin: 'http://localhost' } as any);
             });
 
             it('should return relative url when window exists and url starts with double slash', () => {
                 const serviceName = '//TestService';
-                const opts: DataServiceOptions = {
-                    serviceName: serviceName,
+                const opts: DataServiceConfig = {
+                    serviceName,
                 };
 
                 const ds = new DataService(opts);
@@ -672,8 +682,8 @@ describe('OData4DataService', () => {
 
             it('should return correct url when window exists and url starts with http', () => {
                 const serviceName = 'http://TestService';
-                const opts: DataServiceOptions = {
-                    serviceName: serviceName,
+                const opts: DataServiceConfig = {
+                    serviceName,
                 };
 
                 const ds = new DataService(opts);
@@ -686,8 +696,8 @@ describe('OData4DataService', () => {
 
             it('should return correct url when window exists and url starts with https', () => {
                 const serviceName = 'https://TestService';
-                const opts: DataServiceOptions = {
-                    serviceName: serviceName,
+                const opts: DataServiceConfig = {
+                    serviceName,
                 };
 
                 const ds = new DataService(opts);
@@ -700,8 +710,8 @@ describe('OData4DataService', () => {
 
             it('should return absolute url when window exists and url does not start with double slash', () => {
                 const serviceName = 'TestService';
-                const opts: DataServiceOptions = {
-                    serviceName: serviceName,
+                const opts: DataServiceConfig = {
+                    serviceName,
                 };
 
                 const location = global['location'];
@@ -716,8 +726,8 @@ describe('OData4DataService', () => {
 
             it('should return absolute url when window exists and url does not start with double slash', () => {
                 const serviceName = '/TestService/';
-                const opts: DataServiceOptions = {
-                    serviceName: serviceName,
+                const opts: DataServiceConfig = {
+                    serviceName,
                 };
 
                 const location = global['location'];
@@ -732,11 +742,11 @@ describe('OData4DataService', () => {
 
             it('should return absolute url when window exists and url does not contain service name', () => {
                 const serviceName = 'TestService';
-                const opts: DataServiceOptions = {
-                    serviceName: serviceName,
+                const opts: DataServiceConfig = {
+                    serviceName,
                 };
 
-                global['window'] = <any>{};
+                global['window'] = ({} as any);
                 const location = global['location'];
 
                 const ds = new DataService(opts);
@@ -755,8 +765,8 @@ describe('OData4DataService', () => {
 
             it('should return valid url when url does not contain service name', () => {
                 const serviceName = 'TestService';
-                const opts: DataServiceOptions = {
-                    serviceName: serviceName,
+                const opts: DataServiceConfig = {
+                    serviceName,
                 };
 
                 const ds = new DataService(opts);
@@ -769,8 +779,8 @@ describe('OData4DataService', () => {
 
             it('should return valid url when url contains service name', () => {
                 const serviceName = 'TestService';
-                const opts: DataServiceOptions = {
-                    serviceName: serviceName,
+                const opts: DataServiceConfig = {
+                    serviceName,
                 };
 
                 const ds = new DataService(opts);
@@ -787,7 +797,7 @@ describe('OData4DataService', () => {
         it('should get metadata', async () => {
             const httpClient = new ODataHttpClient();
             httpClient.request = (req, success, error) => {
-                const response = <HttpOData.Response>{
+                const response = {
                     headers: {
                         'Content-Type': 'application/xml',
                     },
@@ -795,19 +805,19 @@ describe('OData4DataService', () => {
                     requestUri: req.requestUri,
                     statusCode: '200',
                     statusText: 'OK',
-                };
+                } as HttpOData.Response;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             delete global['window'];
-            global['location'] = <any>{ origin: 'http://localhost' };
-            (<any>ClassRegistry.MetadataAdapters.get).mockReturnValue([
+            global['location'] = ({ origin: 'http://localhost' } as any);
+            (ClassRegistry.MetadataAdapters.get as any).mockReturnValue([
                 new NavigationAdapter(),
             ]);
-            (<any>ClassRegistry.DataTypeSetups.get) = jest
+            (ClassRegistry.DataTypeSetups.get as any) = jest
                 .fn()
-                .mockImplementation(() => <DataTypeSetup[]>[]);
+                .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
             const ds = new OData4DataService();
             ds.initialize();
@@ -826,7 +836,7 @@ describe('OData4DataService', () => {
         it('should throw error if there is no metadata response', async () => {
             const httpClient = new ODataHttpClient();
             httpClient.request = (req, success, error) => {
-                const response = <HttpOData.Response>{
+                const response = {
                     headers: {
                         'Content-Type': 'application/xml',
                     },
@@ -834,19 +844,19 @@ describe('OData4DataService', () => {
                     requestUri: req.requestUri,
                     statusCode: '200',
                     statusText: 'OK',
-                };
+                } as HttpOData.Response;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             delete global['window'];
-            global['location'] = <any>{ origin: 'http://localhost' };
-            (<any>ClassRegistry.MetadataAdapters.get).mockReturnValue([
+            global['location'] = ({ origin: 'http://localhost' } as any);
+            (ClassRegistry.MetadataAdapters.get as any).mockReturnValue([
                 new NavigationAdapter(),
             ]);
-            (<any>ClassRegistry.DataTypeSetups.get) = jest
+            (ClassRegistry.DataTypeSetups.get as any) = jest
                 .fn()
-                .mockImplementation(() => <DataTypeSetup[]>[]);
+                .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
             const ds = new OData4DataService();
             ds.initialize();
@@ -868,7 +878,7 @@ describe('OData4DataService', () => {
         it('should throw error if there is an invalid metadata response', async () => {
             const httpClient = new ODataHttpClient();
             httpClient.request = (req, success, error) => {
-                const response = <HttpOData.Response>{
+                const response = {
                     headers: {
                         'Content-Type': 'application/xml',
                     },
@@ -876,19 +886,19 @@ describe('OData4DataService', () => {
                     requestUri: req.requestUri,
                     statusCode: '200',
                     statusText: 'OK',
-                };
+                } as HttpOData.Response;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             delete global['window'];
-            global['location'] = <any>{ origin: 'http://localhost' };
-            (<any>ClassRegistry.MetadataAdapters.get).mockReturnValue([
+            global['location'] = ({ origin: 'http://localhost' } as any);
+            (ClassRegistry.MetadataAdapters.get as any).mockReturnValue([
                 new NavigationAdapter(),
             ]);
-            (<any>ClassRegistry.DataTypeSetups.get) = jest
+            (ClassRegistry.DataTypeSetups.get as any) = jest
                 .fn()
-                .mockImplementation(() => <DataTypeSetup[]>[]);
+                .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
             const ds = new OData4DataService();
             ds.initialize();
@@ -910,7 +920,7 @@ describe('OData4DataService', () => {
         it('should throw error if there is no dataServices element', async () => {
             const httpClient = new ODataHttpClient();
             httpClient.request = (req, success, error) => {
-                const response = <HttpOData.Response>{
+                const response = {
                     headers: {
                         'Content-Type': 'application/xml',
                     },
@@ -918,19 +928,19 @@ describe('OData4DataService', () => {
                     requestUri: req.requestUri,
                     statusCode: '200',
                     statusText: 'OK',
-                };
+                } as HttpOData.Response;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             delete global['window'];
-            global['location'] = <any>{ origin: 'http://localhost' };
-            (<any>ClassRegistry.MetadataAdapters.get).mockReturnValue([
+            global['location'] = ({ origin: 'http://localhost' } as any);
+            (ClassRegistry.MetadataAdapters.get as any).mockReturnValue([
                 new NavigationAdapter(),
             ]);
-            (<any>ClassRegistry.DataTypeSetups.get) = jest
+            (ClassRegistry.DataTypeSetups.get as any) = jest
                 .fn()
-                .mockImplementation(() => <DataTypeSetup[]>[]);
+                .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
             const ds = new OData4DataService();
             ds.initialize();
@@ -952,7 +962,7 @@ describe('OData4DataService', () => {
         it('should throw error if the metadata is invalid', async () => {
             const httpClient = new ODataHttpClient();
             httpClient.request = (req, success, error) => {
-                const response = <HttpOData.Response>{
+                const response = {
                     headers: {
                         'Content-Type': 'application/xml',
                     },
@@ -960,19 +970,19 @@ describe('OData4DataService', () => {
                     requestUri: req.requestUri,
                     statusCode: '200',
                     statusText: 'OK',
-                };
+                } as HttpOData.Response;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             delete global['window'];
-            global['location'] = <any>{ origin: 'http://localhost' };
-            (<any>ClassRegistry.MetadataAdapters.get).mockReturnValue([
+            global['location'] = ({ origin: 'http://localhost' } as any);
+            (ClassRegistry.MetadataAdapters.get as any).mockReturnValue([
                 new NavigationAdapter(),
             ]);
-            (<any>ClassRegistry.DataTypeSetups.get) = jest
+            (ClassRegistry.DataTypeSetups.get as any) = jest
                 .fn()
-                .mockImplementation(() => <DataTypeSetup[]>[]);
+                .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
             const ds = new OData4DataService();
             ds.initialize();
@@ -994,7 +1004,7 @@ describe('OData4DataService', () => {
         it('should throw error with message if exists', async () => {
             const httpClient = new ODataHttpClient();
             httpClient.request = (req, success, error) => {
-                const response = <HttpOData.Response>{
+                const response = {
                     headers: {
                         'Content-Type': 'application/xml',
                     },
@@ -1002,19 +1012,19 @@ describe('OData4DataService', () => {
                     requestUri: req.requestUri,
                     statusCode: '400',
                     statusText: 'BadRequest',
-                };
+                } as HttpOData.Response;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             delete global['window'];
-            global['location'] = <any>{ origin: 'http://localhost' };
-            (<any>ClassRegistry.MetadataAdapters.get).mockReturnValue([
+            global['location'] = ({ origin: 'http://localhost' } as any);
+            (ClassRegistry.MetadataAdapters.get as any).mockReturnValue([
                 new NavigationAdapter(),
             ]);
-            (<any>ClassRegistry.DataTypeSetups.get) = jest
+            (ClassRegistry.DataTypeSetups.get as any) = jest
                 .fn()
-                .mockImplementation(() => <DataTypeSetup[]>[]);
+                .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
             const ds = new OData4DataService();
             ds.initialize();
@@ -1036,7 +1046,7 @@ describe('OData4DataService', () => {
         it('should throw error with message value if exists', async () => {
             const httpClient = new ODataHttpClient();
             httpClient.request = (req, success, error) => {
-                const response = <HttpOData.Response>{
+                const response = {
                     headers: {
                         'Content-Type': 'application/xml',
                     },
@@ -1044,19 +1054,19 @@ describe('OData4DataService', () => {
                     requestUri: req.requestUri,
                     statusCode: '400',
                     statusText: 'BadRequest',
-                };
+                } as HttpOData.Response;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             delete global['window'];
-            global['location'] = <any>{ origin: 'http://localhost' };
-            (<any>ClassRegistry.MetadataAdapters.get).mockReturnValue([
+            global['location'] = ({ origin: 'http://localhost' } as any);
+            (ClassRegistry.MetadataAdapters.get as any).mockReturnValue([
                 new NavigationAdapter(),
             ]);
-            (<any>ClassRegistry.DataTypeSetups.get) = jest
+            (ClassRegistry.DataTypeSetups.get as any) = jest
                 .fn()
-                .mockImplementation(() => <DataTypeSetup[]>[]);
+                .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
             const ds = new OData4DataService();
             ds.initialize();
@@ -1078,7 +1088,7 @@ describe('OData4DataService', () => {
         it('should throw error with empty body', async () => {
             const httpClient = new ODataHttpClient();
             httpClient.request = (req, success, error) => {
-                const response = <HttpOData.Response>{
+                const response = {
                     headers: {
                         'Content-Type': 'application/xml',
                     },
@@ -1086,19 +1096,19 @@ describe('OData4DataService', () => {
                     requestUri: req.requestUri,
                     statusCode: '400',
                     statusText: 'BadRequest',
-                };
+                } as HttpOData.Response;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             delete global['window'];
-            global['location'] = <any>{ origin: 'http://localhost' };
-            (<any>ClassRegistry.MetadataAdapters.get).mockReturnValue([
+            global['location'] = ({ origin: 'http://localhost' } as any);
+            (ClassRegistry.MetadataAdapters.get as any).mockReturnValue([
                 new NavigationAdapter(),
             ]);
-            (<any>ClassRegistry.DataTypeSetups.get) = jest
+            (ClassRegistry.DataTypeSetups.get as any) = jest
                 .fn()
-                .mockImplementation(() => <DataTypeSetup[]>[]);
+                .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
             const ds = new OData4DataService();
             ds.initialize();
@@ -1120,7 +1130,7 @@ describe('OData4DataService', () => {
         it('should throw error with odata.error if exists', async () => {
             const httpClient = new ODataHttpClient();
             httpClient.request = (req, success, error) => {
-                const response = <HttpOData.Response>{
+                const response = {
                     headers: {
                         'Content-Type': 'application/xml',
                     },
@@ -1128,19 +1138,19 @@ describe('OData4DataService', () => {
                     requestUri: req.requestUri,
                     statusCode: '400',
                     statusText: 'BadRequest',
-                };
+                } as HttpOData.Response;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             delete global['window'];
-            global['location'] = <any>{ origin: 'http://localhost' };
-            (<any>ClassRegistry.MetadataAdapters.get).mockReturnValue([
+            global['location'] = ({ origin: 'http://localhost' } as any);
+            (ClassRegistry.MetadataAdapters.get as any).mockReturnValue([
                 new NavigationAdapter(),
             ]);
-            (<any>ClassRegistry.DataTypeSetups.get) = jest
+            (ClassRegistry.DataTypeSetups.get as any) = jest
                 .fn()
-                .mockImplementation(() => <DataTypeSetup[]>[]);
+                .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
             const ds = new OData4DataService();
             ds.initialize();
@@ -1173,19 +1183,19 @@ describe('OData4DataService', () => {
         let saveBundle: SaveBundle;
 
         beforeAll(async () => {
-            (<any>ClassRegistry.MetadataAdapters.get).mockReturnValue([
+            (ClassRegistry.MetadataAdapters.get as any).mockReturnValue([
                 new NavigationAdapter(),
             ]);
-            (<any>ClassRegistry.DataTypeSetups.get) = jest
+            (ClassRegistry.DataTypeSetups.get as any) = jest
                 .fn()
-                .mockImplementation(() => <DataTypeSetup[]>[]);
+                .mockImplementation(() => [] as DataTypeSetup[]);
 
-            innerAdapter._createChangeRequestInterceptor = jest.fn<{
+            (innerAdapter as any)._createChangeRequestInterceptor = jest.fn<{
                 getRequest: <T>(request: T, entity: Entity, index: number) => T;
-                done: (requests: Object[]) => void;
+                done: (requests: any[]) => void;
             }, [DataServiceSaveContext, SaveBundle]>(
                 (sc, sb) => {
-                    return DefaultDataService._createChangeRequestInterceptor(sc, sb);
+                    return (DefaultDataService as any)._createChangeRequestInterceptor(sc, sb);
                 });
 
             ds = new OData4DataService();
@@ -1195,7 +1205,7 @@ describe('OData4DataService', () => {
             ds.httpClient = httpClient;
 
             httpClient.request = (req, success, error) => {
-                response = <HttpOData.Response>{
+                response = ({
                     headers: {
                         'Content-Type': 'application/xml',
                     },
@@ -1203,9 +1213,9 @@ describe('OData4DataService', () => {
                     requestUri: req.requestUri,
                     statusCode: '200',
                     statusText: 'OK',
-                };
+                } as HttpOData.Response);
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             metadataStore = new MetadataStore();
@@ -1219,27 +1229,27 @@ describe('OData4DataService', () => {
 
         beforeEach(() => {
             entityManager = new EntityManager({
-                metadataStore: metadataStore
+                metadataStore
             });
 
-            saveContext = <DataServiceSaveContext>{
+            saveContext = ({
                 adapter: ds,
-                dataService: dataService,
+                dataService,
                 resourceName: '',
                 routePrefix: '',
-                entityManager: entityManager,
+                entityManager,
                 contentKeys: [],
                 tempKeys: []
-            };
+            } as any as DataServiceSaveContext);
 
-            saveBundle = <SaveBundle>{
+            saveBundle = ({
                 entities: [],
                 saveOptions: SaveOptions.defaultInstance
-            };
+            } as SaveBundle);
 
             batchResponse = createBatchResponse();
 
-            response = <HttpOData.Response>{
+            response = ({
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -1247,13 +1257,13 @@ describe('OData4DataService', () => {
                 requestUri: '',
                 statusCode: '200',
                 statusText: 'OK',
-            };
+            } as HttpOData.Response);
         });
 
         it('should throw error for OData Error', async () => {
             httpClient.request = (req, success, error) => {
-                error(<HttpOData.Error>{});
-                return <HttpOData.RequestWithAbort>{};
+                error({} as HttpOData.Error);
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await expect(
@@ -1266,7 +1276,7 @@ describe('OData4DataService', () => {
             httpClient.request = (req, success, error) => {
                 result = req.method;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await ds.saveChanges(saveContext, saveBundle);
@@ -1280,7 +1290,7 @@ describe('OData4DataService', () => {
             httpClient.request = (req, success, error) => {
                 result = req.requestUri;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await ds.saveChanges(saveContext, saveBundle);
@@ -1293,7 +1303,7 @@ describe('OData4DataService', () => {
             httpClient.request = (req, success, error) => {
                 result = req.headers;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await ds.saveChanges(saveContext, saveBundle);
@@ -1309,7 +1319,7 @@ describe('OData4DataService', () => {
             httpClient.request = (req, success, error) => {
                 batchRequest = req.data;
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             const entity = entityManager.createEntity('Revision', { Id: '1' });
@@ -1327,16 +1337,16 @@ describe('OData4DataService', () => {
 
         it('should throw error for failed batch response', async () => {
             batchResponse.__batchResponses[0].__changeResponses[0] =
-                <Batch.FailedResponse>{
+                ({
                     response: {
                         statusCode: '500',
                         statusText: 'Test error'
                     }
-                };
+                } as Batch.FailedResponse);
 
             httpClient.request = (req, success, error) => {
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await expect(ds.saveChanges(saveContext, saveBundle))
@@ -1348,7 +1358,7 @@ describe('OData4DataService', () => {
 
             httpClient.request = (req, success, error) => {
                 success(response);
-                return <HttpOData.RequestWithAbort>{};
+                return {} as HttpOData.RequestWithAbort;
             };
 
             await expect(ds.saveChanges(saveContext, saveBundle))
@@ -1400,7 +1410,7 @@ describe('OData4DataService', () => {
                 httpClient.request = (req, success, error) => {
                     batchRequest = req.data;
                     success(response);
-                    return <HttpOData.RequestWithAbort>{};
+                    return {} as HttpOData.RequestWithAbort;
                 };
 
                 saveResult = await ds.saveChanges(saveContext, saveBundle);
@@ -1468,7 +1478,7 @@ describe('OData4DataService', () => {
                 httpClient.request = (req, success, error) => {
                     batchRequest = req.data;
                     success(response);
-                    return <HttpOData.RequestWithAbort>{};
+                    return {} as HttpOData.RequestWithAbort;
                 };
 
                 await ds.saveChanges(saveContext, saveBundle);
@@ -1526,7 +1536,7 @@ describe('OData4DataService', () => {
                 httpClient.request = (req, success, error) => {
                     batchRequest = req.data;
                     success(response);
-                    return <HttpOData.RequestWithAbort>{};
+                    return {} as HttpOData.RequestWithAbort;
                 };
 
                 await ds.saveChanges(saveContext, saveBundle);
@@ -1578,7 +1588,7 @@ describe('OData4DataService', () => {
                 httpClient.request = (req, success, error) => {
                     batchRequest = req.data;
                     success(response);
-                    return <HttpOData.RequestWithAbort>{};
+                    return {} as HttpOData.RequestWithAbort;
                 };
 
                 await ds.saveChanges(saveContext, saveBundle);
@@ -1640,22 +1650,22 @@ describe('OData4DataService', () => {
     });
 });
 
-function createBatchResponse(contentId?: Number, data?: Object) {
+function createBatchResponse(contentId?: number, data?: any) {
     const headers = contentId ? { 'Content-ID': contentId.toString() } : null;
 
-    const result = <Batch.BatchResponse>{
+    const result = {
         __batchResponses: [
             {
                 __changeResponses: [
                     {
-                        headers: headers,
+                        headers,
                         statusCode: '200',
                         statusText: 'OK',
-                        data: data
+                        data
                     }
                 ]
             }
         ]
-    };
+    } as Batch.BatchResponse;
     return result;
 }

@@ -1,4 +1,4 @@
-import { DataType, DataTypeSymbol } from 'breeze-client';
+import { DataType } from 'breeze-client';
 
 import { DataTypeSetup } from './datatype-setup';
 
@@ -8,7 +8,7 @@ import { DataTypeSetup } from './datatype-setup';
 export class BaseDataTypeSetup implements DataTypeSetup {
     public name: string;
 
-    public addSymbol: () => DataTypeSymbol = null;
+    public addSymbol: () => DataType = null;
 
     public fmtOData: (val: any) => void = null;
 
@@ -27,5 +27,8 @@ export class BaseDataTypeSetup implements DataTypeSetup {
         if (!!this.fmtOData) {
             DataType[this.name].fmtOData = this.fmtOData;
         }
+
+        // reset enum resolved status
+        (DataType as any)._resolvedNamesAndSymbols = null;
     }
 }

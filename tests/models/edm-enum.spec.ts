@@ -5,11 +5,11 @@ import { EdmEnum, EdmEnumMember, EdmEnumOptions } from '../../src/models';
 describe('EdmEnum', () => {
     let sut: EdmEnum;
 
-    const opts = <EdmEnumOptions>{
+    const opts = {
         name: 'Test',
         isFlags: false,
         underlyingDataType: DataType.Int32
-    };
+    } as EdmEnumOptions;
 
     describe('isFlags=false', () => {
         beforeEach(() => {

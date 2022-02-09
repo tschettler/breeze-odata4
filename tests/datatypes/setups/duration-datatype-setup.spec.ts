@@ -1,4 +1,4 @@
-import { DataType, DataTypeSymbol } from 'breeze-client';
+import { DataType } from 'breeze-client';
 
 import { DurationDataTypeSetup } from '../../../src/datatypes/setups/duration-datatype-setup';
 import { Utilities } from '../../../src/utilities';
@@ -26,7 +26,7 @@ describe('DurationDataTypeSetup', () => {
         });
 
         describe('DataType.Duration', () => {
-            let dataType: DataTypeSymbol;
+            let dataType: DataType;
             beforeAll(() => {
                 dataType = DataType['Duration'];
             });

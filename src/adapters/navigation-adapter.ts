@@ -28,7 +28,7 @@ export class NavigationAdapter implements MetadataAdapter {
   public static inferPartner = true;
 
   /** Conventions used to infer foreign key properties.
-  */
+   */
   public static foreignKeyConventions: ((endpoint: AssociationEndpoint, suffix: string) => string)[] = [
     (endpoint, suffix) => `${endpoint.propertyName}${suffix}`.toLowerCase(),
     (endpoint) => `${endpoint.propertyName}Id`.toLowerCase(),
@@ -68,7 +68,7 @@ export class NavigationAdapter implements MetadataAdapter {
     const endpoint = new AssociationEndpoint({
       containingEntityType: `${namespace}.${entityTypeName}`,
       partnerEntityType: navPropType,
-      navigationProperty: navigationProperty
+      navigationProperty
     });
 
     this.trySetReferentialConstraint(endpoint);

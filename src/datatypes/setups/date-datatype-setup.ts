@@ -27,7 +27,7 @@ export class DateDataTypeSetup extends BaseDataTypeSetup {
         }
 
         const dateVal = val instanceof Date ? val : new Date(`${val} `);
-        if (isNaN(<any>dateVal)) {
+        if (isNaN(dateVal as any)) {
             this.handleInvalidValue(val);
         }
 
@@ -37,7 +37,7 @@ export class DateDataTypeSetup extends BaseDataTypeSetup {
     }
 
     public addSymbol = () => {
-        const result = DataType.addSymbol({
+        const result = new DataType({
             defaultValue: '0000-01-01',
             name: this.name,
             isDate: true,

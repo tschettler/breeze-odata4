@@ -1,13 +1,24 @@
 import { config, EntityQuery, MetadataStore, Predicate } from 'breeze-client';
+import { AjaxFetchAdapter } from 'breeze-client/adapter-ajax-fetch';
+import { DataServiceWebApiAdapter } from 'breeze-client/adapter-data-service-webapi';
+import { ModelLibraryBackingStoreAdapter } from 'breeze-client/adapter-model-library-backing-store';
+import { UriBuilderODataAdapter } from 'breeze-client/adapter-uri-builder-odata';
 
 import { OData4EntityQuery } from '../src/breeze-odata4-entity-query';
 import { OData4PredicateVisitor } from '../src/breeze-odata4-predicateVisitor';
 import { OData4UriBuilder } from '../src/breeze-odata4-uriBuilder';
 
 jest.mock('../src/breeze-odata4-predicateVisitor');
-const jsonMetadata = require('./breeze_metadata.json');
+import jsonMetadata = require('./breeze_metadata.json');
 
 describe('OData4UriBuilder', () => {
+    beforeAll(() => {
+        ModelLibraryBackingStoreAdapter.register();
+        new UriBuilderODataAdapter().initialize();
+        AjaxFetchAdapter.register();
+        DataServiceWebApiAdapter.register();
+    });
+
     it('should register UriBuilder when register is called', () => {
         OData4UriBuilder.register();
         config.initializeAdapterInstance('uriBuilder', OData4UriBuilder.BreezeAdapterName, true);

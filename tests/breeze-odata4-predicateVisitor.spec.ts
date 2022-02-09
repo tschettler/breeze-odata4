@@ -1,4 +1,4 @@
-import { DataType, EntityType, MetadataStore, Predicate, PredicateContext } from 'breeze-client';
+import { DataType, EntityType, MetadataStore, Predicate, VisitContext } from 'breeze-client';
 
 import { OData4PredicateVisitor } from './../src/breeze-odata4-predicateVisitor';
 
@@ -8,14 +8,15 @@ describe('OData4PredicateVisitor', () => {
 
     describe('initialize', () => {
         it('should set toODataFragment', () => {
-            const existingFunc = Predicate.prototype.toODataFragment;
+            const predicateProto: any = Predicate.prototype;
+            const existingFunc = predicateProto.toODataFragment;
             OData4PredicateVisitor.initialize();
-            const newFunc = Predicate.prototype.toODataFragment;
+            const newFunc = predicateProto.toODataFragment;
             expect(newFunc).not.toBe(existingFunc);
         });
 
         it('should pass predicate visitor to visit when toODataFragment is called', () => {
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore())
             };
 
@@ -24,7 +25,7 @@ describe('OData4PredicateVisitor', () => {
             };
 
             OData4PredicateVisitor.initialize();
-            Predicate.prototype.toODataFragment.bind(mock)(context);
+            (Predicate.prototype as any).toODataFragment.bind(mock)(context);
             expect(mock.visit).toHaveBeenCalledWith(context, expect.any(OData4PredicateVisitor));
         });
 
@@ -51,7 +52,7 @@ describe('OData4PredicateVisitor', () => {
         });
 
         it('should call pred.visit', () => {
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore())
             };
 
@@ -64,7 +65,7 @@ describe('OData4PredicateVisitor', () => {
             const predicateValue = 'testValue';
             input.pred.visit.mockReturnValue(predicateValue);
 
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore())
             };
 
@@ -84,13 +85,13 @@ describe('OData4PredicateVisitor', () => {
         const mockVisitor2 = jest.fn();
 
         const input = {
-            op: Object.assign({}, defaultOp),
+            op: {...defaultOp},
             expr1: { visit: mockVisitor1 },
             expr2: { visit: mockVisitor2 }
         };
 
         beforeEach(() => {
-            input.op = Object.assign({}, defaultOp);
+            input.op = {...defaultOp};
             mockVisitor1.mockReset();
             mockVisitor2.mockReset();
         });
@@ -102,7 +103,7 @@ describe('OData4PredicateVisitor', () => {
             mockVisitor1.mockReturnValue(predValue1);
             mockVisitor2.mockReturnValue(predValue2);
 
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore()),
             };
 
@@ -118,7 +119,7 @@ describe('OData4PredicateVisitor', () => {
             mockVisitor1.mockReturnValue(predValue1);
             mockVisitor2.mockReturnValue(predValue2);
 
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore()),
             };
 
@@ -134,7 +135,7 @@ describe('OData4PredicateVisitor', () => {
             mockVisitor1.mockReturnValue(predValue1);
             mockVisitor2.mockReturnValue(predValue2);
 
-            const context: PredicateContext = {
+            const context = {
                 entityType: new EntityType(new MetadataStore()),
                 prefix: 'testPrefix'
             };
@@ -150,7 +151,7 @@ describe('OData4PredicateVisitor', () => {
             mockVisitor1.mockReturnValue(predValue1);
             mockVisitor2.mockReturnValue(predValue2);
 
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore()),
             };
 
@@ -166,7 +167,7 @@ describe('OData4PredicateVisitor', () => {
             mockVisitor1.mockReturnValue(predValue1);
             mockVisitor2.mockReturnValue(predValue2);
 
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore()),
             };
 
@@ -183,7 +184,7 @@ describe('OData4PredicateVisitor', () => {
             mockVisitor1.mockReturnValue(predValue1);
             mockVisitor2.mockReturnValue(predValue2);
 
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore()),
             };
 
@@ -208,7 +209,7 @@ describe('OData4PredicateVisitor', () => {
         });
 
         it('should call visit on each predicate', () => {
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore()),
             };
 
@@ -222,7 +223,7 @@ describe('OData4PredicateVisitor', () => {
             mockPred1.visit.mockReturnValue(predValue1);
             mockPred2.visit.mockReturnValue(predValue2);
 
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore()),
             };
 
@@ -241,11 +242,11 @@ describe('OData4PredicateVisitor', () => {
         const input = {
             expr: mockExpr,
             op: { key: 'and' },
-            pred: Object.assign({}, mockPred)
+            pred: {...mockPred}
         };
 
         beforeEach(() => {
-            input.pred = Object.assign({}, mockPred);
+            input.pred = {...mockPred};
             mockExpr.visit.mockReset();
             mockPred.visit.mockReset();
         });
@@ -253,7 +254,7 @@ describe('OData4PredicateVisitor', () => {
         it('should call expr.visit', () => {
             input.pred.op = null;
 
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore()),
             };
 
@@ -266,7 +267,7 @@ describe('OData4PredicateVisitor', () => {
             const predValue = 'testValue';
             mockExpr.visit.mockReturnValue(predValue);
 
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore()),
             };
 
@@ -280,7 +281,7 @@ describe('OData4PredicateVisitor', () => {
             mockExpr.visit.mockReturnValue(exprValue);
             mockPred.visit.mockReturnValue(predValue);
 
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore()),
             };
 
@@ -294,7 +295,7 @@ describe('OData4PredicateVisitor', () => {
             mockExpr.visit.mockReturnValue(exprValue);
             mockPred.visit.mockReturnValue(predValue);
 
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore()),
             };
 
@@ -308,7 +309,7 @@ describe('OData4PredicateVisitor', () => {
             mockExpr.visit.mockReturnValue(exprValue);
             mockPred.visit.mockReturnValue(predValue);
 
-            const context: PredicateContext = {
+            const context = {
                 prefix: 'x1',
                 entityType: new EntityType(new MetadataStore()),
             };
@@ -350,7 +351,7 @@ describe('OData4PredicateVisitor', () => {
             const input = {
                 propertyPath: 'Test.Property.Path'
             };
-            const context: PredicateContext = {
+            const context: VisitContext = {
                 entityType: new EntityType(new MetadataStore()),
             };
 
@@ -363,8 +364,8 @@ describe('OData4PredicateVisitor', () => {
             const input = {
                 propertyPath: 'Test.Property.Path'
             };
-            const context: PredicateContext = {
-                entityType: <EntityType>null
+            const context: VisitContext = {
+                entityType: null as EntityType
             };
 
             const result = sut.propExpr.bind(input)(context);
@@ -388,8 +389,8 @@ describe('OData4PredicateVisitor', () => {
         });
 
         it('should call visit for each expression', () => {
-            const context: PredicateContext = {
-                entityType: <EntityType>null
+            const context: VisitContext = {
+                entityType: null as EntityType
             };
 
             const result = sut.fnExpr.bind(input)(context);
@@ -402,8 +403,8 @@ describe('OData4PredicateVisitor', () => {
             const expr2Value = 2;
             expr1.visit.mockReturnValue(expr1Value);
             expr2.visit.mockReturnValue(expr2Value);
-            const context: PredicateContext = {
-                entityType: <EntityType>null
+            const context: VisitContext = {
+                entityType: null as EntityType
             };
 
             const result = sut.fnExpr.bind(input)(context);

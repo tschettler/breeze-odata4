@@ -1,4 +1,4 @@
-import { DataType, DataTypeSymbol } from 'breeze-client';
+import { DataType } from 'breeze-client';
 
 import { TimeOfDayDataTypeSetup } from '../../../src/datatypes/setups/timeofday-datatype-setup';
 import { Utilities } from '../../../src/utilities';
@@ -26,7 +26,7 @@ describe('TimeOfDayDataTypeSetup', () => {
         });
 
         describe('DataType.TimeOfDay', () => {
-            let dataType: DataTypeSymbol;
+            let dataType: DataType;
             beforeAll(() => {
                 dataType = DataType['TimeOfDay'];
             });

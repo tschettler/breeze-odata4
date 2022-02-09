@@ -1,4 +1,4 @@
-import { DataType, DataTypeSymbol } from 'breeze-client';
+import { DataType } from 'breeze-client';
 
 import { DateTimeOffsetDataTypeSetup } from '../../../src/datatypes/setups/datetimeoffset-datatype-setup';
 import { Utilities } from '../../../src/utilities';
@@ -26,7 +26,7 @@ describe('DateTimeOffsetDataTypeSetup', () => {
         });
 
         describe('DataType.DateTimeOffset', () => {
-            let dataType: DataTypeSymbol;
+            let dataType: DataType;
             beforeAll(() => {
                 dataType = DataType.DateTimeOffset;
             });

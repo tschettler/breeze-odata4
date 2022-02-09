@@ -19,7 +19,7 @@ export class BreezeOData4 {
    * @param [options] The OData4 initialization options.
    */
   public static configure(options?: Partial<BreezeOData4Options>): void {
-    const opts: BreezeOData4Options = Object.assign({}, DefaultOptions, options || {});
+    const opts: BreezeOData4Options = {...DefaultOptions, ...(options || {})};
 
     if (!this.isConfigured) {
       OData4UriBuilder.register();

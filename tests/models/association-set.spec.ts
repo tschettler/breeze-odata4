@@ -12,17 +12,17 @@ describe('AssociationSet', () => {
     beforeEach(() => {
         endpoint = new AssociationEndpoint({
             containingEntityType: 'TestNamespace.Entity1',
-            navigationProperty: <Edm.NavigationProperty>{
+            navigationProperty: {
                 name: 'Item',
-            },
+            } as Edm.NavigationProperty,
             partnerEntityType: 'TestNamespace.Entity2'
         });
         partnerEndpoint = new AssociationEndpoint({
             containingEntityType: 'TestNamespace.Entity2',
-            navigationProperty: <Edm.NavigationProperty>{
+            navigationProperty: {
                 name: 'Items',
                 type: 'Collection(TestNamespace.Entity1)'
-            },
+            } as Edm.NavigationProperty,
             partnerEntityType: 'TestNamespace.Entity1'
         });
 
@@ -68,7 +68,7 @@ describe('AssociationSet', () => {
         });
 
         it('should return false when not contains navigation property', () => {
-            const unknownProp = <Edm.NavigationProperty>{};
+            const unknownProp = {} as Edm.NavigationProperty;
             const result = sut.containsProperty(unknownProp);
 
             expect(result).toBeFalsy();
