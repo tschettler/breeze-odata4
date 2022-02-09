@@ -1,4 +1,4 @@
-import { DataType, DataTypeSymbol } from 'breeze-client';
+import { DataType } from 'breeze-client';
 
 import { NumericDataTypeSetup } from '../../../src/datatypes/setups/numeric-datatype-setup';
 import { Utilities } from '../../../src/utilities';
@@ -25,7 +25,7 @@ describe('NumericDataTypeSetup', () => {
         });
 
         describe('DataType.Decimal', () => {
-            let dataType: DataTypeSymbol;
+            let dataType: DataType;
             beforeAll(() => {
                 dataType = DataType.Decimal;
             });

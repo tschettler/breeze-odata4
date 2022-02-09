@@ -14,7 +14,7 @@ const TrueValue = 'true';
  * @classdesc Metadata adapter used to configure entityType elements as breeze data type symbols.
  * @see {Edm.EnumType}
  */
- export class EnumTypeAdapter implements MetadataAdapter {
+export class EnumTypeAdapter implements MetadataAdapter {
 
     public adapt(metadata: Edmx.DataServices): void {
         oData.utils.forEachSchema(metadata.schema, this.adaptSchema.bind(this));
@@ -33,21 +33,25 @@ const TrueValue = 'true';
         const dataType = Utilities.getDataType(underlyingType);
         const isFlags = enumType.isFlags.toLowerCase() === TrueValue;
         const enumValue = new EdmEnum({
-            isFlags: isFlags,
+            isFlags,
             name: enumName,
             underlyingDataType: dataType
         });
 
+        enumValue._$typeName = DataType.prototype.name;
+
         enumType.member.forEach(member => this.adaptEnumMember(enumValue, member));
 
-        DataType[enumName] = DataType.addSymbol(enumValue);
+        DataType[enumName] = new DataType(enumValue);
     }
 
     private adaptEnumMember(enumValue: EdmEnum, member: Edm.Member): void {
-        enumValue.addSymbol(<Partial<EdmEnumMember>>{
+        const options: Partial<EdmEnumMember> = {
             name: member.name,
-            displayName: (<ExpressionWithDisplayName>member).displayName,
+            displayName: (member as ExpressionWithDisplayName).displayName,
             rawValue: member.value
-        });
+        };
+
+        enumValue.addSymbol(options);
     }
 }

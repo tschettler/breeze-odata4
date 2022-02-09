@@ -1,8 +1,11 @@
 import { EntityManager, EntityQuery, JsonResultsAdapter, MappingContext, MetadataStore, NodeContext } from 'breeze-client';
+import { AjaxFetchAdapter } from 'breeze-client/adapter-ajax-fetch';
+import { DataServiceWebApiAdapter } from 'breeze-client/adapter-data-service-webapi';
+import { ModelLibraryBackingStoreAdapter } from 'breeze-client/adapter-model-library-backing-store';
 
 import { JsonResultsAdapterFactory } from './../src/breeze-jsonResultsAdapter-factory';
 
-const jsonMetadata = require('./breeze_metadata.json');
+import jsonMetadata = require('./breeze_metadata.json');
 
 let metadataStore: MetadataStore;
 let entityManager: EntityManager;
@@ -10,13 +13,19 @@ let mappingContext: MappingContext;
 let nodeContext: NodeContext;
 
 describe('JsonResultsAdapterFactory', () => {
+  beforeAll(() => {
+    ModelLibraryBackingStoreAdapter.register();
+    AjaxFetchAdapter.register();
+    DataServiceWebApiAdapter.register();
+  });
+
   beforeEach(() => {
     metadataStore = new MetadataStore();
     metadataStore.importMetadata(jsonMetadata);
 
-    entityManager = new EntityManager({ metadataStore: metadataStore });
-    mappingContext = <MappingContext>{ entityManager: entityManager };
-    nodeContext = <NodeContext>{ nodeType: 'root' };
+    entityManager = new EntityManager({ metadataStore });
+    mappingContext = { entityManager } as MappingContext;
+    nodeContext = { nodeType: 'root' } as NodeContext;
   });
 
   it('should return JsonResultsAdapter when create is called', () => {
@@ -65,7 +74,7 @@ describe('JsonResultsAdapterFactory', () => {
   it('should return result with EntityType when visitNode is called for query with resultEntityType', () => {
     const sut = JsonResultsAdapterFactory.create();
     const query = new EntityQuery('Person');
-    query.resultEntityType = <any>metadataStore.getEntityType('Person');
+    query.resultEntityType = (metadataStore.getEntityType('Person') as any);
     mappingContext.query = query;
     const node = {};
 
@@ -87,7 +96,7 @@ describe('JsonResultsAdapterFactory', () => {
     const sut = JsonResultsAdapterFactory.create();
     const node = {};
     nodeContext.nodeType = 'navProp';
-    nodeContext.navigationProperty = { entityTypeName: 'Person' };
+    nodeContext.navigationProperty = { entityTypeName: 'Person' } as any;
 
     const result = sut.visitNode(node, mappingContext, nodeContext);
     expect(result.entityType.shortName).toBe('Person');
@@ -97,7 +106,7 @@ describe('JsonResultsAdapterFactory', () => {
     const sut = JsonResultsAdapterFactory.create();
     const node = {};
     nodeContext.nodeType = 'navPropItem';
-    nodeContext.navigationProperty = { entityTypeName: 'Person' };
+    nodeContext.navigationProperty = { entityTypeName: 'Person' } as any;
 
     const result = sut.visitNode(node, mappingContext, nodeContext);
     expect(result.entityType.shortName).toBe('Person');

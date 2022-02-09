@@ -1,4 +1,4 @@
-import { ComplexType, DataType, DataTypeSymbol, EntityType, IStructuralType, MetadataStore } from 'breeze-client';
+import { ComplexType, DataType, EntityType, StructuralType, MetadataStore } from 'breeze-client';
 import { Edm, Edmx, oData } from 'ts-odatajs';
 
 import { ClassRegistry } from './class-registry';
@@ -13,14 +13,6 @@ export interface InvokableEntry {
 }
 
 /**
- * Shorthand implementation similar to the `nameof` construct in C#.
- * Allows validating the name passed in is available on the type.
- * @param name The key name.
- * @returns The key name.
- */
-export const nameof = <T>(name: keyof T) => name;
-
-/**
  * Utility methods used across the BreezeOData4 library.
  */
 export namespace Utilities {
@@ -28,7 +20,7 @@ export namespace Utilities {
   /**
    * The data type map, allows conversion of OData 4 types to breeze DataTypes.
    */
-  export const dataTypeMap: { [key: string]: DataTypeSymbol } = {
+  export const dataTypeMap: { [key: string]: DataType } = {
     bool: DataType.Boolean,
     float: DataType.Double,
     int: DataType.Int64,
@@ -62,7 +54,7 @@ export namespace Utilities {
    * @param key The data type string key.
    * @returns The breeze DataType symbol.
    */
-  export function getDataType(key: string): DataTypeSymbol {
+  export function getDataType(key: string): DataType {
     // default to the data type map
     let result = dataTypeMap[key];
 
@@ -99,7 +91,7 @@ export namespace Utilities {
    * @returns The complex type.
    */
   export function adaptComplexType(metadataStore: MetadataStore, complexType: Edm.ComplexType): ComplexType {
-    return <ComplexType>adaptStructuralType(metadataStore, complexType);
+    return adaptStructuralType(metadataStore, complexType) as ComplexType;
   }
 
   /**
@@ -109,7 +101,7 @@ export namespace Utilities {
    * @returns The entity type.
    */
   export function adaptEntityType(metadataStore: MetadataStore, entityType: Edm.EntityType): EntityType {
-    return <EntityType>adaptStructuralType(metadataStore, entityType);
+    return adaptStructuralType(metadataStore, entityType) as EntityType;
   }
 
   /**
@@ -118,8 +110,8 @@ export namespace Utilities {
    * @param structuralType The structural type.
    * @returns The structural type.
    */
-  export function adaptStructuralType(metadataStore: MetadataStore, structuralType: Edm.ComplexType | Edm.EntityType): IStructuralType {
-    const result = metadataStore.getEntityType(structuralType.name, true);
+  export function adaptStructuralType(metadataStore: MetadataStore, structuralType: Edm.ComplexType | Edm.EntityType): StructuralType {
+    const result = metadataStore.getStructuralType(structuralType.name, true);
 
     return result;
   }
@@ -137,11 +129,11 @@ export namespace Utilities {
   }
 
   /**
-  * Gets available functions.
-  * @param metadata The metadata.
-  * @param metadataStore The metadata store.
-  * @returns The functions represented as invokable entries.
-  */
+   * Gets available functions.
+   * @param metadata The metadata.
+   * @param metadataStore The metadata store.
+   * @returns The functions represented as invokable entries.
+   */
   export function getFunctions(metadata: Edmx.Edmx, metadataStore: MetadataStore): InvokableEntry[] {
     const result = getInvokableEntries(metadata, metadataStore, s => s.function);
 
@@ -171,8 +163,8 @@ export namespace Utilities {
 
       const entries = items.map((config: Edm.Action | Edm.Function) => {
         const entry: InvokableEntry = {
-          config: config,
-          namespace: namespace,
+          config,
+          namespace,
           url: getInvokableUrl(metadata, metadataStore, config, namespace)
         };
 
@@ -223,7 +215,7 @@ export namespace Utilities {
    * @param value The value.
    * @returns The value parsed by the data type.
    */
-  export function parseValue(dataType: DataTypeSymbol, value: any) {
+  export function parseValue(dataType: DataType, value: any) {
     const result = dataType.parseRawValue ? dataType.parseRawValue(value) : dataType.parse(value, 'string');
 
     return result;

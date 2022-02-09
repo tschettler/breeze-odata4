@@ -57,7 +57,7 @@ describe('StoreGeneratedPatternDecorator', () => {
 
       sut.decorate(expression, annotation);
 
-      expect(expression.StoreGeneratedPattern).toBe((<Edm.Base.Text>annotation.string).text);
+      expect(expression.StoreGeneratedPattern).toBe((annotation.string as Edm.Base.Text).text);
     });
   });
 });

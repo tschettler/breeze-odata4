@@ -16,10 +16,10 @@ const MockDecorator = jest.fn<AnnotationDecorator, []>(() => ({
 
 const personEntityType: Edm.EntityType = {
   name: 'Person',
-  property: [<Edm.Property>{ name: 'FirstName', type: 'Edm.String' }]
+  property: [{ name: 'FirstName', type: 'Edm.String' } as Edm.Property]
 };
 
-const schema: Edm.Schema = <any>{
+const schema: Edm.Schema = {
   namespace: 'UnitTesting',
   entityContainer: {
     name: 'Default',
@@ -28,7 +28,7 @@ const schema: Edm.Schema = <any>{
   },
   entityType: [personEntityType],
   function: { name: 'Function.Test', parameter: null }
-};
+} as any;
 
 describe('AnnotationAdapter', () => {
   beforeEach(() => {
@@ -52,7 +52,7 @@ describe('AnnotationAdapter', () => {
   });
 
   it('should throw error when adapt is called with unknown annotation type', () => {
-    schema.annotations.push(<Edm.Annotations>{ target: 'invalid', term: 'display' });
+    schema.annotations.push({ target: 'invalid', term: 'display' } as Edm.Annotations);
 
     expect(() => {
       sut.adapt(metadata.dataServices);
@@ -66,21 +66,21 @@ describe('AnnotationAdapter', () => {
   });
 
   it('should not throw error when adapt is called with no annotations', () => {
-    schema.annotations.push(<Edm.Annotations>{ target: 'UnitTesting.Person', term: 'display' });
+    schema.annotations.push({ target: 'UnitTesting.Person', term: 'display' } as Edm.Annotations);
 
     sut.adapt(metadata.dataServices);
   });
 
   it('should call decorate on matching decorator when adapt is called', () => {
-    schema.annotations.push(<Edm.Annotations>{
+    schema.annotations.push({
       target: 'UnitTesting.Person',
       annotation: [
-        <Edm.Annotation>{
+        {
           term: 'test',
           string: 'abc123'
-        }
+        } as Edm.Annotation
       ]
-    });
+    } as Edm.Annotations);
 
     sut.adapt(metadata.dataServices);
 
@@ -88,30 +88,30 @@ describe('AnnotationAdapter', () => {
   });
 
   it('should succeed with no decorators when adapt is called', () => {
-    schema.annotations.push(<Edm.Annotations>{
+    schema.annotations.push({
       target: 'UnitTesting.Person',
       annotation: [
-        <Edm.Annotation>{
+        {
           term: 'test',
           string: 'abc123'
-        }
+        } as Edm.Annotation
       ]
-    });
+    } as Edm.Annotations);
 
     sut.decorators = [];
     sut.adapt(metadata.dataServices);
   });
 
   it('should call decorate on matching decorator when adapt is called for a property', () => {
-    schema.annotations.push(<Edm.Annotations>{
+    schema.annotations.push({
       target: 'UnitTesting.Person/FirstName',
       annotation: [
-        <Edm.Annotation>{
+        {
           term: 'display',
           string: 'First Name'
-        }
+        } as Edm.Annotation
       ]
-    });
+    } as Edm.Annotations);
 
     sut.adapt(metadata.dataServices);
 
@@ -119,15 +119,15 @@ describe('AnnotationAdapter', () => {
   });
 
   it('should call decorate on matching decorator when adapt is called for a entityContainer', () => {
-    schema.annotations.push(<Edm.Annotations>{
+    schema.annotations.push({
       target: 'UnitTesting.Default',
       annotation: [
-        <Edm.Annotation>{
+        {
           term: 'display',
           string: 'Entity Sets'
-        }
+        } as Edm.Annotation
       ]
-    });
+    } as Edm.Annotations);
 
     sut.adapt(metadata.dataServices);
 
@@ -135,15 +135,15 @@ describe('AnnotationAdapter', () => {
   });
 
   it('should call decorate on matching decorator when adapt is called for a entitySet', () => {
-    schema.annotations.push(<Edm.Annotations>{
+    schema.annotations.push({
       target: 'UnitTesting.Default/People',
       annotation: [
-        <Edm.Annotation>{
+        {
           term: 'display',
           string: 'People'
-        }
+        } as Edm.Annotation
       ]
-    });
+    } as Edm.Annotations);
 
     sut.adapt(metadata.dataServices);
 
@@ -151,15 +151,15 @@ describe('AnnotationAdapter', () => {
   });
 
   it('should call decorate on matching decorator when adapt is called for a single item', () => {
-    schema.annotations.push(<Edm.Annotations>{
+    schema.annotations.push({
       target: 'UnitTesting.Default/Action.Test',
       annotation: [
-        <Edm.Annotation>{
+        {
           term: 'display',
           string: 'Test action'
-        }
+        } as Edm.Annotation
       ]
-    });
+    } as Edm.Annotations);
 
     sut.adapt(metadata.dataServices);
 
@@ -167,15 +167,15 @@ describe('AnnotationAdapter', () => {
   });
 
   it('should not call decorate on matching decorator when adapt is called for a non-existent item', () => {
-    schema.annotations.push(<Edm.Annotations>{
+    schema.annotations.push({
       target: 'UnitTesting.Function.Test/Missing',
       annotation: [
-        <Edm.Annotation>{
+        {
           term: 'display',
           string: 'Test action'
-        }
+        } as Edm.Annotation
       ]
-    });
+    } as Edm.Annotations);
 
     expect(() => {
       sut.adapt(metadata.dataServices);

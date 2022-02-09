@@ -1,5 +1,3 @@
-/// <reference path="../typings/breeze-client/index.d.ts" />
-
 export { MetadataAdapter } from './adapters/metadata-adapter';
 export { JsonResultsAdapterFactory } from './breeze-jsonResultsAdapter-factory';
 export { BreezeOData4 } from './breeze-odata4';

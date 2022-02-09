@@ -1,4 +1,7 @@
 import { ComplexType, DataType, EntityType, MetadataStore } from 'breeze-client';
+import { AjaxFetchAdapter } from 'breeze-client/adapter-ajax-fetch';
+import { DataServiceWebApiAdapter } from 'breeze-client/adapter-data-service-webapi';
+import { ModelLibraryBackingStoreAdapter } from 'breeze-client/adapter-model-library-backing-store';
 import { Edm, Edmx } from 'ts-odatajs';
 
 import { Utilities } from '../src/utilities';
@@ -6,11 +9,18 @@ import { BreezeOData4 } from './../src/breeze-odata4';
 
 
 describe('Utilities', () => {
+  let metadataStore: MetadataStore;
   BreezeOData4.configure({ initializeAdapters: false });
 
-  const jsonMetadata = require('./breeze_metadata.json');
-  const metadataStore = new MetadataStore();
-  metadataStore.importMetadata(jsonMetadata);
+  beforeAll(() => {
+    ModelLibraryBackingStoreAdapter.register();
+    AjaxFetchAdapter.register();
+    DataServiceWebApiAdapter.register();
+
+    const jsonMetadata = require('./breeze_metadata.json');
+    metadataStore = new MetadataStore();
+    metadataStore.importMetadata(jsonMetadata);
+  });
 
   const personEntityType: Edm.EntityType = {
     name: 'Person'
@@ -240,7 +250,7 @@ describe('Utilities', () => {
 
     it('should return items from multiple schemas', () => {
       const item: Edm.Action = { name: 'TestAction' };
-      metadata.dataServices.schema.push(<Edm.Schema>{});
+      metadata.dataServices.schema.push({} as Edm.Schema);
       const result = Utilities.getInvokableEntries(metadata, metadataStore, () => [item]);
       expect(result).toHaveLength(2);
     });
@@ -285,7 +295,7 @@ describe('Utilities', () => {
       const item: Edm.Action = {
         name: 'TestAction',
         isBound: 'true',
-        parameter: [<Edm.Parameter>{ type: `${schema.namespace}.${personEntityType.name}` }]
+        parameter: [{ type: `${schema.namespace}.${personEntityType.name}` } as Edm.Parameter]
       };
       const result = Utilities.getInvokableUrl(metadata, metadataStore, item, schema.namespace);
       const breezeType = Utilities.adaptEntityType(metadataStore, personEntityType);
@@ -294,12 +304,12 @@ describe('Utilities', () => {
     });
 
     it('should return unbound path for bound action with no breeze type', () => {
-      const animalEntityType = <Edm.EntityType>{ name: 'Animal' };
+      const animalEntityType = { name: 'Animal' } as Edm.EntityType;
       schema.entityType.push(animalEntityType);
       const item: Edm.Action = {
         name: 'TestAction',
         isBound: 'true',
-        parameter: [<Edm.Parameter>{ type: `${schema.namespace}.${animalEntityType.name}` }]
+        parameter: [{ type: `${schema.namespace}.${animalEntityType.name}` } as Edm.Parameter]
       };
       const result = Utilities.getInvokableUrl(metadata, metadataStore, item, schema.namespace);
 

@@ -1,11 +1,18 @@
+import { HttpResponse, ServerError } from 'breeze-client';
+
 /**
  * Odata error implementation.
  */
-export class ODataError extends Error {
+export class ODataError extends Error implements ServerError {
     /**
      * Body of the OData error.
      */
     public body: any;
+
+    /**
+     * Http response of OData error.
+     */
+    public httpResponse: HttpResponse;
 
     /**
      * Status text of the OData error.

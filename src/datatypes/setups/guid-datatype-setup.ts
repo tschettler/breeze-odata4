@@ -1,6 +1,5 @@
-import { core, DataType } from 'breeze-client';
+import { core } from 'breeze-client';
 
-import { nameof } from '../../utilities';
 import { BaseDataTypeSetup } from './base-datatype-setup';
 
 /**
@@ -8,7 +7,7 @@ import { BaseDataTypeSetup } from './base-datatype-setup';
  * @see {DataType.Guid}
  */
 export class GuidDataTypeSetup extends BaseDataTypeSetup {
-    public name = nameof<DataType>('Guid');
+    public name = 'Guid';
 
     public fmtOData = (val: any) => {
         if (!val) {

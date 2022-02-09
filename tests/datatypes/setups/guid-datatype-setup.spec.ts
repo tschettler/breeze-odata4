@@ -1,4 +1,4 @@
-import { DataType, DataTypeSymbol } from 'breeze-client';
+import { DataType } from 'breeze-client';
 
 import { GuidDataTypeSetup } from '../../../src/datatypes/setups/guid-datatype-setup';
 import { Utilities } from '../../../src/utilities';
@@ -26,7 +26,7 @@ describe('GuidDataTypeSetup', () => {
         });
 
         describe('DataType.Guid', () => {
-            let dataType: DataTypeSymbol;
+            let dataType: DataType;
             beforeAll(() => {
                 dataType = DataType.Guid;
             });

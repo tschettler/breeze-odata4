@@ -9,7 +9,7 @@ export class GeographyPointDataTypeSetup extends BaseDataTypeSetup {
     public name = 'GeographyPoint';
 
     public addSymbol = () => {
-        const result = DataType.addSymbol({
+        const result = new DataType({
             defaultValue: [0, 0],
             fmtOData: JSON.stringify,
             name: this.name,

@@ -1,14 +1,13 @@
-import { core, DataTypeSymbol, Validator } from 'breeze-client';
+import { BreezeEnum, DataType, Validator } from 'breeze-client';
 
 /**
  * @classdesc Edm enum member
  */
-export class EdmEnumMember implements core.EnumSymbol {
-
+export class EdmEnumMember extends BreezeEnum {
     /**
      * Parent enum of edm enum member.
      */
-    public parentEnum: core.IEnum;
+    public parentEnum: BreezeEnum;
 
     /**
      * Display name of edm enum member.
@@ -29,16 +28,6 @@ export class EdmEnumMember implements core.EnumSymbol {
      * Value of edm enum member.
      */
     public value: number;
-
-    /**
-     * Gets name of edm enum member.
-     */
-    public getName: () => '';
-
-    /**
-     * Returns a string representation of the edm enum member.
-     */
-    public toString: () => '';
 }
 
 /**
@@ -59,13 +48,13 @@ export interface EdmEnumOptions {
     /**
      * The underlying data type for the enum.
      */
-    underlyingDataType: DataTypeSymbol;
+    underlyingDataType: DataType;
 }
 
 /**
  * @classdesc Edm enum
  */
-export class EdmEnum extends core.Enum {
+export class EdmEnum extends BreezeEnum {
 
     /**
      * True if this is a flags enum, false otherwise.
@@ -82,9 +71,7 @@ export class EdmEnum extends core.Enum {
      */
     public validatorCtor = Validator.none;
 
-    private _symbolPrototype: core.EnumSymbol;
-
-    private readonly underlyingDataType: DataTypeSymbol;
+    private readonly underlyingDataType: DataType;
     private defaultValue: EdmEnumMember;
     private members: EdmEnumMember[] = [];
 
@@ -93,11 +80,7 @@ export class EdmEnum extends core.Enum {
      * @param options The initialization options for the enum.
      */
     public constructor(options: EdmEnumOptions) {
-        super(options.name);
-
-        this.isFlags = options.isFlags;
-        this.name = options.name;
-        this.underlyingDataType = options.underlyingDataType;
+        super(options);
     }
 
     /**
@@ -105,17 +88,15 @@ export class EdmEnum extends core.Enum {
      * @param [enumMember] The enum member.
      * @returns The breeze symbol for the enum member.
      */
-    public addSymbol(enumMember?: Partial<EdmEnumMember>): core.EnumSymbol {
+    public addSymbol(enumMember?: Partial<EdmEnumMember>): BreezeEnum {
         enumMember.displayName ??= enumMember.name;
         enumMember.value = this.underlyingDataType.parse(enumMember.rawValue, 'string');
-        const result = super.addSymbol(enumMember);
+        const result = this.createEdmEnumMember(enumMember);
 
-        // a little gross, but core.EnumSymbol is not actually exposed in breeze
-        const memberResult = <unknown>result as EdmEnumMember;
-        this.members.push(memberResult);
+        this.members.push(result);
 
         if (!this.defaultValue) {
-            this.defaultValue = memberResult;
+            this.defaultValue = result;
         }
 
         this[enumMember.name] = result;
@@ -128,24 +109,20 @@ export class EdmEnum extends core.Enum {
      * @param value The value.
      * @returns The enum symbol.
      */
-    public fromValue(value: number): core.EnumSymbol {
-        let result: core.EnumSymbol;
-
-        if (this.isFlags && value) {
-            result = this.fromFlagsEnumValue(value);
-        } else {
-            result = this.members.find(m => m.value === value);
-        }
+    public fromValue(value: number): EdmEnumMember {
+        const result = this.isFlags && value
+            ? this.fromFlagsEnumValue(value)
+            : this.members.find(m => m.value === value);
 
         return result;
     }
 
     /**
-    * Gets the enum member from the specified name.
-    * @param name The name.
-    * @returns The enum symbol.
-    */
-    public fromName(name: string): core.EnumSymbol {
+     * Gets the enum member from the specified name.
+     * @param name The name.
+     * @returns The enum symbol.
+     */
+    public fromName(name: string): EdmEnumMember {
         const value = Number(name);
         if (!isNaN(value)) {
             return this.fromValue(value);
@@ -153,22 +130,30 @@ export class EdmEnum extends core.Enum {
 
         const result = this.isFlags && name.includes(',')
             ? this.fromFlagsEnumName(name)
-            : super.fromName(name);
+            : EdmEnum.fromName.bind(this)(name);
 
         return result;
     }
 
     /**
-    * Parses the value into the corresponding enum symbol.
-    * @param name The value of the enum.
-    * @returns The enum symbol.
-    */
+     * Gets all of the symbols contained within this Enum.
+     * @returns All of the symbols contained within this Enum.
+     */
+    public getSymbols(): EdmEnumMember[] {
+        return this.members;
+    }
+
+    /**
+     * Parses the value into the corresponding enum symbol.
+     * @param name The value of the enum.
+     * @returns The enum symbol.
+     */
     public parse = (val: any, sourceTypeName?: string): any => {
         if (typeof val === 'undefined' || val === null) {
             return null;
         }
 
-        if (sourceTypeName === 'object' && val['parentEnum'] === this) {
+        if (sourceTypeName === 'object' && (val as EdmEnumMember).parentEnum === this) {
             return val;
         }
 
@@ -184,15 +169,15 @@ export class EdmEnum extends core.Enum {
     }
 
     /**
-    * Parses the raw value into the corresponding enum symbol.
-    * @param name The value of the enum.
-    * @returns The enum symbol.
-    */
+     * Parses the raw value into the corresponding enum symbol.
+     * @param name The value of the enum.
+     * @returns The enum symbol.
+     */
     public parseRawValue = (val: any): any => {
         return this.parse(val, 'string');
     }
 
-    private fromFlagsEnumValue(value: number): core.EnumSymbol {
+    private fromFlagsEnumValue(value: number): EdmEnumMember {
         const result: EdmEnumMember = this.createEdmEnumMember();
 
         // tslint:disable:no-bitwise
@@ -211,13 +196,13 @@ export class EdmEnum extends core.Enum {
         return result;
     }
 
-    private fromFlagsEnumName(name: string): core.EnumSymbol {
+    private fromFlagsEnumName(name: string): EdmEnumMember {
         let result: EdmEnumMember;
 
         name.split(',')
             .filter(n => this.members.some(m => m.name === n))
             .forEach(memberName => {
-                const symbol = super.fromName(memberName.trim()) as EdmEnumMember;
+                const symbol = this.fromName(memberName.trim());
                 if (!result) {
                     result = Object.assign(this.createEdmEnumMember(), symbol);
                     result.name = name;
@@ -230,8 +215,11 @@ export class EdmEnum extends core.Enum {
         return result;
     }
 
-    private createEdmEnumMember(): EdmEnumMember {
-        const result = <unknown>Object.create(this._symbolPrototype) as EdmEnumMember;
+    private createEdmEnumMember(enumMember?: Partial<EdmEnumMember>): EdmEnumMember {
+        const result = new EdmEnumMember(enumMember as any);
+        result._$typeName = this.name;
+        result.parentEnum = this;
+
         return result;
     }
 }
