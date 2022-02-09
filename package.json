@@ -44,7 +44,7 @@
     "build": "tsc --module commonjs --target es5 && rollup -c rollup.config.ts",
     "build:prod": "npm run build && npm run typedoc",
     "commit": "cz",
-    "lint": "tslint --project tsconfig.json",
+    "lint": "tslint --project tsconfig.base.json",
     "prebuild": "rimraf dist docs",
     "prepare": "husky install",
     "pretest": "clear",
