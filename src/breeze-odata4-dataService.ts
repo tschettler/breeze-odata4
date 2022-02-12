@@ -208,7 +208,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
       oData.read(
         {
           requestUri: url,
-          headers: {...this.headers,  Accept: this.metadataAcceptHeader}
+          headers: { ...this.headers, Accept: this.metadataAcceptHeader }
         },
         (data: Edmx.Edmx) => {
           // data.dataServices.schema is an array of schemas. with properties of
@@ -305,7 +305,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
         {
           method: 'POST',
           requestUri: url,
-          headers: {...this.headers},
+          headers: { ...this.headers },
           data: requestData
         },
         (data: Batch.BatchResponse) => {
@@ -377,8 +377,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
 
       let request: Batch.ChangeRequest = {
         headers: {
-            'Content-ID': contentId.toString(),
-            'Content-Type': 'application/json;IEEE754Compatible=true',
+          'Content-ID': contentId.toString(),
+          'Content-Type': 'application/json;IEEE754Compatible=true',
           ...this.headers
         },
         requestUri: null,
@@ -431,7 +431,7 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     let request: HttpOData.Request = {
       method,
       requestUri: this.getUrl(mappingContext),
-      headers: {...this.headers}
+      headers: { ...this.headers }
     };
 
     if (!query?.parameters) {
@@ -442,10 +442,10 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
     delete query.parameters['$method'];
 
     if (method === 'GET') {
-      request = {...request,  requestUri: this.addQueryString(request.requestUri, query.parameters)};
+      request = { ...request, requestUri: this.addQueryString(request.requestUri, query.parameters) };
     } else {
       const data = this.getData(mappingContext, query.parameters['$data']) ?? query.parameters;
-      request = {...request,  method, data};
+      request = { ...request, method, data };
     }
 
     return request;
@@ -524,9 +524,8 @@ export class OData4DataService extends ProxyDataService implements DataServiceAd
       return null;
     }
 
-    const urlParts = url.split('/');
-
-    const invokableName = urlParts.pop().replace(/\([^\)]*\)/, '');
+    // Get the action or function name, last path part in the url excluding any parentheses
+    const invokableName = url.split('/').pop().split('(')[0];
 
     const actionConfig = oData.utils.lookupAction(invokableName, this.metadata);
     const functionConfig = oData.utils.lookupFunction(invokableName, this.metadata);
