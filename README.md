@@ -22,8 +22,10 @@
 
 ```js
 import { EntityManager } from 'breeze-client';
+import { ModelLibraryBackingStoreAdapter } from 'breeze-client/adapter-model-library-backing-store';
 import { BreezeOData4 } from 'breeze-odata4';
 
+ModelLibraryBackingStoreAdapter.register();
 BreezeOData4.configure();
 
 const manager = new EntityManager('/api/odata4');
@@ -38,10 +40,6 @@ Now we can utilize breeze to query against an OData 4 API.
 ## Samples
 
 Samples can be found in the samples repo: https://github.com/tschettler/breeze-odata4-samples
-
-## Typings
-
-This library is currently referencing its own version of breeze-client typings, since the current typings available on DefinitelyTyped and within the breeze-client npm package are incomplete/outdated.
 
 ## License
 

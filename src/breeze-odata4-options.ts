@@ -53,6 +53,21 @@ export interface BreezeOData4Options {
      * Custom metadata adapters to register with breeze-odata4.
      */
     metadataAdapters: Type<MetadataAdapter>[];
+
+    /** The metadata accept header.
+     * @default 'application/json;odata.metadata=full'
+     */
+    metadataAcceptHeader: string;
+
+    /** Determines whether to fail on save error.
+     * @default true
+     */
+    failOnSaveError: boolean;
+
+    /** Determines whether to use batch saving.
+     * @default true
+     */
+    useBatchSave: boolean;
 }
 
 /**
@@ -66,5 +81,8 @@ export const DefaultOptions: BreezeOData4Options = {
     inferNavigationPropertyPartner: true,
     inferReferentialConstraints: true,
     initializeAdapters: true,
-    metadataAdapters: []
+    metadataAdapters: [],
+    failOnSaveError: true,
+    metadataAcceptHeader: 'application/json;odata.metadata=full',
+    useBatchSave: true
 };

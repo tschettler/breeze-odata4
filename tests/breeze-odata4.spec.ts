@@ -1,8 +1,9 @@
 import { config, DataType } from 'breeze-client';
 
+import { OData4BatchAjaxAdapter, OData4JsonAjaxAdapter } from '../src';
 import { NavigationAdapter } from '../src/adapters';
 import { BreezeOData4 } from '../src/breeze-odata4';
-import { OData4DataService } from '../src/breeze-odata4-dataService';
+import { OData4DataServiceAdapter } from '../src/breeze-odata4-dataService-adapter';
 import { BreezeOData4Options, DefaultOptions } from '../src/breeze-odata4-options';
 import { OData4UriBuilder } from '../src/breeze-odata4-uriBuilder';
 import { ClassRegistry } from '../src/class-registry';
@@ -13,7 +14,7 @@ describe('BreezeOData4', () => {
 
   beforeEach(() => {
     BreezeOData4.reset();
-    options = {...DefaultOptions,  initializeAdapters: false};
+    options = { ...DefaultOptions, initializeAdapters: false };
   });
 
   it('should register UriBuilder when configure is called', () => {
@@ -26,7 +27,19 @@ describe('BreezeOData4', () => {
   it('should register DataService when configure is called', () => {
     BreezeOData4.configure();
     const adapter = config.getAdapterInstance('dataService');
-    expect(adapter).toBeInstanceOf(OData4DataService);
+    expect(adapter).toBeInstanceOf(OData4DataServiceAdapter);
+  });
+
+  it('should register batch AjaxAdapter when configure is called', () => {
+    BreezeOData4.configure();
+    const adapter = config.getAdapterInstance('ajax');
+    expect(adapter).toBeInstanceOf(OData4BatchAjaxAdapter);
+  });
+
+  it('should register json AjaxAdapter when configure is called with useBatchSave false', () => {
+    BreezeOData4.configure({ useBatchSave: false });
+    const adapter = config.getAdapterInstance('ajax');
+    expect(adapter).toBeInstanceOf(OData4JsonAjaxAdapter);
   });
 
   it('should allow initializing after configuring', () => {
@@ -36,7 +49,7 @@ describe('BreezeOData4', () => {
     const ubAdapter = config.getAdapterInstance('uriBuilder');
     expect(ubAdapter).toBeInstanceOf(OData4UriBuilder);
     const dsAdapter = config.getAdapterInstance('dataService');
-    expect(dsAdapter).toBeInstanceOf(OData4DataService);
+    expect(dsAdapter).toBeInstanceOf(OData4DataServiceAdapter);
   });
 
   it('should add DataType.Date when configure is called', () => {
