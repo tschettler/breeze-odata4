@@ -3,7 +3,6 @@ import {
     config,
     DataProperty,
     DataService,
-    DataServiceAdapter,
     DataServiceConfig,
     DataType,
     Entity,
@@ -17,20 +16,20 @@ import {
     SaveOptions,
     SaveResult
 } from 'breeze-client';
-import { AjaxFetchAdapter } from 'breeze-client/adapter-ajax-fetch';
-import { DataServiceWebApiAdapter } from 'breeze-client/adapter-data-service-webapi';
 import { ModelLibraryBackingStoreAdapter } from 'breeze-client/adapter-model-library-backing-store';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Batch, HttpOData } from 'ts-odatajs';
 
 import { NavigationAdapter } from '../src/adapters';
+import { OData4BatchAjaxAdapter } from '../src/ajax-adapters';
 import { BreezeOData4 } from '../src/breeze-odata4';
-import { DataServiceSaveContext, OData4DataService } from '../src/breeze-odata4-dataService';
+import { DataServiceSaveContext, OData4DataServiceAdapter } from '../src/breeze-odata4-dataService-adapter';
 import { ClassRegistry } from '../src/class-registry';
 import { DataTypeSetup } from '../src/datatypes/setups/datatype-setup';
 import { ODataError } from '../src/odata-error';
 import { ODataHttpClient } from '../src/odata-http-client';
+import { DefaultDataServiceAdapterOptions } from '../src/options';
 
 const metadataXml = fs.readFileSync(
     path.join(__dirname, './metadata.xml'),
@@ -42,99 +41,57 @@ const invalidMetadataXml = fs.readFileSync(
 );
 jest.mock('../src/class-registry');
 
-const DefaultDataService: DataServiceAdapter = config.getAdapterInstance('dataService');
-
-const MockWebApiDataService = jest.fn<DataServiceAdapter, []>(
-    () =>
-        ({
-            name: 'webApi',
-            _catchNoConnectionError: jest.fn(),
-            _createChangeRequestInterceptor: jest.fn(),
-            checkForRecomposition: jest.fn(),
-            _prepareSaveBundle: jest.fn(),
-            _prepareSaveResult: jest.fn(),
-            initialize: jest.fn(),
-        } as any)
-);
-
-describe('OData4DataService', () => {
-    let sut: OData4DataService;
-    let innerAdapter: DataServiceAdapter;
+describe('OData4DataServiceAdapter', () => {
+    let sut: OData4DataServiceAdapter;
 
     beforeAll(() => {
+        OData4BatchAjaxAdapter.register();
         ModelLibraryBackingStoreAdapter.register();
-        AjaxFetchAdapter.register();
-        DataServiceWebApiAdapter.register();
     });
 
     beforeEach(() => {
         jest.clearAllMocks();
-        config.registerAdapter('dataService', MockWebApiDataService);
-        OData4DataService.register();
+        OData4DataServiceAdapter.register();
         config.initializeAdapterInstance(
             'dataService',
-            OData4DataService.BreezeAdapterName,
+            OData4DataServiceAdapter.BreezeAdapterName,
             true
         );
 
         sut = (config.getAdapterInstance('dataService'));
-        innerAdapter = ((
-            config.getAdapterInstance('dataService', 'webApi')
-        ));
     });
 
     it('should return value for metadataAcceptHeader', () => {
-        const result = sut.metadataAcceptHeader;
-        expect(result.length).toBeGreaterThan(0);
+        const result = sut.options.metadataAcceptHeader;
+        expect(result).toEqual('application/json;odata.metadata=full');
     });
 
     it('should have OData-Version 4.0 header', () => {
-        const result = sut.headers;
+        const result = sut.options.headers;
         expect(result['OData-Version']).toEqual('4.0');
     });
 
-    it('should create instance of OData4DataService when constructor is called', () => {
-        const svc = new OData4DataService();
-        expect(svc).toBeInstanceOf(OData4DataService);
+    it('should create instance of OData4DataServiceAdapter when constructor is called', () => {
+        const svc = new OData4DataServiceAdapter();
+        expect(svc).toBeInstanceOf(OData4DataServiceAdapter);
     });
 
     it('should register DataService when register is called', () => {
         const adapter = config.getAdapterInstance('dataService');
-        expect(adapter).toBeInstanceOf(OData4DataService);
+        expect(adapter).toBeInstanceOf(OData4DataServiceAdapter);
     });
 
-    it('should call inner adapter when _catchNoConnectionError is called', () => {
-        sut._catchNoConnectionError(new ODataError());
+    describe('configure', () => {
+        it('should succeed with null', () => {
+            sut.configure(null);
+            expect(true).toBeTruthy();
+        });
 
-        expect((innerAdapter as any)._catchNoConnectionError)
-            .toHaveBeenCalledTimes(1);
-    });
-
-    it('should call inner adapter when _createChangeRequestInterceptor is called', () => {
-        sut._createChangeRequestInterceptor(null, null);
-
-        expect((innerAdapter as any)._createChangeRequestInterceptor)
-            .toHaveBeenCalledTimes(1);
-    });
-
-    it('should call inner adapter checkForRecomposition', () => {
-        expect(innerAdapter.checkForRecomposition).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call inner adapter when _prepareSaveBundle is called', () => {
-        sut._prepareSaveBundle(null, null);
-
-        expect(
-            (innerAdapter as any)._prepareSaveBundle
-        ).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call inner adapter when _prepareSaveResult is called', () => {
-        sut._prepareSaveResult(null, null);
-
-        expect(
-            (innerAdapter as any)._prepareSaveResult
-        ).toHaveBeenCalledTimes(1);
+        it('should update options', () => {
+            sut.configure({ headers: { 'Test-Header': 'foo' } });
+            expect(sut.options.headers['Test-Header']).toEqual('foo');
+            delete sut.options.headers['Test-Header'];
+        });
     });
 
     describe('initialize', () => {
@@ -150,7 +107,7 @@ describe('OData4DataService', () => {
 
     describe('executeQuery', () => {
         let ctx: MappingContext;
-        let ds: OData4DataService;
+        let ds: OData4DataServiceAdapter;
         let httpClient: ODataHttpClient;
         let response: HttpOData.Response;
 
@@ -179,7 +136,7 @@ describe('OData4DataService', () => {
                 serviceName,
             };
 
-            ds = new OData4DataService();
+            ds = new OData4DataServiceAdapter();
             ds.initialize();
             ds.httpClient = httpClient;
             const dataService = new DataService(opts);
@@ -589,7 +546,7 @@ describe('OData4DataService', () => {
                 };
 
                 // save off data because it gets modified
-                const expected = {...data};
+                const expected = { ...data };
 
                 await ds.executeQuery(ctx);
 
@@ -819,7 +776,7 @@ describe('OData4DataService', () => {
                 .fn()
                 .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
-            const ds = new OData4DataService();
+            const ds = new OData4DataServiceAdapter();
             ds.initialize();
             ds.httpClient = httpClient;
 
@@ -858,7 +815,7 @@ describe('OData4DataService', () => {
                 .fn()
                 .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
-            const ds = new OData4DataService();
+            const ds = new OData4DataServiceAdapter();
             ds.initialize();
             ds.httpClient = httpClient;
 
@@ -900,7 +857,7 @@ describe('OData4DataService', () => {
                 .fn()
                 .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
-            const ds = new OData4DataService();
+            const ds = new OData4DataServiceAdapter();
             ds.initialize();
             ds.httpClient = httpClient;
 
@@ -942,7 +899,7 @@ describe('OData4DataService', () => {
                 .fn()
                 .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
-            const ds = new OData4DataService();
+            const ds = new OData4DataServiceAdapter();
             ds.initialize();
             ds.httpClient = httpClient;
 
@@ -984,7 +941,7 @@ describe('OData4DataService', () => {
                 .fn()
                 .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
-            const ds = new OData4DataService();
+            const ds = new OData4DataServiceAdapter();
             ds.initialize();
             ds.httpClient = httpClient;
 
@@ -1026,7 +983,7 @@ describe('OData4DataService', () => {
                 .fn()
                 .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
-            const ds = new OData4DataService();
+            const ds = new OData4DataServiceAdapter();
             ds.initialize();
             ds.httpClient = httpClient;
 
@@ -1068,7 +1025,7 @@ describe('OData4DataService', () => {
                 .fn()
                 .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
-            const ds = new OData4DataService();
+            const ds = new OData4DataServiceAdapter();
             ds.initialize();
             ds.httpClient = httpClient;
 
@@ -1110,7 +1067,7 @@ describe('OData4DataService', () => {
                 .fn()
                 .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
-            const ds = new OData4DataService();
+            const ds = new OData4DataServiceAdapter();
             ds.initialize();
             ds.httpClient = httpClient;
 
@@ -1152,7 +1109,7 @@ describe('OData4DataService', () => {
                 .fn()
                 .mockImplementation(() => [] as DataTypeSetup[]);
             BreezeOData4.configure();
-            const ds = new OData4DataService();
+            const ds = new OData4DataServiceAdapter();
             ds.initialize();
             ds.httpClient = httpClient;
 
@@ -1171,7 +1128,7 @@ describe('OData4DataService', () => {
     });
 
     describe('saveChanges', () => {
-        let ds: OData4DataService;
+        let ds: OData4DataServiceAdapter;
         let metadataStore: MetadataStore;
         let dataService: DataService;
         let httpClient: ODataHttpClient;
@@ -1190,15 +1147,7 @@ describe('OData4DataService', () => {
                 .fn()
                 .mockImplementation(() => [] as DataTypeSetup[]);
 
-            (innerAdapter as any)._createChangeRequestInterceptor = jest.fn<{
-                getRequest: <T>(request: T, entity: Entity, index: number) => T;
-                done: (requests: any[]) => void;
-            }, [DataServiceSaveContext, SaveBundle]>(
-                (sc, sb) => {
-                    return (DefaultDataService as any)._createChangeRequestInterceptor(sc, sb);
-                });
-
-            ds = new OData4DataService();
+            ds = new OData4DataServiceAdapter();
             ds.initialize();
 
             httpClient = new ODataHttpClient();
@@ -1309,8 +1258,8 @@ describe('OData4DataService', () => {
             await ds.saveChanges(saveContext, saveBundle);
 
             // tslint:disable-next-line:forin
-            for (const header in ds.headers) {
-                expect(result[header]).toBe(ds.headers[header]);
+            for (const header in DefaultDataServiceAdapterOptions.headers) {
+                expect(result[header]).toBe(DefaultDataServiceAdapterOptions.headers[header]);
             }
         });
 
@@ -1353,6 +1302,18 @@ describe('OData4DataService', () => {
                 .rejects.toThrowError(expect.any(ODataError));
         });
 
+        it('should throw error for invalid batch response', async () => {
+            delete batchResponse['__batchResponses'];
+
+            httpClient.request = (req, success, error) => {
+                success(response);
+                return {} as HttpOData.RequestWithAbort;
+            };
+
+            await expect(ds.saveChanges(saveContext, saveBundle))
+                .rejects.toThrowError(expect.any(ODataError));
+        });
+
         it('should throw error for batch response with no status code', async () => {
             (batchResponse.__batchResponses[0].__changeResponses[0] as Batch.ChangeResponse).statusCode = '';
 
@@ -1363,6 +1324,39 @@ describe('OData4DataService', () => {
 
             await expect(ds.saveChanges(saveContext, saveBundle))
                 .rejects.toThrowError(expect.any(ODataError));
+        });
+
+        it('should not throw error for failed batch response when failOnSaveError is false', async () => {
+            batchResponse.__batchResponses[0].__changeResponses[0] =
+                ({
+                    response: {
+                        statusCode: '500',
+                        statusText: 'Test error'
+                    }
+                } as Batch.FailedResponse);
+
+            httpClient.request = (req, success, error) => {
+                success(response);
+                return {} as HttpOData.RequestWithAbort;
+            };
+
+            ds.configure({ failOnSaveError: false });
+            const result = await ds.saveChanges(saveContext, saveBundle);
+            expect(result.entities).toHaveLength(0);
+            ds.configure({ failOnSaveError: true });
+        });
+
+        it('should not throw error for batch response with no status code when failOnSaveError is false', async () => {
+            (batchResponse.__batchResponses[0].__changeResponses[0] as Batch.ChangeResponse).statusCode = '';
+            httpClient.request = (req, success, error) => {
+                success(response);
+                return {} as HttpOData.RequestWithAbort;
+            };
+
+            ds.configure({ failOnSaveError: false });
+            const result = await ds.saveChanges(saveContext, saveBundle);
+            expect(result.entities).toHaveLength(0);
+            ds.configure({ failOnSaveError: true });
         });
 
         describe('with new entity', () => {

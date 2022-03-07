@@ -1,12 +1,13 @@
 import { config } from 'breeze-client';
 
 import * as metadataAdapters from './adapters';
-import { OData4DataService } from './breeze-odata4-dataService';
-import { BreezeOData4Options, DefaultOptions } from './breeze-odata4-options';
+import { OData4BatchAjaxAdapter, OData4JsonAjaxAdapter } from './ajax-adapters';
+import { OData4DataServiceAdapter } from './breeze-odata4-dataService-adapter';
 import { OData4UriBuilder } from './breeze-odata4-uriBuilder';
 import { ClassRegistry } from './class-registry';
 import * as datatypeSetups from './datatypes/setups';
 import * as annotationDecorators from './decorators';
+import { BreezeOData4Options, DefaultOptions } from './options';
 
 /**
  * @classdesc Intializes the breeze OData4 configuration.
@@ -19,19 +20,14 @@ export class BreezeOData4 {
    * @param [options] The OData4 initialization options.
    */
   public static configure(options?: Partial<BreezeOData4Options>): void {
-    const opts: BreezeOData4Options = {...DefaultOptions, ...(options || {})};
+    const opts: BreezeOData4Options = { ...DefaultOptions, ...(options || {}) };
 
     if (!this.isConfigured) {
       OData4UriBuilder.register();
-      OData4DataService.register();
+      OData4DataServiceAdapter.register();
+      opts.useBatchSave ? OData4BatchAjaxAdapter.register() : OData4JsonAjaxAdapter.register();
 
-      metadataAdapters.NavigationAdapter.allowManyToMany = opts.allowManyToManyRelationships;
-      metadataAdapters.NavigationAdapter.foreignKeyConventions = [
-        ...opts.foreignKeyConventions,
-        ...metadataAdapters.NavigationAdapter.foreignKeyConventions
-      ];
-      metadataAdapters.NavigationAdapter.inferPartner = opts.inferNavigationPropertyPartner;
-      metadataAdapters.NavigationAdapter.inferConstraints = opts.inferReferentialConstraints;
+      metadataAdapters.NavigationAdapter.configure(opts.navigationAdapter);
 
       BreezeOData4.registerClasses(opts);
       BreezeOData4.setupDataTypes();
@@ -40,8 +36,11 @@ export class BreezeOData4 {
     }
 
     if (opts.initializeAdapters) {
+      const ajaxAdapterName = opts.useBatchSave ? OData4BatchAjaxAdapter.BreezeAdapterName : OData4JsonAjaxAdapter.BreezeAdapterName;
+      config.initializeAdapterInstance('ajax', ajaxAdapterName, true);
       config.initializeAdapterInstance('uriBuilder', OData4UriBuilder.BreezeAdapterName, true);
-      config.initializeAdapterInstance('dataService', OData4DataService.BreezeAdapterName, true);
+      const ds = config.initializeAdapterInstance('dataService', OData4DataServiceAdapter.BreezeAdapterName, true) as OData4DataServiceAdapter;
+      ds.configure(opts.dataServiceAdapter);
     }
   }
 

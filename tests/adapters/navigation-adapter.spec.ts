@@ -94,9 +94,11 @@ const schema: Edm.Schema = {
 describe('NavigationAdapter', () => {
   beforeEach(() => {
     sut = new NavigationAdapter();
-    NavigationAdapter.allowManyToMany = false;
-    NavigationAdapter.inferConstraints = true;
-    NavigationAdapter.inferPartner = true;
+    NavigationAdapter.configure({
+      allowManyToMany: false,
+      inferReferentialConstraints: true,
+      inferNavigationPropertyPartner: true
+    });
 
     // delete schema.association;
     metadata = {
@@ -107,9 +109,16 @@ describe('NavigationAdapter', () => {
     };
   });
 
+  describe('configure', () => {
+    it('should succeed with null', () => {
+      NavigationAdapter.configure(null);
+      expect(true).toBeTruthy();
+    });
+  });
+
   describe('with inferPartner = false', () => {
     beforeEach(() => {
-      NavigationAdapter.inferPartner = false;
+      NavigationAdapter.configure({ inferNavigationPropertyPartner: false });
     });
 
     it('should add associations when adapt is called with a 1:1 entity relationship', () => {
@@ -296,8 +305,8 @@ describe('NavigationAdapter', () => {
     }).toThrow(EntityNotFound);
   });
 
-  it('should throw Error when adapt is called with missing entityType and inferConstraints = false', () => {
-    NavigationAdapter.inferConstraints = false;
+  it('should throw Error when adapt is called with missing entityType and inferReferentialConstraints = false', () => {
+    NavigationAdapter.configure({ inferReferentialConstraints: false });
     const entityType = getProductEntityType();
     entityType.navigationProperty = [{ name: 'NotHere', type: 'UnitTesting.Nothing' }];
     schema.entityType = [entityType];
@@ -381,7 +390,7 @@ describe('NavigationAdapter', () => {
   });
 
   it('should add associations when adapt is called with a M:M entity relationship and allowManyToMany=false', () => {
-    NavigationAdapter.allowManyToMany = false;
+    NavigationAdapter.configure({ allowManyToMany: false });
     schema.entityType = getManyToManyEntityTypes();
 
     sut.adapt(metadata.dataServices);
@@ -419,7 +428,7 @@ describe('NavigationAdapter', () => {
   });
 
   it('should add associations when adapt is called with a M:M entity relationship and allowManyToMany=true', () => {
-    NavigationAdapter.allowManyToMany = true;
+    NavigationAdapter.configure({ allowManyToMany: true });
     schema.entityType = getManyToManyEntityTypes();
 
     sut.adapt(metadata.dataServices);
