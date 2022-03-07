@@ -1,6 +1,6 @@
 import { DataType } from 'breeze-client';
 
-import { EdmEnum, EdmEnumMember, EdmEnumOptions } from '../../src/models';
+import { EdmEnum, EdmEnumMember, EdmEnumOptions } from '../../../src/datatypes/models';
 
 describe('EdmEnum', () => {
     let sut: EdmEnum;
