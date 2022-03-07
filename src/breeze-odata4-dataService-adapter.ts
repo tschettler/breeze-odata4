@@ -18,10 +18,11 @@ import {
 } from 'breeze-client';
 import { Batch, Edm, Edmx, HttpOData, oData } from 'ts-odatajs';
 
+import { OData4AjaxAdapter } from './ajax-adapters';
 import { JsonResultsAdapterFactory } from './breeze-jsonResultsAdapter-factory';
 import { ODataError } from './odata-error';
 import { ODataHttpClient } from './odata-http-client';
-import { OData4AjaxAdapter } from './ajax-adapters';
+import { DataServiceAdapterOptions, DefaultDataServiceAdapterOptions } from './options';
 import { InvokableEntry, Utilities } from './utilities';
 
 export interface DataServiceSaveContext extends SaveContext {
@@ -34,6 +35,7 @@ export interface DataServiceSaveContext extends SaveContext {
  * @classdesc OData4 data service
  */
 export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
+  private _options = DefaultDataServiceAdapterOptions;
 
   /**
    * The breeze adapter name.
@@ -50,22 +52,6 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
   public name = OData4DataServiceAdapter.BreezeAdapterName;
 
   /**
-   * The headers used by the data service when calling the OData 4 service.
-   * @default
-   * ```json
-   * {'OData-Version': '4.0'}
-   * ```
-   */
-  public headers: { [name: string]: string } = {
-    'OData-Version': '4.0'
-  };
-
-  /**
-   * The metadata accept header.
-   */
-  public metadataAcceptHeader = 'application/json;odata.metadata=full';
-
-  /**
    * The metadata of the odata4 data service.
    */
   public metadata: Edmx.Edmx;
@@ -80,10 +66,12 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
    */
   public jsonResultsAdapter: JsonResultsAdapter;
 
-  /** Determines whether to use batch saving.
-   * @default true
+  /**
+   * Gets the currently configured options.
    */
-  public failOnSaveError = true;
+  public get options(): Readonly<DataServiceAdapterOptions> {
+    return this._options;
+  }
 
   /**
    * Registers the OData4 data service as a `dataService` breeze interface.
@@ -151,7 +139,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
     });
 
     // TODO: Configure whether to prevent reject on failure
-    if (failedResponse && this.failOnSaveError) {
+    if (failedResponse && this.options.failOnSaveError) {
       const err = this.createError(failedResponse, saveContext.requestUri);
       reject(err);
       return;
@@ -160,6 +148,24 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
     const saveResult = this.ajaxImpl.prepareSaveResult(saveContext, changeResponses);
 
     return saveResult;
+  }
+
+  /**
+   * Configures the navigation adapter with the specified options.
+   * @param options The navigation adapter options.
+   */
+  public configure(options: Partial<DataServiceAdapterOptions>) {
+    options = options || {};
+
+    options.headers = {
+      ...this._options.headers,
+      ...options.headers
+    };
+
+    this._options = {
+      ...this._options,
+      ...options
+    };
   }
 
   /**
@@ -203,7 +209,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
       oData.read(
         {
           requestUri: url,
-          headers: { ...this.headers, Accept: this.metadataAcceptHeader }
+          headers: { ...this.options.headers, Accept: this.options.metadataAcceptHeader }
         },
         (data: Edmx.Edmx) => {
           // data.dataServices.schema is an array of schemas. with properties of
@@ -297,7 +303,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
       this.ajaxImpl.ajax({
         type: 'POST',
         url: saveContext.requestUri,
-        headers: { ...this.headers },
+        headers: { ...this.options.headers },
         data: requestData,
         success: (res: HttpResponse) => {
           res.saveContext = saveContext;
@@ -331,7 +337,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
     let request: HttpOData.Request = {
       method,
       requestUri: this.getUrl(mappingContext),
-      headers: { ...this.headers }
+      headers: { ...this.options.headers }
     };
 
     if (!query?.parameters) {

@@ -3,11 +3,11 @@ import { config } from 'breeze-client';
 import * as metadataAdapters from './adapters';
 import { OData4BatchAjaxAdapter, OData4JsonAjaxAdapter } from './ajax-adapters';
 import { OData4DataServiceAdapter } from './breeze-odata4-dataService-adapter';
-import { BreezeOData4Options, DefaultOptions } from './breeze-odata4-options';
 import { OData4UriBuilder } from './breeze-odata4-uriBuilder';
 import { ClassRegistry } from './class-registry';
 import * as datatypeSetups from './datatypes/setups';
 import * as annotationDecorators from './decorators';
+import { BreezeOData4Options, DefaultOptions } from './options';
 
 /**
  * @classdesc Intializes the breeze OData4 configuration.
@@ -27,13 +27,7 @@ export class BreezeOData4 {
       OData4DataServiceAdapter.register();
       opts.useBatchSave ? OData4BatchAjaxAdapter.register() : OData4JsonAjaxAdapter.register();
 
-      metadataAdapters.NavigationAdapter.allowManyToMany = opts.allowManyToManyRelationships;
-      metadataAdapters.NavigationAdapter.foreignKeyConventions = [
-        ...opts.foreignKeyConventions,
-        ...metadataAdapters.NavigationAdapter.foreignKeyConventions
-      ];
-      metadataAdapters.NavigationAdapter.inferPartner = opts.inferNavigationPropertyPartner;
-      metadataAdapters.NavigationAdapter.inferConstraints = opts.inferReferentialConstraints;
+      metadataAdapters.NavigationAdapter.configure(opts.navigationAdapter);
 
       BreezeOData4.registerClasses(opts);
       BreezeOData4.setupDataTypes();
@@ -46,8 +40,7 @@ export class BreezeOData4 {
       config.initializeAdapterInstance('ajax', ajaxAdapterName, true);
       config.initializeAdapterInstance('uriBuilder', OData4UriBuilder.BreezeAdapterName, true);
       const ds = config.initializeAdapterInstance('dataService', OData4DataServiceAdapter.BreezeAdapterName, true) as OData4DataServiceAdapter;
-      ds.failOnSaveError = opts.failOnSaveError;
-      ds.metadataAcceptHeader = opts.metadataAcceptHeader;
+      ds.configure(opts.dataServiceAdapter);
     }
   }
 

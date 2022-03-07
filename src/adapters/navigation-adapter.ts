@@ -1,8 +1,8 @@
 import { Edm, EdmExtra, Edmx, oData } from 'ts-odatajs';
 
 import { AssociationEndpoint, AssociationSet } from '../models';
+import { DefaultNavigationAdapterOptions, NavigationAdapterOptions } from '../options';
 import { MetadataAdapter } from './metadata-adapter';
-
 
 export const EntityNotFound = 'Could not find entity with type name';
 const PartnerSuffix = 'Partner';
@@ -12,33 +12,38 @@ const PartnerSuffix = 'Partner';
  * @see {Edm.NavigationProperty}
  */
 export class NavigationAdapter implements MetadataAdapter {
-  /** Determines whether to allow many-to-many entity relationships.
-   * @default false
-   */
-  public static allowManyToMany = false;
-
-  /** Determines whether to infer referential constraints when the referentialConstraint attribute is missing.
-   * @default true
-   */
-  public static inferConstraints = true;
-
-  /** Determines whether to infer the partner when the partner attribute is missing.
-   * @default true
-   */
-  public static inferPartner = true;
-
-  /** Conventions used to infer foreign key properties.
-   */
-  public static foreignKeyConventions: ((endpoint: AssociationEndpoint, suffix: string) => string)[] = [
-    (endpoint, suffix) => `${endpoint.propertyName}${suffix}`.toLowerCase(),
-    (endpoint) => `${endpoint.propertyName}Id`.toLowerCase(),
-    (endpoint, suffix) => `${endpoint.partnerEntityShortName}${suffix}`.toLowerCase(),
-    (endpoint) => `${endpoint.partnerEntityShortName}Id`.toLowerCase()
-  ];
+  // TODO: Implement method to handle instance-based options.
+  private static _defaultOptions = DefaultNavigationAdapterOptions;
+  private static _options = DefaultNavigationAdapterOptions;
 
   private metadata: Edmx.DataServices;
   private entityContainer: Edm.EntityContainer;
   private associations: AssociationSet[] = [];
+
+  /**
+   * Configures the navigation adapter with the specified options.
+   * @param options The navigation adapter options.
+   */
+  public static configure(options: Partial<NavigationAdapterOptions>) {
+    options = options || {};
+
+    options.foreignKeyConventions = [
+      ...NavigationAdapter._defaultOptions.foreignKeyConventions,
+      ...(options.foreignKeyConventions || [])
+    ];
+
+    NavigationAdapter._options = {
+      ...NavigationAdapter._defaultOptions,
+      ...options
+    };
+  }
+
+  /**
+   * Gets the currently configured options.
+   */
+  public static get options(): Readonly<NavigationAdapterOptions> {
+    return NavigationAdapter._options;
+  }
 
   public adapt(metadata: Edmx.DataServices): void {
     this.metadata = metadata;
@@ -103,7 +108,7 @@ export class NavigationAdapter implements MetadataAdapter {
       return;
     }
 
-    if (endpoint.isCollection || !NavigationAdapter.inferConstraints) {
+    if (endpoint.isCollection || !NavigationAdapter.options.inferReferentialConstraints) {
       return;
     }
 
@@ -131,7 +136,7 @@ export class NavigationAdapter implements MetadataAdapter {
       if (r.name.toLowerCase() === `${entityName}Id`.toLowerCase()) {
         possibleFKs = entityKeys.map(p => p.name.toLowerCase());
       } else {
-        possibleFKs = NavigationAdapter.foreignKeyConventions
+        possibleFKs = NavigationAdapter.options.foreignKeyConventions
           .map(func => func(endpoint, keySuffix))
           .filter(p => !referentialConstraint.find(rc => rc.property.toLowerCase() === p));
       }
@@ -207,7 +212,7 @@ export class NavigationAdapter implements MetadataAdapter {
 
     if (navProp.partner) {
       partnerNameCandidates.push(navProp.partner);
-    } else if (NavigationAdapter.inferPartner) {
+    } else if (NavigationAdapter.options.inferNavigationPropertyPartner) {
       const entitySetName = this.getEntitySetNameByEntityType(endpoint.containingEntityType);
       partnerNameCandidates.push(endpoint.containingEntityShortName);
       partnerNameCandidates.push(entitySetName);
@@ -219,7 +224,7 @@ export class NavigationAdapter implements MetadataAdapter {
         && partnerNameCandidates.includes(n.name)
         && (!n.partner || n.partner === navProp.name));
 
-    if (!!partnerNavProp || !NavigationAdapter.inferPartner) {
+    if (!!partnerNavProp || !NavigationAdapter.options.inferNavigationPropertyPartner) {
       // (partnerNavProp || <any>{}).partner = navProp.name;
 
       return partnerNavProp;
@@ -235,7 +240,7 @@ export class NavigationAdapter implements MetadataAdapter {
   }
 
   private validateRelationship(...navigationProperties: Edm.NavigationProperty[]) {
-    const result = NavigationAdapter.allowManyToMany
+    const result = NavigationAdapter.options.allowManyToMany
       || !navigationProperties.every(n => !!n && oData.utils.isCollectionType(n.type));
 
     return result;

@@ -21,14 +21,15 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Batch, HttpOData } from 'ts-odatajs';
 
-import { OData4BatchAjaxAdapter } from '../src';
 import { NavigationAdapter } from '../src/adapters';
+import { OData4BatchAjaxAdapter } from '../src/ajax-adapters';
 import { BreezeOData4 } from '../src/breeze-odata4';
 import { DataServiceSaveContext, OData4DataServiceAdapter } from '../src/breeze-odata4-dataService-adapter';
 import { ClassRegistry } from '../src/class-registry';
 import { DataTypeSetup } from '../src/datatypes/setups/datatype-setup';
 import { ODataError } from '../src/odata-error';
 import { ODataHttpClient } from '../src/odata-http-client';
+import { DefaultDataServiceAdapterOptions } from '../src/options';
 
 const metadataXml = fs.readFileSync(
     path.join(__dirname, './metadata.xml'),
@@ -61,12 +62,12 @@ describe('OData4DataServiceAdapter', () => {
     });
 
     it('should return value for metadataAcceptHeader', () => {
-        const result = sut.metadataAcceptHeader;
+        const result = sut.options.metadataAcceptHeader;
         expect(result).toEqual('application/json;odata.metadata=full');
     });
 
     it('should have OData-Version 4.0 header', () => {
-        const result = sut.headers;
+        const result = sut.options.headers;
         expect(result['OData-Version']).toEqual('4.0');
     });
 
@@ -78,6 +79,19 @@ describe('OData4DataServiceAdapter', () => {
     it('should register DataService when register is called', () => {
         const adapter = config.getAdapterInstance('dataService');
         expect(adapter).toBeInstanceOf(OData4DataServiceAdapter);
+    });
+
+    describe('configure', () => {
+        it('should succeed with null', () => {
+            sut.configure(null);
+            expect(true).toBeTruthy();
+        });
+
+        it('should update options', () => {
+            sut.configure({ headers: { 'Test-Header': 'foo' } });
+            expect(sut.options.headers['Test-Header']).toEqual('foo');
+            delete sut.options.headers['Test-Header'];
+        });
     });
 
     describe('initialize', () => {
@@ -1244,8 +1258,8 @@ describe('OData4DataServiceAdapter', () => {
             await ds.saveChanges(saveContext, saveBundle);
 
             // tslint:disable-next-line:forin
-            for (const header in ds.headers) {
-                expect(result[header]).toBe(ds.headers[header]);
+            for (const header in DefaultDataServiceAdapterOptions.headers) {
+                expect(result[header]).toBe(DefaultDataServiceAdapterOptions.headers[header]);
             }
         });
 
@@ -1326,10 +1340,10 @@ describe('OData4DataServiceAdapter', () => {
                 return {} as HttpOData.RequestWithAbort;
             };
 
-            ds.failOnSaveError = false;
+            ds.configure({ failOnSaveError: false });
             const result = await ds.saveChanges(saveContext, saveBundle);
             expect(result.entities).toHaveLength(0);
-            ds.failOnSaveError = true;
+            ds.configure({ failOnSaveError: true });
         });
 
         it('should not throw error for batch response with no status code when failOnSaveError is false', async () => {
@@ -1339,10 +1353,10 @@ describe('OData4DataServiceAdapter', () => {
                 return {} as HttpOData.RequestWithAbort;
             };
 
-            ds.failOnSaveError = false;
+            ds.configure({ failOnSaveError: false });
             const result = await ds.saveChanges(saveContext, saveBundle);
             expect(result.entities).toHaveLength(0);
-            ds.failOnSaveError = true;
+            ds.configure({ failOnSaveError: true });
         });
 
         describe('with new entity', () => {

@@ -1,13 +1,13 @@
 import { config, DataType } from 'breeze-client';
 
-import { OData4BatchAjaxAdapter, OData4JsonAjaxAdapter } from '../src';
 import { NavigationAdapter } from '../src/adapters';
+import { OData4BatchAjaxAdapter, OData4JsonAjaxAdapter } from '../src/ajax-adapters';
 import { BreezeOData4 } from '../src/breeze-odata4';
 import { OData4DataServiceAdapter } from '../src/breeze-odata4-dataService-adapter';
-import { BreezeOData4Options, DefaultOptions } from '../src/breeze-odata4-options';
 import { OData4UriBuilder } from '../src/breeze-odata4-uriBuilder';
 import { ClassRegistry } from '../src/class-registry';
 import { AssociationEndpoint } from '../src/models';
+import { BreezeOData4Options, DefaultOptions } from '../src/options';
 
 describe('BreezeOData4', () => {
   let options: Partial<BreezeOData4Options>;
@@ -262,35 +262,35 @@ describe('BreezeOData4', () => {
   describe('foreignKeyConventions', () => {
     it('should add foreign key conventions', () => {
       const convention = (endpoint: AssociationEndpoint, suffix: string) => `${endpoint.propertyName}Test`;
-      options.foreignKeyConventions.push(convention);
+      options.navigationAdapter.foreignKeyConventions.push(convention);
       BreezeOData4.configure(options);
-      expect(NavigationAdapter.foreignKeyConventions).toContain(convention);
+      expect(NavigationAdapter.options.foreignKeyConventions).toContain(convention);
     });
   });
 
   describe('inferNavigationPropertyPartner', () => {
     it('should set NavigationAdapter.inferParter to true', () => {
       BreezeOData4.configure(options);
-      expect(NavigationAdapter.inferPartner).toBeTruthy();
+      expect(NavigationAdapter.options.inferNavigationPropertyPartner).toBeTruthy();
     });
 
     it('should set NavigationAdapter.inferParter to false', () => {
-      options.inferNavigationPropertyPartner = false;
+      options.navigationAdapter.inferNavigationPropertyPartner = false;
       BreezeOData4.configure(options);
-      expect(NavigationAdapter.inferPartner).toBeFalsy();
+      expect(NavigationAdapter.options.inferNavigationPropertyPartner).toBeFalsy();
     });
   });
 
   describe('inferReferentialConstraints', () => {
     it('should set NavigationAdapter.inferConstraints to true', () => {
       BreezeOData4.configure(options);
-      expect(NavigationAdapter.inferConstraints).toBeTruthy();
+      expect(NavigationAdapter.options.inferReferentialConstraints).toBeTruthy();
     });
 
     it('should set NavigationAdapter.inferConstraints to false', () => {
-      options.inferReferentialConstraints = false;
+      options.navigationAdapter.inferReferentialConstraints = false;
       BreezeOData4.configure(options);
-      expect(NavigationAdapter.inferConstraints).toBeFalsy();
+      expect(NavigationAdapter.options.inferReferentialConstraints).toBeFalsy();
     });
   });
 
