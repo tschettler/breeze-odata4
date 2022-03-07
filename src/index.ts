@@ -3,7 +3,7 @@ export { OData4AjaxAdapter, OData4BatchAjaxAdapter, OData4JsonAjaxAdapter } from
 export { JsonResultsAdapterFactory } from './breeze-jsonResultsAdapter-factory';
 export { BreezeOData4 } from './breeze-odata4';
 export { OData4DataServiceAdapter } from './breeze-odata4-dataService-adapter';
-export { BreezeOData4Options } from './breeze-odata4-options';
+export { BreezeOData4Options, DataServiceAdapterOptions, NavigationAdapterOptions } from './options';
 export { OData4EntityQuery } from './breeze-odata4-entity-query';
 export { OData4PredicateVisitor } from './breeze-odata4-predicateVisitor';
 export { OData4UriBuilder } from './breeze-odata4-uriBuilder';

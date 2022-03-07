@@ -1,9 +1,9 @@
-import { MetadataAdapter } from './adapters/metadata-adapter';
-import { Type } from './class-registry';
-import { DataTypeSetup } from './datatypes/setups/datatype-setup';
-import { AnnotationDecorator } from './decorators/annotation-decorator';
-import { DataServiceAdapterOptions } from './options/dataService-adapter-options';
-import { NavigationAdapterOptions } from './options/navigation-adapter-options';
+import { MetadataAdapter } from '../adapters/metadata-adapter';
+import { Type } from '../class-registry';
+import { DataTypeSetup } from '../datatypes/setups/datatype-setup';
+import { AnnotationDecorator } from '../decorators/annotation-decorator';
+import { DataServiceAdapterOptions } from './dataService-adapter-options';
+import { NavigationAdapterOptions } from './navigation-adapter-options';
 
 /**
  * Configuration options for breeze-odata4.
