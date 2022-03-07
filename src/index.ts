@@ -11,6 +11,6 @@ export { ClassRegistry, ClassRepository, Type } from './class-registry';
 export { DataTypeSetup } from './datatypes/setups/datatype-setup';
 export { BaseDataTypeSetup } from './datatypes/setups/base-datatype-setup';
 export { AnnotationDecorator } from './decorators/annotation-decorator';
-export { EdmEnum } from './models';
+export { EdmDate, EdmDateTimeOffset, EdmDuration, EdmEnum, EdmTimeOfDay } from './datatypes/models';
 export { ODataHttpClient } from './odata-http-client';
 export { Utilities } from './utilities';
