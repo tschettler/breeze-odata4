@@ -7,6 +7,7 @@ import { OData4DataServiceAdapter } from '../src/breeze-odata4-dataService-adapt
 import { OData4UriBuilder } from '../src/breeze-odata4-uriBuilder';
 import { ClassRegistry } from '../src/class-registry';
 import { AssociationEndpoint } from '../src/models';
+import { ODataHttpClient } from '../src/odata-http-client';
 import { BreezeOData4Options, DefaultOptions } from '../src/options';
 
 describe('BreezeOData4', () => {
@@ -40,6 +41,13 @@ describe('BreezeOData4', () => {
     BreezeOData4.configure({ useBatchSave: false });
     const adapter = config.getAdapterInstance('ajax');
     expect(adapter).toBeInstanceOf(OData4JsonAjaxAdapter);
+  });
+
+  it('should set httpClient', () => {
+    const httpClient = new ODataHttpClient();
+    BreezeOData4.configure({ dataServiceAdapter: { httpClient } });
+    const adapter = config.getAdapterInstance<OData4DataServiceAdapter>('dataService');
+    expect(adapter.options.httpClient).toBe(httpClient);
   });
 
   it('should allow initializing after configuring', () => {

@@ -6,6 +6,19 @@ import { DataServiceAdapterOptions } from './dataService-adapter-options';
 import { NavigationAdapterOptions } from './navigation-adapter-options';
 
 /**
+ * The default OData 4 options.
+ */
+ export const DefaultOptions: BreezeOData4Options = {
+    annotationDecorators: [],
+    dataServiceAdapter: { headers: {} },
+    dataTypeSetups: [],
+    initializeAdapters: true,
+    metadataAdapters: [],
+    navigationAdapter: { foreignKeyConventions: [] },
+    useBatchSave: true
+};
+
+/**
  * Configuration options for breeze-odata4.
  */
 export interface BreezeOData4Options {
@@ -44,16 +57,3 @@ export interface BreezeOData4Options {
       */
      useBatchSave: boolean;
 }
-
-/**
- * The default OData 4 options.
- */
-export const DefaultOptions: BreezeOData4Options = {
-    annotationDecorators: [],
-    dataServiceAdapter: { headers: {} },
-    dataTypeSetups: [],
-    initializeAdapters: true,
-    metadataAdapters: [],
-    navigationAdapter: { foreignKeyConventions: [] },
-    useBatchSave: true
-};

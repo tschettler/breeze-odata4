@@ -38,9 +38,10 @@ export class OData4BatchAjaxAdapter extends OData4AjaxAdapter {
       },
       (data: Batch.BatchResponse, response: HttpOData.Response) => {
         const httpResponse: HttpResponse = {
+          error: null,
+          ...response,
           config: ajaxConfig,
           data,
-          error: null,
           getHeaders: (name: string) => response.headers[name],
           status: Number(response.statusCode)
         };

@@ -39,7 +39,7 @@ export class OData4JsonAjaxAdapter extends OData4AjaxAdapter {
             headers: c.headers,
             data: c.data
           },
-          (data: Batch.ChangeResponse) => resolve(data),
+          (_data: any, response: HttpOData.Response) => resolve(response),
           err => reject(err),
           oData.jsonHandler,
           httpClient,

@@ -1,3 +1,5 @@
+import { ODataHttpClient } from "../odata-http-client";
+
 /**
  * The default OData 4 data service adapter options.
  */
@@ -25,6 +27,11 @@ export interface DataServiceAdapterOptions {
      * ```
      */
     headers: { [name: string]: string };
+
+    /**
+     * Http client instance to use with the data service.
+     */
+    httpClient?: ODataHttpClient;
 
     /** The metadata accept header.
      * @default 'application/json;odata.metadata=full'
