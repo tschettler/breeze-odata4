@@ -61,10 +61,7 @@ describe('OData4JsonAjaxAdapter', () => {
                 };
                 ajaxConfig.data = batchRequest;
 
-                changeResponse = {
-                    statusCode: '200',
-                    statusText: 'OK'
-                };
+                changeResponse = {} as any;
 
                 httpClient.request = (req, success, error) => {
                     odataResponse = ({

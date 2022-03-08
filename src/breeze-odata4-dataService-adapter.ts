@@ -21,7 +21,6 @@ import { Batch, Edm, Edmx, HttpOData, oData } from 'ts-odatajs';
 import { OData4AjaxAdapter } from './ajax-adapters';
 import { JsonResultsAdapterFactory } from './breeze-jsonResultsAdapter-factory';
 import { ODataError } from './odata-error';
-import { ODataHttpClient } from './odata-http-client';
 import { DataServiceAdapterOptions, DefaultDataServiceAdapterOptions } from './options';
 import { InvokableEntry, Utilities } from './utilities';
 
@@ -55,11 +54,6 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
    * The metadata of the odata4 data service.
    */
   public metadata: Edmx.Edmx;
-
-  /**
-   * Http client of the data service.
-   */
-  public httpClient: ODataHttpClient;
 
   /**
    * Json results adapter of the data service.
@@ -139,7 +133,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
     });
 
     // TODO: Configure whether to prevent reject on failure
-    if (failedResponse && this.options.failOnSaveError) {
+    if (failedResponse && this._options.failOnSaveError) {
       const err = this.createError(failedResponse, saveContext.requestUri);
       reject(err);
       return;
@@ -209,7 +203,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
       oData.read(
         {
           requestUri: url,
-          headers: { ...this.options.headers, Accept: this.options.metadataAcceptHeader }
+          headers: { ...this._options.headers, Accept: this._options.metadataAcceptHeader }
         },
         (data: Edmx.Edmx) => {
           // data.dataServices.schema is an array of schemas. with properties of
@@ -246,7 +240,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
           reject(err);
         },
         oData.metadataHandler,
-        this.httpClient
+        this._options.httpClient
       );
     });
   }
@@ -280,7 +274,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
           reject(err);
         },
         null,
-        this.httpClient
+        this._options.httpClient
       );
     });
   }
@@ -303,7 +297,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
       this.ajaxImpl.ajax({
         type: 'POST',
         url: saveContext.requestUri,
-        headers: { ...this.options.headers },
+        headers: { ...this._options.headers },
         data: requestData,
         success: (res: HttpResponse) => {
           res.saveContext = saveContext;
@@ -323,7 +317,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
           reject(error);
         }
       },
-        this.httpClient,
+        this._options.httpClient,
         this.metadata);
     });
 
@@ -337,7 +331,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
     let request: HttpOData.Request = {
       method,
       requestUri: this.getUrl(mappingContext),
-      headers: { ...this.options.headers }
+      headers: { ...this._options.headers }
     };
 
     if (!query?.parameters) {

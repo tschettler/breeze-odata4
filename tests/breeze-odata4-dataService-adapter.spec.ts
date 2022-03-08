@@ -138,7 +138,7 @@ describe('OData4DataServiceAdapter', () => {
 
             ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.httpClient = httpClient;
+            ds.configure({ httpClient });
             const dataService = new DataService(opts);
 
             ctx = ({
@@ -778,7 +778,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.httpClient = httpClient;
+            ds.configure({httpClient});
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -817,7 +817,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.httpClient = httpClient;
+            ds.configure({httpClient});
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -859,7 +859,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.httpClient = httpClient;
+            ds.configure({httpClient});
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -901,7 +901,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.httpClient = httpClient;
+            ds.configure({httpClient});
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -943,7 +943,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.httpClient = httpClient;
+            ds.configure({httpClient});
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -985,7 +985,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.httpClient = httpClient;
+            ds.configure({httpClient});
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -1027,7 +1027,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.httpClient = httpClient;
+            ds.configure({httpClient});
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -1069,7 +1069,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.httpClient = httpClient;
+            ds.configure({httpClient});
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -1111,7 +1111,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.httpClient = httpClient;
+            ds.configure({httpClient});
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -1151,7 +1151,7 @@ describe('OData4DataServiceAdapter', () => {
             ds.initialize();
 
             httpClient = new ODataHttpClient();
-            ds.httpClient = httpClient;
+            ds.configure({httpClient});
 
             httpClient.request = (req, success, error) => {
                 response = ({
