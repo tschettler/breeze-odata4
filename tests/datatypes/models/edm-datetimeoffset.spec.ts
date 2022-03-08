@@ -32,6 +32,14 @@ describe('EdmDateTimeOffset', () => {
             expect(result).toBeInstanceOf(EdmDateTimeOffset);
         });
 
+        it('should return null with null', () => {
+            const input: string = null;
+
+            const result = EdmDateTimeOffset.create(input);
+            
+            expect(result).toBeNull();
+        });
+
         it('should throw error with invalid date string', () => {
             const input = 'abc';
 
@@ -77,7 +85,7 @@ describe('EdmDateTimeOffset', () => {
         const testCases = [
             {
                 input: '0001-01-01T00:00:00.000Z',
-                expected: '0001-01-01T00:00:00Z'
+                expected: '0001-01-01T00:00:00.000Z'
             },
             {
                 input: '9999-12-31T23:59:59.999999999999Z',
@@ -141,7 +149,7 @@ describe('EdmDateTimeOffset', () => {
 
         it('toString should return correct value', () => {
             const result = sut.toString();
-            expect(result).toEqual('0001-01-01T00:00:00Z');
+            expect(result).toEqual('0001-01-01T00:00:00.000Z');
         });
     });
 

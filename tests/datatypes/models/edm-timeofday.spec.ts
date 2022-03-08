@@ -32,7 +32,15 @@ describe('EdmTimeOfDay', () => {
         it('should throw error with value greater than max', () => {
             const input = '25:00';
 
-            expect(() => EdmTimeOfDay.create(input)).toThrowError('\'25:00:00\' is not a valid EdmTimeOfDay');
+            expect(() => EdmTimeOfDay.create(input)).toThrowError('\'25:00:00.000\' is not a valid EdmTimeOfDay');
+        });
+
+        it('should return null with null', () => {
+            const input: string = null;
+
+            const result = EdmTimeOfDay.create(input);
+
+            expect(result).toBeNull();
         });
 
         it('should throw error with invalid string', () => {
@@ -78,17 +86,17 @@ describe('EdmTimeOfDay', () => {
         it('should not allow setting below min', () => {
             const sut = EdmTimeOfDay.create();
 
-            expect(() => sut.hours -= 1).toThrowError('\'-01:00:00\' is not a valid EdmTimeOfDay');
+            expect(() => sut.hours -= 1).toThrowError('\'-01:00:00.000\' is not a valid EdmTimeOfDay');
         });
 
         it('should not allow setting above max', () => {
             const sut = EdmTimeOfDay.create('23:59');
 
-            expect(() => sut.hours += 1).toThrowError('\'24:59:00\' is not a valid EdmTimeOfDay');
+            expect(() => sut.hours += 1).toThrowError('\'24:59:00.000\' is not a valid EdmTimeOfDay');
         });
-   });
+    });
 
-    
+
     describe('minutes', () => {
         const testCases = [
             {
@@ -125,13 +133,13 @@ describe('EdmTimeOfDay', () => {
         it('should not allow setting below min', () => {
             const sut = EdmTimeOfDay.create();
 
-            expect(() => sut.minutes -= 1).toThrowError('\'-00:01:00\' is not a valid EdmTimeOfDay');
+            expect(() => sut.minutes -= 1).toThrowError('\'-00:01:00.000\' is not a valid EdmTimeOfDay');
         });
 
         it('should not allow setting above max', () => {
             const sut = EdmTimeOfDay.create('23:59');
 
-            expect(() => sut.minutes += 1).toThrowError('\'24:00:00\' is not a valid EdmTimeOfDay');
+            expect(() => sut.minutes += 1).toThrowError('\'24:00:00.000\' is not a valid EdmTimeOfDay');
         });
     });
 
@@ -171,13 +179,13 @@ describe('EdmTimeOfDay', () => {
         it('should not allow setting below min', () => {
             const sut = EdmTimeOfDay.create();
 
-            expect(() => sut.seconds -= 1).toThrowError('\'-00:00:01\' is not a valid EdmTimeOfDay');
+            expect(() => sut.seconds -= 1).toThrowError('\'-00:00:01.000\' is not a valid EdmTimeOfDay');
         });
 
         it('should not allow setting above max', () => {
             const sut = EdmTimeOfDay.create('23:59:59');
 
-            expect(() => sut.seconds += 1).toThrowError('\'24:00:00\' is not a valid EdmTimeOfDay');
+            expect(() => sut.seconds += 1).toThrowError('\'24:00:00.000\' is not a valid EdmTimeOfDay');
         });
     });
 
@@ -219,11 +227,11 @@ describe('EdmTimeOfDay', () => {
 
             expect(() => sut.fractionalSeconds -= .001).toThrowError('\'-00:00:00.001\' is not a valid EdmTimeOfDay');
         });
-        
+
         it('should not allow setting above max', () => {
             const sut = EdmTimeOfDay.create('23:59:59.999');
 
-            expect(() => sut.fractionalSeconds += .001).toThrowError('\'24:00:00\' is not a valid EdmTimeOfDay');
+            expect(() => sut.fractionalSeconds += .001).toThrowError('\'24:00:00.000\' is not a valid EdmTimeOfDay');
         });
     });
 
@@ -231,7 +239,7 @@ describe('EdmTimeOfDay', () => {
         const testCases = [
             {
                 input: '00:00',
-                expected: '00:00:00'
+                expected: '00:00:00.000'
             },
             {
                 input: '12:30:06.999999999999',
@@ -279,7 +287,7 @@ describe('EdmTimeOfDay', () => {
 
         it('toString should return correct value', () => {
             const result = sut.toString();
-            expect(result).toEqual('00:00:00');
+            expect(result).toEqual('00:00:00.000');
         });
     });
 

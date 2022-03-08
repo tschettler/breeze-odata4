@@ -14,7 +14,7 @@ export class EdmTimeOfDay {
     private _seconds: number;
 
     private constructor(source: Date | string) {
-        source instanceof Date ? this.parseDate(source) : this.parseString(source);
+        source instanceof Date ? this.parseDate(source) : this.parseString(source.toString());
     }
 
     /**
@@ -35,7 +35,9 @@ export class EdmTimeOfDay {
     public static create(source: EdmTimeOfDay | Date | string = '00:00'): EdmTimeOfDay {
         const result = source instanceof EdmTimeOfDay
             ? source
-            : new EdmTimeOfDay(source);
+            : source === null
+                ? null
+                : new EdmTimeOfDay(source);
 
         return result;
     }
@@ -118,7 +120,7 @@ export class EdmTimeOfDay {
         const result = sign + [hours, minutes, seconds]
             .map((x, i) => Math.abs(x).toString().padStart(partLengths[i], '0'))
             .join(':')
-            + Math.abs(fractionalSeconds).toString().substring(1);
+            + (fractionalSeconds ? Math.abs(fractionalSeconds).toString().substring(1) : '.').padEnd(4, '0');
 
         return result;
     }

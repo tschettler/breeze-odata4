@@ -77,7 +77,7 @@ describe('PublicationDecorator', () => {
       sut.decorate(expression, annotation);
       sut.decorate(expression, annotation2);
 
-      expect(expression.publication.lastModified).toBe(annotation.date);
+      expect(expression.publication.lastModified.toString()).toBe(annotation.date);
       expect(expression.publication.publisherName).toBe(annotation2.string);
     });
   });

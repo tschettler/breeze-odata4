@@ -196,7 +196,7 @@ describe('BreezeOData4', () => {
 
     expect(() => {
       DataType.DateTimeOffset.fmtOData(123.45);
-    }).toThrowError('is not a valid DateTimeOffset');
+    }).toThrowError('\'123.45\' is not a valid EdmDateTimeOffset');
   });
 
   it('should return null when calling Time.fmtOData for null', () => {

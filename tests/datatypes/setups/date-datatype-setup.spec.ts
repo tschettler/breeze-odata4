@@ -83,13 +83,13 @@ describe('DateDataTypeSetup', () => {
                 const input = 'x';
                 expect(() => {
                     dataType.fmtOData(input);
-                }).toThrowError('is not a valid Date');
+                }).toThrowError('\'x\' is not a valid EdmDate');
             });
 
             it('should throw exception when calling fmtOData with non-date', () => {
                 expect(() => {
                     dataType.fmtOData(123.45);
-                }).toThrowError('is not a valid Date');
+                }).toThrowError('\'123.45\' is not a valid EdmDate');
             });
         });
     });

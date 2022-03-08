@@ -1,3 +1,4 @@
+import { EdmDateTimeOffset } from '../models';
 import { BaseDataTypeSetup } from './base-datatype-setup';
 
 /**
@@ -8,14 +9,8 @@ export class DateTimeOffsetDataTypeSetup extends BaseDataTypeSetup {
     public name = 'DateTimeOffset';
 
     public fmtOData = (val: any) => {
-        if (!val) {
-            return null;
-        }
+        const result = val ? EdmDateTimeOffset.create(val).toString() : null;
 
-        try {
-            return val.toISOString();
-        } catch (e) {
-            this.handleInvalidValue(val);
-        }
+        return result;
     }
 }

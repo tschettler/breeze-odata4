@@ -34,6 +34,15 @@ describe('EdmOffset', () => {
             expect(() => EdmOffset.create(input)).toThrowError(`'${input}' is not a valid EdmOffset`);
         });
 
+
+        it('should return null with null', () => {
+            const input: string = null;
+
+            const result = EdmOffset.create(input);
+
+            expect(result).toBeNull();
+        });
+
         it('should throw error with invalid string', () => {
             const input = 'abc';
 

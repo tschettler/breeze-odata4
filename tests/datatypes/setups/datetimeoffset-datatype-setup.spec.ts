@@ -45,6 +45,7 @@ describe('DateTimeOffsetDataTypeSetup', () => {
 
             it('should return ISO date string when calling fmtOData for date', () => {
                 const input = new Date();
+                input.setMilliseconds(0);
 
                 const result = dataType.fmtOData(input);
 
@@ -54,7 +55,7 @@ describe('DateTimeOffsetDataTypeSetup', () => {
             it('should throw exception when calling fmtOData with non-date', () => {
                 expect(() => {
                     dataType.fmtOData(123.45);
-                }).toThrowError('is not a valid DateTimeOffset');
+                }).toThrowError('\'123.45\' is not a valid EdmDateTimeOffset');
             });
         });
     });

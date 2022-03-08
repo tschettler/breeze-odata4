@@ -90,7 +90,7 @@ describe('CustomDecorator', () => {
       sut.decorate(expression, annotation);
       sut.decorate(expression, annotation2);
 
-      expect(expression.custom.Foo.Date).toBe(annotation.date);
+      expect(expression.custom.Foo.Date.toString()).toBe(annotation.date);
       expect(expression.custom.Foo.Answer).toBe(Number(annotation2.int));
     });
   });

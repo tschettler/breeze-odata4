@@ -44,7 +44,7 @@ describe('DurationDataTypeSetup', () => {
             });
 
             it('should return value when calling fmtOData for duration', () => {
-                const input = 'P1Y2M10DT2H30M';
+                const input = 'P10DT2H30M';
 
                 const result = dataType.fmtOData(input);
 
@@ -54,7 +54,7 @@ describe('DurationDataTypeSetup', () => {
             it('should throw exception when calling fmtOData with non-duration', () => {
                 expect(() => {
                     dataType.fmtOData(123.45);
-                }).toThrowError('is not a valid ISO 8601 duration');
+                }).toThrowError('\'123.45\' is not a valid EdmDuration');
             });
         });
     });

@@ -23,7 +23,7 @@ export class EdmDuration {
     private _seconds: number;
 
     private constructor(source: string) {
-        this.parseString(source);
+        this.parseString(source.toString());
     }
 
     /**
@@ -145,7 +145,9 @@ export class EdmDuration {
     public static create(source: EdmDuration | string = Default): EdmDuration {
         const result = source instanceof EdmDuration
             ? source
-            : new EdmDuration(source);
+            : source === null
+                ? null
+                : new EdmDuration(source);
 
         return result;
     }

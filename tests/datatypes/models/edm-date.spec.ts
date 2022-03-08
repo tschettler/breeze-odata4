@@ -41,6 +41,14 @@ describe('EdmDate', () => {
             expect(result).toBeInstanceOf(EdmDate);
         });
 
+        it('should return null with null', () => {
+            const input: string = null;
+
+            const result = EdmDate.create(input);
+            
+            expect(result).toBeNull();
+        });
+
         it('should throw error with invalid date string', () => {
             const input = 'abc';
 
@@ -182,7 +190,7 @@ describe('EdmDate', () => {
                 input: new Date('2022-11-23'),
                 expected: '2022-11-23'
             },
-           {
+            {
                 name: 'should return correct value with string',
                 input: '2022-11-23',
                 expected: '2022-11-23'

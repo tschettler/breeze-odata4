@@ -14,7 +14,7 @@ export class EdmDate {
     private _year: number;
 
     private constructor(source: Date | string) {
-        source instanceof Date ? this.parseDate(source) : this.parseString(source);
+        source instanceof Date ? this.parseDate(source) : this.parseString(source.toString());
     }
 
     /**
@@ -77,7 +77,9 @@ export class EdmDate {
     public static create(source: EdmDate | Date | string = new Date()): EdmDate {
         const result = source instanceof EdmDate
             ? source
-            : new EdmDate(source);
+            : source === null
+                ? null
+                : new EdmDate(source);
 
         return result;
     }
@@ -98,7 +100,7 @@ export class EdmDate {
         const result = sign + [year, month, day]
             .map((x, i) => Math.abs(x).toString().padStart(partLengths[i], '0'))
             .join('-');
-        
+
         return result;
     }
 

@@ -110,9 +110,10 @@ describe('ValidatorDecorator', () => {
 
       expect(expression.validators[0]).toMatchObject({
         name: 'custom',
-        asofdate: annotation.date,
         enabled: true
       });
+
+      expect(expression.validators[0].asofdate.toString()).toEqual(annotation.date);
     });
   });
 });
