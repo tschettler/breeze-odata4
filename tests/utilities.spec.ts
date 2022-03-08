@@ -343,7 +343,7 @@ describe('Utilities', () => {
     it('should return correct value for DataType.Date.', () => {
       const input = '2021-01-01';
 
-      const result = Utilities.parseValue(DataType['Date'], input);
+      const result = Utilities.parseValue(DataType['Date'], input).toString();
       expect(result).toEqual(input);
     });
 
@@ -363,9 +363,9 @@ describe('Utilities', () => {
     });
 
     it('should return correct value for DataType.Duration.', () => {
-      const input = 'P1Y2M10DT2H30M';
+      const input = 'P10DT2H30M';
 
-      const result = Utilities.parseValue(DataType['Duration'], input);
+      const result = Utilities.parseValue(DataType['Duration'], input).toString();
       expect(result).toEqual(input);
     });
 
@@ -401,8 +401,8 @@ describe('Utilities', () => {
     it('should return correct value for DataType.TimeOfDay.', () => {
       const input = '01:10:00';
 
-      const result = Utilities.parseValue(DataType['TimeOfDay'], input);
-      expect(result).toEqual(input);
+      const result = Utilities.parseValue(DataType['TimeOfDay'], input).toString();
+      expect(result).toEqual(`${input}.000`);
     });
   });
 });

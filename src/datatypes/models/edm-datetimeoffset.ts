@@ -13,7 +13,7 @@ const DateTimeOffsetRegex = new RegExp(/^(.+)T(.+)((?:\+|-)\d{2}:\d{2}|Z)$/);
  */
 export class EdmDateTimeOffset {
     protected constructor(source: Date | string) {
-        const dateString = source instanceof Date ? source.toISOString() : source;
+        const dateString = source instanceof Date ? source.toISOString() : source.toString();
         this.parseDateTime(dateString);
     }
 
@@ -52,7 +52,9 @@ export class EdmDateTimeOffset {
     public static create(source: EdmDateTimeOffset | Date | string = new Date()): EdmDateTimeOffset {
         const result = source instanceof EdmDateTimeOffset
             ? source
-            : new EdmDateTimeOffset(source);
+            : source === null
+                ? null
+                :  new EdmDateTimeOffset(source);
 
         return result;
     }

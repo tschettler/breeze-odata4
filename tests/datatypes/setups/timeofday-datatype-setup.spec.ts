@@ -34,6 +34,26 @@ describe('TimeOfDayDataTypeSetup', () => {
             it('should not be null', () => {
                 expect(dataType).not.toBeNull();
             });
+
+            it('should return null when calling fmtOData for null', () => {
+                const result = dataType.fmtOData(null);
+
+                expect(result).toBeNull();
+            });
+
+            it('should return null when calling fmtOData for undefined', () => {
+                const result = dataType.fmtOData(undefined);
+
+                expect(result).toBeNull();
+            });
+
+            it('should return value when calling fmtOData for time', () => {
+                const input = '10:30:20.400';
+
+                const result = dataType.fmtOData(input);
+
+                expect(result).toEqual(input);
+            });
         });
     });
 });

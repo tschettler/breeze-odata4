@@ -9,7 +9,7 @@ export class EdmOffset {
     private _totalMinutes = 0;
 
     private constructor(source: string) {
-        this.parseString(source);
+        this.parseString(source.toString());
     }
 
     /**
@@ -30,7 +30,9 @@ export class EdmOffset {
     public static create(source: EdmOffset | string = Zulu): EdmOffset {
         const result = source instanceof EdmOffset
             ? source
-            : new EdmOffset(source);
+            : source === null
+                ? null
+                : new EdmOffset(source);
 
         return result;
     }
@@ -67,7 +69,7 @@ export class EdmOffset {
         const result = this.sign + [this.hour, this.minute]
             .map((x, i) => Math.abs(x).toString().padStart(partLengths[i], '0'))
             .join(':');
-        
+
         return result;
     }
 

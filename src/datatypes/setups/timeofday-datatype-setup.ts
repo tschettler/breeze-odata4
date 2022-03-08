@@ -1,4 +1,5 @@
 import { DataType, Validator } from 'breeze-client';
+import { EdmTimeOfDay } from '../models';
 
 import { BaseDataTypeSetup } from './base-datatype-setup';
 
@@ -11,9 +12,9 @@ export class TimeOfDayDataTypeSetup extends BaseDataTypeSetup {
     public addSymbol = () => {
         const result = new DataType({
             defaultValue: '00:00',
-            fmtOData: DataType.String.fmtOData,
-            parse: DataType.String.parse,
+            fmtOData: (val: any) => val ? EdmTimeOfDay.create(val).toString() : null,
             name: this.name,
+            parseRawValue: EdmTimeOfDay.create,
             validatorCtor: Validator.string
         });
 

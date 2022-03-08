@@ -22,6 +22,15 @@ describe('EdmDuration', () => {
             expect(result).toBeInstanceOf(EdmDuration);
         });
 
+
+        it('should return null with null', () => {
+            const input: string = null;
+
+            const result = EdmDuration.create(input);
+            
+            expect(result).toBeNull();
+        });
+
         const testCases = [
             {
                 input: 'P1DT2H',
