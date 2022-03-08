@@ -1,6 +1,6 @@
 {
   "name": "breeze-odata4",
-  "version": "2.0.0-rc.0",
+  "version": "2.0.0-rc.1",
   "description": "Library to allow OData 4 support for breezejs",
   "author": "Travis Schettler",
   "homepage": "https://github.com/tschettler/breeze-odata4#readme",
