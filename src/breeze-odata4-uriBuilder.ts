@@ -102,7 +102,7 @@ export class OData4UriBuilder implements UriBuilderAdapter {
 
     this.addSelectOption(entityType, queryOptions, entityQuery.selectClause);
 
-    if (entityQuery.parameters[ExpandParamsKey]) {
+    if (entityQuery.parameters && entityQuery.parameters[ExpandParamsKey]) {
       this.addExpandOptionsFromSubqueries(entityType, queryOptions, entityQuery.parameters[ExpandParamsKey]);
       delete entityQuery.parameters[ExpandParamsKey];
     }
