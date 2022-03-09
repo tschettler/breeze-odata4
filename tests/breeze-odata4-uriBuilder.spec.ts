@@ -98,6 +98,15 @@ describe('OData4UriBuilder', () => {
             expect(result).toEqual(`${query.resourceName}?$filter=firstName%20eq%20'Test'`);
         });
 
+        it('should allow using entity query object', () => {
+            const navProperty = 'id';
+            query = new EntityQuery({from: 'Person', expand: [navProperty]});
+
+            const result = sut.buildUri(query, metadataStore);
+
+            expect(result).toEqual(`${query.resourceName}?$expand=${navProperty}`);
+        });
+
         it('should add multiple filter options', () => {
             const predicate = new Predicate('firstName', 'eq', 'Test');
             query = query.where(predicate).where('personId', 'eq', 1);

@@ -27,7 +27,7 @@ export class OData4EntityQuery extends EntityQuery {
         }
 
         // save the subquery for later
-        this.parameters[ExpandParamsKey] = this.parameters[ExpandParamsKey] || {};
+        this.parameters[ExpandParamsKey] ??= {};
         this.parameters[ExpandParamsKey][propertyPaths] = subQuery;
 
         return this;
