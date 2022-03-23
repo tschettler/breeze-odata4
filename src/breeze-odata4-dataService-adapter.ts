@@ -132,7 +132,6 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
       return result;
     });
 
-    // TODO: Configure whether to prevent reject on failure
     if (failedResponse && this._options.failOnSaveError) {
       const err = this.createError(failedResponse, saveContext.requestUri);
       reject(err);

@@ -5,6 +5,10 @@ import { Batch, Edmx } from 'ts-odatajs';
 import { DataServiceSaveContext } from '../breeze-odata4-dataService-adapter';
 import { ODataHttpClient } from '../odata-http-client';
 
+const ContentIdHeader = 'Content-ID';
+const ContentTypeHeader = 'Content-Type';
+const IfMatchHeader = 'If-Match';
+const ODataVersionHeader = 'OData-Version';
 
 /**
  * @classdesc OData4 ajax adapter, used for data saving in the @see OData4DataServiceAdapter
@@ -33,7 +37,7 @@ export abstract class OData4AjaxAdapter implements AjaxAdapter {
 
   public defaultSettings: { headers?: { [name: string]: string; }; } = {
     headers: {
-      'OData-Version': '4.0'
+      [ODataVersionHeader]: '4.0'
     }
   };
 
@@ -59,8 +63,8 @@ export abstract class OData4AjaxAdapter implements AjaxAdapter {
 
     const result: Batch.ChangeRequest = {
       headers: {
-        'Content-ID': contentId.toString(),
-        'Content-Type': 'application/json;IEEE754Compatible=true',
+        [ContentIdHeader]: contentId.toString(),
+        [ContentTypeHeader]: 'application/json;IEEE754Compatible=true',
         ...this.defaultSettings?.headers
       },
       requestUri: null,
@@ -104,7 +108,7 @@ export abstract class OData4AjaxAdapter implements AjaxAdapter {
 
     changeResponses.forEach(changeResponse => {
       // The server is required to provide the Content-ID header starting at 1, use 0 and effectively ignore it if not provided.
-      const contentId = Number((changeResponse.headers || {})['Content-ID'] ?? 0);
+      const contentId = Number((changeResponse.headers || {})[ContentIdHeader] ?? 0);
 
       const origEntity = contentKeys[contentId];
       const rawEntity: Entity = changeResponse.data;
@@ -160,7 +164,6 @@ export abstract class OData4AjaxAdapter implements AjaxAdapter {
    */
   protected updateDeleteMergeRequest(request: Batch.ChangeRequest, aspect: EntityAspect, routePrefix: string): void {
     const etagName = 'etag';
-    const ifMatchHeader = 'If-Match';
     const uriKeyName = 'uriKey';
 
     if (!aspect.extraMetadata) {
@@ -169,7 +172,7 @@ export abstract class OData4AjaxAdapter implements AjaxAdapter {
 
     const extraMetadata = aspect.extraMetadata;
     if (extraMetadata[etagName]) {
-      request.headers[ifMatchHeader] = extraMetadata[etagName];
+      request.headers[IfMatchHeader] = extraMetadata[etagName];
     }
 
     if (!extraMetadata[uriKeyName]) {

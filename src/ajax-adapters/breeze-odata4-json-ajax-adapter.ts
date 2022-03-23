@@ -5,6 +5,8 @@ import { Batch, Edmx, HttpOData, oData } from 'ts-odatajs';
 import { ODataHttpClient } from '../odata-http-client';
 import { OData4AjaxAdapter } from './breeze-odata4-ajax-adapter';
 
+const ContentIdHeader = 'Content-ID';
+
 /**
  * OData4 ajax adapter that saves each change individually.
  */
@@ -30,16 +32,27 @@ export class OData4JsonAjaxAdapter extends OData4AjaxAdapter {
     const changeRequests = (batchRequest.__batchRequests || [])
       .flatMap(br => br.__changeRequests || []);
 
-    const promises = changeRequests.map(c => {
+    const promises = changeRequests.map(cr => {
       const result = new Promise<Batch.ChangeResponse>((resolve, reject) => {
-        oData.request(
-          {
-            method: c.method,
-            requestUri: c.requestUri,
-            headers: c.headers,
-            data: c.data
+        // preserve the Content-ID header
+        const contentId = cr.headers[ContentIdHeader];
+        const request: HttpOData.Request = {
+          method: cr.method,
+          requestUri: cr.requestUri,
+          headers: cr.headers,
+          data: cr.data
+        };
+
+        oData.request(request,
+          (_data: any, response: HttpOData.Response) => {
+            // ensure that the Content-ID header is set on the change response
+            response.headers = {
+              [ContentIdHeader]: contentId.toString(),
+              ...response.headers
+            };
+
+            resolve(response);
           },
-          (_data: any, response: HttpOData.Response) => resolve(response),
           err => reject(err),
           oData.jsonHandler,
           httpClient,
