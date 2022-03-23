@@ -127,7 +127,7 @@ describe('OData4JsonAjaxAdapter', () => {
                 expect(result.__batchResponses[0].__changeResponses).toHaveLength(0);
             });
 
-            it('with one change request should return on change response', async () => {
+            it('with one change request should return one change response', async () => {
                 changeRequests.push({
                     headers: {
                         'Content-ID': '1',
@@ -175,6 +175,25 @@ describe('OData4JsonAjaxAdapter', () => {
                 const result = response.data as Batch.BatchResponse;
                 expect(result.__batchResponses).toHaveLength(1);
                 expect(result.__batchResponses[0].__changeResponses).toHaveLength(2);
+            });
+
+            it('with change request should set Content-ID on change response', async () => {
+                changeRequests.push({
+                    headers: {
+                        'Content-ID': '1',
+                        'Content-Type': 'application/json'
+                    },
+                    requestUri: 'https://localhost/testing/Person',
+                    method: 'POST',
+                    data: { id: 1, firstName: 'Test' }
+                });
+                const response = await new Promise<HttpResponse>((resolve) => {
+                    ajaxConfig.success = res => resolve(res);
+                    sut.ajax(ajaxConfig, httpClient, metadata);
+                });
+
+                const result = response.data as Batch.BatchResponse;
+                expect((result.__batchResponses[0].__changeResponses[0] as Batch.ChangeResponse).headers['Content-ID']).toEqual(changeRequests[0].headers['Content-ID']);
             });
 
             it('should return failed responses', async () => {
