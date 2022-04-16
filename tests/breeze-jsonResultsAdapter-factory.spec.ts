@@ -4,8 +4,7 @@ import { DataServiceWebApiAdapter } from 'breeze-client/adapter-data-service-web
 import { ModelLibraryBackingStoreAdapter } from 'breeze-client/adapter-model-library-backing-store';
 
 import { JsonResultsAdapterFactory } from './../src/breeze-jsonResultsAdapter-factory';
-
-import jsonMetadata = require('./breeze_metadata.json');
+import * as jsonMetadata from './breeze_metadata.json';
 
 let metadataStore: MetadataStore;
 let entityManager: EntityManager;

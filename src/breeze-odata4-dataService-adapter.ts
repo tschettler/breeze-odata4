@@ -16,6 +16,7 @@ import {
   SaveContext,
   SaveResult
 } from 'breeze-client';
+import { EntityErrorFromServer, SaveErrorFromServer } from 'breeze-client/src/entity-manager';
 import { Batch, Edm, Edmx, HttpOData, oData } from 'ts-odatajs';
 
 import { OData4AjaxAdapter } from './ajax-adapters';
@@ -28,6 +29,17 @@ export interface DataServiceSaveContext extends SaveContext {
   contentKeys: any[];
   requestUri: string;
   tempKeys: any[];
+}
+
+/**
+ * Save result with errors
+ * Provides access to an `entityErrors` property, similar to @see SaveErrorFromServer
+ */
+export interface SaveResultWithErrors extends SaveResult {
+  /**
+   * The entity errors from the server.
+   */
+  entityErrors: EntityErrorFromServer[];
 }
 
 /**
@@ -120,25 +132,42 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
    * @param saveResult The save result.
    * @returns The save result.
    */
-  public _prepareSaveResult(saveContext: DataServiceSaveContext, data: Batch.BatchResponse, reject?: (reason?: any) => void): SaveResult {
-    const changeResponses = data.__batchResponses
+  public _prepareSaveResult(saveContext: DataServiceSaveContext, data: HttpResponse, reject?: (reason?: any) => void): SaveResultWithErrors {
+    const responseData = data.data;
+    const changeResponses: Batch.ChangeResponse[] = [];
+    const failedResponses: Batch.FailedResponse[] = [];
+
+    responseData.__batchResponses
       .flatMap(br => br.__changeResponses)
-      .map(cr => (cr as Batch.FailedResponse).response || cr as Batch.ChangeResponse);
+      .forEach(cr => {
+        const response = (cr as Batch.FailedResponse).response || cr as Batch.ChangeResponse;
+        const statusCode = Number(response.statusCode || '0');
+        const wasSuccessful = statusCode >= 200 && statusCode <= 299;
 
-    const failedResponse = changeResponses.find(cr => {
-      const statusCode = cr.statusCode;
-      const result = !statusCode || Number(statusCode) >= 400;
+        if (wasSuccessful) {
+          changeResponses.push(cr as Batch.ChangeResponse);
+        } else {
+          failedResponses.push(cr as Batch.FailedResponse);
+        }
+      });
 
-      return result;
-    });
+    const entityErrors = this.ajaxImpl.prepareSaveErrors(saveContext, failedResponses);
 
-    if (failedResponse && this._options.failOnSaveError) {
-      const err = this.createError(failedResponse, saveContext.requestUri);
-      reject(err);
+    if (entityErrors.length && this._options.failOnSaveError) {
+      const saveError: SaveErrorFromServer = {
+        ...data,
+        entityErrors,
+        httpResponse: data,
+        message: this.createError(data, saveContext.requestUri).message,
+        name: null
+      };
+
+      reject(saveError);
       return;
     }
 
-    const saveResult = this.ajaxImpl.prepareSaveResult(saveContext, changeResponses);
+    const saveResult = this.ajaxImpl.prepareSaveResult(saveContext, changeResponses) as SaveResultWithErrors;
+    saveResult.entityErrors = entityErrors;
 
     return saveResult;
   }
@@ -284,7 +313,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
    * @param saveBundle The save bundle.
    * @returns The save result from the server.
    */
-  public saveChanges(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): Promise<SaveResult> {
+  public saveChanges(saveContext: DataServiceSaveContext, saveBundle: SaveBundle): Promise<SaveResultWithErrors> {
     saveContext.adapter = this;
 
     saveContext.routePrefix = this.getAbsoluteUrl(saveContext.dataService, '');
@@ -292,21 +321,21 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
 
     const requestData = this._prepareSaveBundle(saveContext, saveBundle);
 
-    const result = new Promise<SaveResult>((resolve, reject) => {
+    const result = new Promise<SaveResultWithErrors>((resolve, reject) => {
       this.ajaxImpl.ajax({
         type: 'POST',
         url: saveContext.requestUri,
         headers: { ...this._options.headers },
         data: requestData,
-        success: (res: HttpResponse) => {
-          res.saveContext = saveContext;
-          const data = res.data;
+        success: (response: HttpResponse) => {
+          response.saveContext = saveContext;
+          const data = response.data;
           if (data.__batchResponses) {
-            const saveResult = this._prepareSaveResult(saveContext, data, reject);
-            saveResult.httpResponse = res;
+            const saveResult = this._prepareSaveResult(saveContext, response, reject);
+            saveResult.httpResponse = response;
             resolve(saveResult);
           } else {
-            const error = this.createError(res, saveContext.requestUri);
+            const error = this.createError(response, saveContext.requestUri);
             reject(error);
           }
         },

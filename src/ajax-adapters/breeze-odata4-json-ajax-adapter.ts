@@ -53,7 +53,17 @@ export class OData4JsonAjaxAdapter extends OData4AjaxAdapter {
 
             resolve(response);
           },
-          err => reject(err),
+          (error: HttpOData.Error) => {
+            // ensure that the Content-ID header is set on the error response
+            if (error?.response) {
+              error.response.headers = {
+                [ContentIdHeader]: contentId.toString(),
+                ...error.response.headers
+              };
+            }
+
+            reject(error);
+          },
           oData.jsonHandler,
           httpClient,
           metadata

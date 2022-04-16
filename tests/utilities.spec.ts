@@ -6,7 +6,7 @@ import { Edm, Edmx } from 'ts-odatajs';
 
 import { Utilities } from '../src/utilities';
 import { BreezeOData4 } from './../src/breeze-odata4';
-
+import * as jsonMetadata from './breeze_metadata.json';
 
 describe('Utilities', () => {
   let metadataStore: MetadataStore;
@@ -17,7 +17,6 @@ describe('Utilities', () => {
     AjaxFetchAdapter.register();
     DataServiceWebApiAdapter.register();
 
-    const jsonMetadata = require('./breeze_metadata.json');
     metadataStore = new MetadataStore();
     metadataStore.importMetadata(jsonMetadata);
   });
