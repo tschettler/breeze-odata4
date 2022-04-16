@@ -1,11 +1,12 @@
 import { AjaxConfig, config, DataProperty, DataType, Entity, EntityManager, MetadataStore, SaveResult } from 'breeze-client';
 import { ModelLibraryBackingStoreAdapter } from 'breeze-client/adapter-model-library-backing-store';
+import { EntityErrorFromServer } from 'breeze-client/src/entity-manager';
 import { Batch, Edmx } from 'ts-odatajs';
 
 import { OData4AjaxAdapter } from '../../src/ajax-adapters';
 import { DataServiceSaveContext } from '../../src/breeze-odata4-dataService-adapter';
 import { ODataHttpClient } from '../../src/odata-http-client';
-import jsonMetadata = require('../breeze_metadata.json');
+import * as jsonMetadata from '../breeze_metadata.json';
 
 class TestOData4AjaxAdapter extends OData4AjaxAdapter {
     constructor() {
@@ -396,6 +397,81 @@ describe('OData4AjaxAdapter', () => {
             const result = changeRequest.requestUri;
             const expected = `${saveContext.routePrefix}${entity.entityType.defaultResourceName}(personId=${entity['personId']},skillId=${entity['skillId']})`;
             expect(result).toBe(expected);
+        });
+    });
+
+    describe('prepareSaveErrors', () => {
+        let saveContext: DataServiceSaveContext;
+        let entityManager: EntityManager;
+        let metadataStore: MetadataStore;
+        let originalEntity: Entity;
+
+        beforeAll(() => {
+            metadataStore = new MetadataStore();
+            metadataStore.importMetadata(jsonMetadata);
+
+            entityManager = new EntityManager({ metadataStore });
+            saveContext = {
+                entityManager,
+                routePrefix: 'Test/',
+                contentKeys: [],
+                tempKeys: []
+            } as any;
+
+            originalEntity = entityManager.createEntity('Person', {
+                personId: 1,
+                firstName: 'Tester',
+                quotedWithValue: 123,
+                quotedWithoutValue: null,
+                unmapped: 'This should not get pushed to the server'
+            });
+
+            saveContext.contentKeys[1] = originalEntity;
+        });
+
+        describe('with failed responses', () => {
+            let failedResponses: Batch.FailedResponse[];
+            let saveErrors: EntityErrorFromServer[];
+
+            beforeAll(() => {
+                failedResponses = [
+                    { message: 'An error occurred', response: createChangeResponse()},
+                    { message: 'An error occurred', response: createChangeResponse(1) }
+                ];
+
+                saveErrors = sut.prepareSaveErrors(saveContext, failedResponses);
+            });
+
+            it('should not add entity without content key', () => {
+                expect(saveErrors).toHaveLength(1);
+            });
+
+            it('should add orginal entity', () => {
+                expect(saveErrors.flatMap(x => (x as any).entity)).toContain(saveContext.contentKeys[1]);
+            });
+
+            it('should set errorMessage to message', () => {
+                expect(saveErrors[0].errorMessage).toBe(failedResponses[0].message);
+            });
+      });
+
+        describe('with response body', () => {
+            let failedResponses: Batch.FailedResponse[];
+            let saveErrors: EntityErrorFromServer[];
+
+            beforeAll(() => {
+                const changeResponse = createChangeResponse(1);
+                changeResponse.body = 'Custom error from the server';
+                failedResponses = [
+                    { message: 'An error occurred', response: changeResponse }
+                ];
+
+                saveErrors = sut.prepareSaveErrors(saveContext, failedResponses);
+            });
+
+            it('should set errorMessage to body', () => {
+                expect(saveErrors[0].errorMessage).toBe(failedResponses[0].response.body);
+            });
         });
     });
 

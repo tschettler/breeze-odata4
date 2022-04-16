@@ -778,7 +778,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.configure({httpClient});
+            ds.configure({ httpClient });
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -817,7 +817,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.configure({httpClient});
+            ds.configure({ httpClient });
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -859,7 +859,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.configure({httpClient});
+            ds.configure({ httpClient });
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -901,7 +901,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.configure({httpClient});
+            ds.configure({ httpClient });
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -943,7 +943,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.configure({httpClient});
+            ds.configure({ httpClient });
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -985,7 +985,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.configure({httpClient});
+            ds.configure({ httpClient });
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -1027,7 +1027,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.configure({httpClient});
+            ds.configure({ httpClient });
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -1069,7 +1069,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.configure({httpClient});
+            ds.configure({ httpClient });
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -1111,7 +1111,7 @@ describe('OData4DataServiceAdapter', () => {
             BreezeOData4.configure();
             const ds = new OData4DataServiceAdapter();
             ds.initialize();
-            ds.configure({httpClient});
+            ds.configure({ httpClient });
 
             const metadataStore = new MetadataStore();
             const dataService = new DataService({
@@ -1151,7 +1151,7 @@ describe('OData4DataServiceAdapter', () => {
             ds.initialize();
 
             httpClient = new ODataHttpClient();
-            ds.configure({httpClient});
+            ds.configure({ httpClient });
 
             httpClient.request = (req, success, error) => {
                 response = ({
@@ -1287,11 +1287,16 @@ describe('OData4DataServiceAdapter', () => {
         it('should throw error for failed batch response', async () => {
             batchResponse.__batchResponses[0].__changeResponses[0] =
                 ({
+                    message: 'An error occurred',
                     response: {
+                        headers: { 'Content-ID': '1' },
                         statusCode: '500',
                         statusText: 'Test error'
                     }
                 } as Batch.FailedResponse);
+
+            const entity = entityManager.createEntity('Revision', { Id: '1' });
+            saveBundle.entities.push(entity);
 
             httpClient.request = (req, success, error) => {
                 success(response);
@@ -1299,7 +1304,7 @@ describe('OData4DataServiceAdapter', () => {
             };
 
             await expect(ds.saveChanges(saveContext, saveBundle))
-                .rejects.toThrowError(expect.any(ODataError));
+                .rejects.toBeTruthy();
         });
 
         it('should throw error for invalid batch response', async () => {
@@ -1315,7 +1320,13 @@ describe('OData4DataServiceAdapter', () => {
         });
 
         it('should throw error for batch response with no status code', async () => {
-            (batchResponse.__batchResponses[0].__changeResponses[0] as Batch.ChangeResponse).statusCode = '';
+            const changeResponse = (batchResponse.__batchResponses[0].__changeResponses[0] as Batch.ChangeResponse);
+            changeResponse.statusCode = '';
+            changeResponse.headers = { 'Content-ID': '1' };
+            changeResponse.response = changeResponse;
+
+            const entity = entityManager.createEntity('Revision', { Id: '1' });
+            saveBundle.entities.push(entity);
 
             httpClient.request = (req, success, error) => {
                 success(response);
@@ -1323,7 +1334,7 @@ describe('OData4DataServiceAdapter', () => {
             };
 
             await expect(ds.saveChanges(saveContext, saveBundle))
-                .rejects.toThrowError(expect.any(ODataError));
+                .rejects.toBeTruthy();
         });
 
         it('should not throw error for failed batch response when failOnSaveError is false', async () => {
@@ -1343,6 +1354,31 @@ describe('OData4DataServiceAdapter', () => {
             ds.configure({ failOnSaveError: false });
             const result = await ds.saveChanges(saveContext, saveBundle);
             expect(result.entities).toHaveLength(0);
+            ds.configure({ failOnSaveError: true });
+        });
+
+        it('should provide entityErrors when failOnSaveError is false', async () => {
+            batchResponse.__batchResponses[0].__changeResponses[0] =
+                ({
+                    message: 'An error occurred',
+                    response: {
+                        headers: { 'Content-ID': '1' },
+                        statusCode: '500',
+                        statusText: 'Test error'
+                    }
+                } as Batch.FailedResponse);
+
+            const entity = entityManager.createEntity('Revision', { Id: '1' });
+            saveBundle.entities.push(entity);
+
+            httpClient.request = (req, success, error) => {
+                success(response);
+                return {} as HttpOData.RequestWithAbort;
+            };
+
+            ds.configure({ failOnSaveError: false });
+            const result = await ds.saveChanges(saveContext, saveBundle);
+            expect(result.entityErrors).toHaveLength(1);
             ds.configure({ failOnSaveError: true });
         });
 

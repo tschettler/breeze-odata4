@@ -229,6 +229,40 @@ describe('OData4JsonAjaxAdapter', () => {
                 expect(result.__batchResponses[0].__changeResponses[0].message).toEqual('An error occurred');
             });
 
+            it('should set Content-ID on failed response', async () => {
+                changeRequests.push({
+                    headers: {
+                        'Content-ID': '1',
+                        'Content-Type': 'application/json'
+                    },
+                    requestUri: 'https://localhost/testing/Person',
+                    method: 'POST',
+                    data: { id: 1, firstName: 'Test' }
+                });
+
+                httpClient.request = (req, success, error) => {
+                    error({
+                        message: 'An error occurred',
+                        response: {
+                            statusCode: '500',
+                            statusText: 'Internal Server Error'
+                        }
+                    } as HttpOData.Error);
+                    return {} as HttpOData.RequestWithAbort;
+                };
+
+                const response = await new Promise<HttpResponse>((resolve) => {
+                    ajaxConfig.success = res => resolve(res);
+                    sut.ajax(ajaxConfig, httpClient, metadata);
+                });
+
+                const result = response.data as Batch.BatchResponse;
+                expect(result.__batchResponses).toHaveLength(1);
+                expect(result.__batchResponses[0].__changeResponses).toHaveLength(1);
+                expect(result.__batchResponses[0].__changeResponses[0].message).toEqual('An error occurred');
+                expect((result.__batchResponses[0].__changeResponses[0] as Batch.FailedResponse).response.headers['Content-ID']).toEqual(changeRequests[0].headers['Content-ID']);
+            });
+
             it('should return error when promise resolution fails', async () => {
                 changeRequests.push({
                     headers: {

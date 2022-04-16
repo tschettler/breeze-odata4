@@ -7,10 +7,9 @@ import { UriBuilderODataAdapter } from 'breeze-client/adapter-uri-builder-odata'
 import { OData4EntityQuery } from '../src/breeze-odata4-entity-query';
 import { OData4PredicateVisitor } from '../src/breeze-odata4-predicateVisitor';
 import { OData4UriBuilder } from '../src/breeze-odata4-uriBuilder';
+import * as jsonMetadata from './breeze_metadata.json';
 
 jest.mock('../src/breeze-odata4-predicateVisitor');
-import jsonMetadata = require('./breeze_metadata.json');
-
 describe('OData4UriBuilder', () => {
     beforeAll(() => {
         ModelLibraryBackingStoreAdapter.register();
@@ -100,7 +99,7 @@ describe('OData4UriBuilder', () => {
 
         it('should allow using entity query object', () => {
             const navProperty = 'id';
-            query = new EntityQuery({from: 'Person', expand: [navProperty]});
+            query = new EntityQuery({ from: 'Person', expand: [navProperty] });
 
             const result = sut.buildUri(query, metadataStore);
 
