@@ -435,7 +435,7 @@ describe('OData4AjaxAdapter', () => {
 
             beforeAll(() => {
                 failedResponses = [
-                    { message: 'An error occurred', response: createChangeResponse()},
+                    { message: 'An error occurred', response: createChangeResponse() },
                     { message: 'An error occurred', response: createChangeResponse(1) }
                 ];
 
@@ -453,7 +453,7 @@ describe('OData4AjaxAdapter', () => {
             it('should set errorMessage to message', () => {
                 expect(saveErrors[0].errorMessage).toBe(failedResponses[0].message);
             });
-      });
+        });
 
         describe('with response body', () => {
             let failedResponses: Batch.FailedResponse[];
@@ -461,7 +461,7 @@ describe('OData4AjaxAdapter', () => {
 
             beforeAll(() => {
                 const changeResponse = createChangeResponse(1);
-                changeResponse.body = 'Custom error from the server';
+                changeResponse.body = JSON.stringify({ 'message': 'Custom error from the server' });
                 failedResponses = [
                     { message: 'An error occurred', response: changeResponse }
                 ];
@@ -470,7 +470,7 @@ describe('OData4AjaxAdapter', () => {
             });
 
             it('should set errorMessage to body', () => {
-                expect(saveErrors[0].errorMessage).toBe(failedResponses[0].response.body);
+                expect(saveErrors[0].errorMessage).toBe('Custom error from the server');
             });
         });
     });

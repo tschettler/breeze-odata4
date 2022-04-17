@@ -21,7 +21,6 @@ import { Batch, Edm, Edmx, HttpOData, oData } from 'ts-odatajs';
 
 import { OData4AjaxAdapter } from './ajax-adapters';
 import { JsonResultsAdapterFactory } from './breeze-jsonResultsAdapter-factory';
-import { ODataError } from './odata-error';
 import { DataServiceAdapterOptions, DefaultDataServiceAdapterOptions } from './options';
 import { InvokableEntry, Utilities } from './utilities';
 
@@ -158,7 +157,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
         ...data,
         entityErrors,
         httpResponse: data,
-        message: this.createError(data, saveContext.requestUri).message,
+        message: Utilities.createError(data, saveContext.requestUri).message,
         name: null
       };
 
@@ -263,7 +262,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
           resolve(csdlMetadata);
         },
         (error: Error) => {
-          const err = this.createError(error, url);
+          const err = Utilities.createError(error, url);
           err.message = `Metadata query failed for: ${url}; ${err.message}`;
           reject(err);
         },
@@ -298,7 +297,7 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
           resolve({ results, query, inlineCount, httpResponse: response });
         },
         (error: any) => {
-          const err = this.createError(error, request.requestUri);
+          const err = Utilities.createError(error, request.requestUri);
           reject(err);
         },
         null,
@@ -335,13 +334,13 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
             saveResult.httpResponse = response;
             resolve(saveResult);
           } else {
-            const error = this.createError(response, saveContext.requestUri);
+            const error = Utilities.createError(response, saveContext.requestUri);
             reject(error);
           }
         },
         error: (res: HttpResponse) => {
           res.saveContext = saveContext;
-          const error = this.createError(res, saveContext.requestUri);
+          const error = Utilities.createError(res, saveContext.requestUri);
           reject(error);
         }
       },
@@ -480,74 +479,6 @@ export class OData4DataServiceAdapter extends AbstractDataServiceAdapter {
     url += sep + queryString;
 
     return url;
-  }
-
-  private createError(error: any, url: string): ODataError {
-    // OData errors can have the message buried very deeply - and nonobviously
-    // this code is tricky so be careful changing the response.body parsing.
-    const result = new ODataError();
-    const response = error && (error as Batch.FailedResponse).response;
-
-    result.message = error.message || error;
-    result.statusText = error.message || error;
-
-    if (!response) {
-      // in case DataJS returns 'No handler for this data'
-      return result;
-    }
-
-    if (response.statusCode !== '200') {
-      result.message = response.statusText;
-      result.statusText = response.statusText;
-      result.status = Number(response.statusCode);
-    }
-
-    // non std
-    if (url) {
-      result.url = url;
-    }
-
-    result.body = response.body;
-    if (response.body) {
-      let nextErr;
-      try {
-        let body = JSON.parse(response.body);
-        result.body = body;
-        // OData v3 logic
-        if (body['odata.error']) {
-          body = body['odata.error'];
-        }
-        let msg = '';
-        do {
-          nextErr = body.error || body.innererror;
-          if (!nextErr) {
-            msg = msg + this.getMessage(body);
-          }
-
-          nextErr = nextErr || body.internalexception;
-          body = nextErr || body;
-        } while (nextErr);
-        if (msg.length > 0) {
-          result.message = msg;
-        }
-      } catch (e) { }
-    }
-
-    AbstractDataServiceAdapter._catchNoConnectionError(result);
-
-    return result;
-  }
-
-  private getMessage(body: any): string {
-    const messageKey = Object.keys(body)
-      .find(k => k.toLowerCase() === 'message');
-
-    if (!messageKey) {
-      return '';
-    }
-
-    const msg = body[messageKey];
-    return `${(typeof msg === 'string' ? msg : msg.value)}; `;
   }
 
   private toQueryString(payload: {}): string {
