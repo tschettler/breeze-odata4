@@ -222,25 +222,28 @@ export namespace Utilities {
     return result;
   }
 
+  /**
+   * Creates an error based on the provided input.
+   * @param error The error.
+   * @param [url] The optional url.
+   * @returns error The error instance.
+   */
   export function createError(error: any, url?: string): ODataError {
     // OData errors can have the message buried very deeply - and nonobviously
     // this code is tricky so be careful changing the response.body parsing.
     const result = new ODataError();
+
+    const message = getMessage(error);
+    result.message = message;
+
     const response = error && (error as Batch.FailedResponse).response;
-
-    result.message = error.message || error;
-    result.statusText = error.message || error;
-
     if (!response) {
       // in case DataJS returns 'No handler for this data'
       return result;
     }
 
-    if (response.statusCode !== '200') {
-      result.message = response.statusText;
-      result.statusText = response.statusText;
-      result.status = Number(response.statusCode);
-    }
+    result.statusText = response.statusText;
+    result.status = Number(response.statusCode || '0');
 
     // non std
     if (url) {
@@ -249,7 +252,6 @@ export namespace Utilities {
 
     result.body = response.body;
     if (response.body) {
-      let nextErr;
       try {
         let body = JSON.parse(response.body);
         result.body = body;
@@ -257,22 +259,22 @@ export namespace Utilities {
         if (body['odata.error']) {
           body = body['odata.error'];
         }
+
         let msgs = [];
         do {
-          nextErr = body.error || body.innererror;
-          if (!nextErr) {
-            msgs.push(getMessage(body));
-          }
+          msgs.push(getMessage(body));
+          body = body.error || body.innererror || body.internalexception;
+        } while (body);
 
-          nextErr = nextErr || body.internalexception;
-          body = nextErr || body;
-        } while (nextErr);
-
-        msgs = msgs.filter(m => !!m);
-        if (msgs.length > 0) {
+        msgs = [result.message, ...msgs].filter(m => !!m);
+        if (msgs.length) {
           result.message = msgs.join('; ');
         }
       } catch (e) { }
+    }
+
+    if (!result.message) {
+      result.message = response.statusText || null;
     }
 
     AbstractDataServiceAdapter._catchNoConnectionError(result);
@@ -281,6 +283,10 @@ export namespace Utilities {
   }
 
   function getMessage(body: any): string {
+    if (typeof body === 'string') {
+      return body;
+    }
+
     const messageKey = Object.keys(body)
       .find(k => k.toLowerCase() === 'message');
 

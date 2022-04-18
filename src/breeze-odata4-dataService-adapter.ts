@@ -16,10 +16,10 @@ import {
   SaveContext,
   SaveResult
 } from 'breeze-client';
-import { EntityErrorFromServer, SaveErrorFromServer } from 'breeze-client/src/entity-manager';
+import { SaveErrorFromServer } from 'breeze-client/src/entity-manager';
 import { Batch, Edm, Edmx, HttpOData, oData } from 'ts-odatajs';
 
-import { OData4AjaxAdapter } from './ajax-adapters';
+import { OData4AjaxAdapter, ODataEntityError } from './ajax-adapters';
 import { JsonResultsAdapterFactory } from './breeze-jsonResultsAdapter-factory';
 import { DataServiceAdapterOptions, DefaultDataServiceAdapterOptions } from './options';
 import { InvokableEntry, Utilities } from './utilities';
@@ -38,7 +38,7 @@ export interface SaveResultWithErrors extends SaveResult {
   /**
    * The entity errors from the server.
    */
-  entityErrors: EntityErrorFromServer[];
+  entityErrors: ODataEntityError[];
 }
 
 /**
