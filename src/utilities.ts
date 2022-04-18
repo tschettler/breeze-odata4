@@ -1,7 +1,8 @@
-import { ComplexType, DataType, EntityType, StructuralType, MetadataStore } from 'breeze-client';
-import { Edm, Edmx, oData } from 'ts-odatajs';
+import { AbstractDataServiceAdapter, ComplexType, DataType, EntityType, MetadataStore, StructuralType } from 'breeze-client';
+import { Batch, Edm, Edmx, oData } from 'ts-odatajs';
 
 import { ClassRegistry } from './class-registry';
+import { ODataError } from './odata-error';
 
 /**
  * Represents an invokable entry, either an action or a function.
@@ -219,5 +220,81 @@ export namespace Utilities {
     const result = dataType.parseRawValue ? dataType.parseRawValue(value) : dataType.parse(value, 'string');
 
     return result;
+  }
+
+  /**
+   * Creates an error based on the provided input.
+   * @param error The error.
+   * @param [url] The optional url.
+   * @returns error The error instance.
+   */
+  export function createError(error: any, url?: string): ODataError {
+    // OData errors can have the message buried very deeply - and nonobviously
+    // this code is tricky so be careful changing the response.body parsing.
+    const result = new ODataError();
+
+    const message = getMessage(error);
+    result.message = message;
+
+    const response = error && (error as Batch.FailedResponse).response;
+    if (!response) {
+      // in case DataJS returns 'No handler for this data'
+      return result;
+    }
+
+    result.statusText = response.statusText;
+    result.status = Number(response.statusCode || '0');
+
+    // non std
+    if (url) {
+      result.url = url;
+    }
+
+    result.body = response.body;
+    if (response.body) {
+      try {
+        let body = JSON.parse(response.body);
+        result.body = body;
+        // OData v3 logic
+        if (body['odata.error']) {
+          body = body['odata.error'];
+        }
+
+        let msgs = [];
+        do {
+          msgs.push(getMessage(body));
+          body = body.error || body.innererror || body.internalexception;
+        } while (body);
+
+        msgs = [result.message, ...msgs].filter(m => !!m);
+        if (msgs.length) {
+          result.message = msgs.join('; ');
+        }
+      } catch (e) { }
+    }
+
+    if (!result.message) {
+      result.message = response.statusText || null;
+    }
+
+    AbstractDataServiceAdapter._catchNoConnectionError(result);
+
+    return result;
+  }
+
+  function getMessage(body: any): string {
+    if (typeof body === 'string') {
+      return body;
+    }
+
+    const messageKey = Object.keys(body)
+      .find(k => k.toLowerCase() === 'message');
+
+    if (!messageKey) {
+      return '';
+    }
+
+    const msg = body[messageKey];
+    return typeof msg === 'string' ? msg : msg.value;
   }
 }

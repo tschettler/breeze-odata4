@@ -2,7 +2,8 @@ import { ComplexType, DataType, EntityType, MetadataStore } from 'breeze-client'
 import { AjaxFetchAdapter } from 'breeze-client/adapter-ajax-fetch';
 import { DataServiceWebApiAdapter } from 'breeze-client/adapter-data-service-webapi';
 import { ModelLibraryBackingStoreAdapter } from 'breeze-client/adapter-model-library-backing-store';
-import { Edm, Edmx } from 'ts-odatajs';
+import { Batch, Edm, Edmx } from 'ts-odatajs';
+import { ODataError } from '../src/odata-error';
 
 import { Utilities } from '../src/utilities';
 import { BreezeOData4 } from './../src/breeze-odata4';
@@ -313,6 +314,136 @@ describe('Utilities', () => {
       const result = Utilities.getInvokableUrl(metadata, metadataStore, item, schema.namespace);
 
       expect(result).toEqual(`${schema.namespace}.${item.name}`);
+    });
+  });
+
+  describe('createError', () => {
+    let result: ODataError;
+
+    it('should set message with string', () => {
+      const input = 'An error has occurred';
+
+      result = Utilities.createError(input);
+
+      expect(result.message).toBe(input);
+    });
+
+    it('should set message with message property', () => {
+      const input = { message: 'An error has occurred' };
+
+      result = Utilities.createError(input);
+
+      expect(result.message).toBe(input.message);
+    });
+
+    describe('with bad response', () => {
+      let input: { response: any };
+
+      beforeAll(() => {
+        input = {
+          response: {
+            statusCode: '400',
+            statusText: 'BadRequest'
+          }
+        };
+
+        result = Utilities.createError(input);
+      });
+
+      it('should set message to statusText', () => {
+        expect(result.message).toBe(input.response.statusText);
+      });
+
+      it('should set statusText to statusText', () => {
+        expect(result.statusText).toBe(input.response.statusText);
+      });
+
+      it('should set status to statusCode', () => {
+        expect(result.status).toBe(Number(input.response.statusCode));
+      });
+    });
+
+    it('should set url with url', () => {
+      const input = {
+        response: {
+          statusCode: '200',
+          statusText: 'OK'
+        }
+      };
+      const url = 'https://localhost';
+
+      result = Utilities.createError(input, url);
+
+      expect(result.url).toBe(url);
+    });
+
+    describe('with empty response', () => {
+      const input = {
+        response: {}
+      };
+
+      beforeAll(() => {
+        result = Utilities.createError(input);
+      });
+
+      it('should set message', () => {
+        expect(result.message).toMatch('HTTP response status 0 and no message.');
+      });
+
+      it('should set status to 0', () => {
+        expect(result.status).toBe(0);
+      });
+
+    });
+
+    describe('with body', () => {
+      const input = {
+        response: {
+          statusCode: '400',
+          statusText: 'BadRequest',
+          body: '{"message": "An error occurred"}'
+        }
+      };
+
+      beforeAll(() => {
+        result = Utilities.createError(input);
+      });
+
+      it('should set message', () => {
+        expect(result.message).toBe('An error occurred');
+      });
+
+      it('should set body', () => {
+        expect(result.body).toMatchObject({ message: "An error occurred" });
+      });
+    });
+
+    it('should correctly set message with odata.error', () => {
+      const input = {
+        response: {
+          statusCode: '400',
+          statusText: 'BadRequest',
+          body: '{"odata.error":{"error":{"message":"Invalid test request"}}}',
+        }
+      };
+
+      result = Utilities.createError(input);
+
+      expect(result.message).toBe('Invalid test request');
+    });
+
+    it('should set message to statusText with invalid json body', () => {
+      const input = {
+        response: {
+          statusCode: '400',
+          statusText: 'BadRequest',
+          body: '{message: "An error occurred"}'
+        }
+      };
+
+      result = Utilities.createError(input);
+
+      expect(result.message).toBe(input.response.statusText);
     });
   });
 

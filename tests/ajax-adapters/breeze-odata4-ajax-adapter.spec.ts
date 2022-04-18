@@ -1,10 +1,10 @@
 import { AjaxConfig, config, DataProperty, DataType, Entity, EntityManager, MetadataStore, SaveResult } from 'breeze-client';
 import { ModelLibraryBackingStoreAdapter } from 'breeze-client/adapter-model-library-backing-store';
-import { EntityErrorFromServer } from 'breeze-client/src/entity-manager';
 import { Batch, Edmx } from 'ts-odatajs';
 
-import { OData4AjaxAdapter } from '../../src/ajax-adapters';
+import { OData4AjaxAdapter, ODataEntityError } from '../../src/ajax-adapters';
 import { DataServiceSaveContext } from '../../src/breeze-odata4-dataService-adapter';
+import { ODataError } from '../../src/odata-error';
 import { ODataHttpClient } from '../../src/odata-http-client';
 import * as jsonMetadata from '../breeze_metadata.json';
 
@@ -431,11 +431,11 @@ describe('OData4AjaxAdapter', () => {
 
         describe('with failed responses', () => {
             let failedResponses: Batch.FailedResponse[];
-            let saveErrors: EntityErrorFromServer[];
+            let saveErrors: ODataEntityError[];
 
             beforeAll(() => {
                 failedResponses = [
-                    { message: 'An error occurred', response: createChangeResponse()},
+                    { message: 'An error occurred', response: createChangeResponse() },
                     { message: 'An error occurred', response: createChangeResponse(1) }
                 ];
 
@@ -450,18 +450,22 @@ describe('OData4AjaxAdapter', () => {
                 expect(saveErrors.flatMap(x => (x as any).entity)).toContain(saveContext.contentKeys[1]);
             });
 
+            it('should set error', () => {
+                expect(saveErrors[0].error).toBeInstanceOf(ODataError);
+            });
+
             it('should set errorMessage to message', () => {
                 expect(saveErrors[0].errorMessage).toBe(failedResponses[0].message);
             });
-      });
+        });
 
         describe('with response body', () => {
             let failedResponses: Batch.FailedResponse[];
-            let saveErrors: EntityErrorFromServer[];
+            let saveErrors: ODataEntityError[];
 
             beforeAll(() => {
                 const changeResponse = createChangeResponse(1);
-                changeResponse.body = 'Custom error from the server';
+                changeResponse.body = JSON.stringify({ 'message': 'Custom error from the server' });
                 failedResponses = [
                     { message: 'An error occurred', response: changeResponse }
                 ];
@@ -469,8 +473,8 @@ describe('OData4AjaxAdapter', () => {
                 saveErrors = sut.prepareSaveErrors(saveContext, failedResponses);
             });
 
-            it('should set errorMessage to body', () => {
-                expect(saveErrors[0].errorMessage).toBe(failedResponses[0].response.body);
+            it('should set errorMessage with body', () => {
+                expect(saveErrors[0].errorMessage).toBe('An error occurred; Custom error from the server');
             });
         });
     });

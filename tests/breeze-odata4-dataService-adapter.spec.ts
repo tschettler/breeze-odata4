@@ -799,8 +799,8 @@ describe('OData4DataServiceAdapter', () => {
                     },
                     body: '',
                     requestUri: req.requestUri,
-                    statusCode: '200',
-                    statusText: 'OK',
+                    statusCode: '400',
+                    statusText: 'BadRequest',
                 } as HttpOData.Response;
                 success(response);
                 return {} as HttpOData.RequestWithAbort;
@@ -828,7 +828,7 @@ describe('OData4DataServiceAdapter', () => {
             await expect(
                 ds.fetchMetadata(metadataStore, dataService)
             ).rejects.toThrowError(
-                'Metadata query failed for: http://localhost/$metadata; Cannot read propert'
+                'Metadata query failed for: http://localhost/$metadata; BadRequest'
             );
         });
 
