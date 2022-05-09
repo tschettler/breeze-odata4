@@ -33,7 +33,10 @@ describe('OData4JsonAjaxAdapter', () => {
             ajaxConfig = {
                 type: 'POST',
                 url: 'https://localhost/Testing/$batch',
-                headers: { 'OData-Version': '4.0' },
+                headers: {
+                    'Authorization': 'Basic',
+                    'OData-Version': '4.0'
+                },
                 success: jest.fn(),
                 error: jest.fn()
             };
@@ -44,6 +47,7 @@ describe('OData4JsonAjaxAdapter', () => {
         });
 
         describe('with request', () => {
+            let odataRequest: HttpOData.Request;
             let changeResponse: Batch.ChangeResponse;
             let changeRequests: Batch.ChangeRequest[];
 
@@ -64,6 +68,7 @@ describe('OData4JsonAjaxAdapter', () => {
                 changeResponse = {} as any;
 
                 httpClient.request = (req, success, error) => {
+                    odataRequest = req;
                     odataResponse = ({
                         headers: {
                             'Content-Type': 'application/json',
@@ -125,6 +130,26 @@ describe('OData4JsonAjaxAdapter', () => {
                 const result = response.data as Batch.BatchResponse;
                 expect(result.__batchResponses).toHaveLength(1);
                 expect(result.__batchResponses[0].__changeResponses).toHaveLength(0);
+            });
+
+            it('with change request should set ajaxOptions headers on request', async () => {
+                changeRequests.push({
+                    headers: {
+                        'Content-ID': '1',
+                        'Content-Type': 'application/json'
+                    },
+                    requestUri: 'https://localhost/testing/Person',
+                    method: 'POST',
+                    data: { id: 1, firstName: 'Test' }
+                });
+
+                await new Promise<HttpResponse>((resolve) => {
+                    ajaxConfig.success = res => resolve(res);
+                    sut.ajax(ajaxConfig, httpClient, metadata);
+                });
+
+                const headerKey = 'Authorization';
+                expect(odataRequest.headers[headerKey]).toEqual(ajaxConfig.headers[headerKey]);
             });
 
             it('with one change request should return one change response', async () => {
