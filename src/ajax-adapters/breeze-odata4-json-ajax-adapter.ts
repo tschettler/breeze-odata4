@@ -34,12 +34,14 @@ export class OData4JsonAjaxAdapter extends OData4AjaxAdapter {
 
     const promises = changeRequests.map(cr => {
       const result = new Promise<Batch.ChangeResponse>((resolve, reject) => {
+        const headers = { ...ajaxConfig.headers, ...cr.headers };
+
         // preserve the Content-ID header
-        const contentId = cr.headers[ContentIdHeader];
+        const contentId = headers[ContentIdHeader];
         const request: HttpOData.Request = {
           method: cr.method,
           requestUri: cr.requestUri,
-          headers: cr.headers,
+          headers,
           data: cr.data
         };
 
