@@ -34,6 +34,16 @@ export class EdmDateTimeOffset {
     public offset: EdmOffset;
 
     /**
+     * Gets a date representation of the date time offset.
+     * @returns The date time offset as a date. 
+     */
+    public toDate(): Date {
+        const result = new Date(this.toString());
+
+        return result;
+    }
+
+    /**
      * Gets a string representation of the date time offset.
      * @returns The date time offset string. 
      */
@@ -54,7 +64,7 @@ export class EdmDateTimeOffset {
             ? source
             : source === null
                 ? null
-                :  new EdmDateTimeOffset(source);
+                : new EdmDateTimeOffset(source);
 
         return result;
     }

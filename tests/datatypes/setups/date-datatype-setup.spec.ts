@@ -1,4 +1,5 @@
 import { DataType } from 'breeze-client';
+import { EdmDate } from '../../../src/datatypes/models';
 
 import { DateDataTypeSetup } from '../../../src/datatypes/setups/date-datatype-setup';
 import { Utilities } from '../../../src/utilities';
@@ -31,65 +32,138 @@ describe('DateDataTypeSetup', () => {
                 dataType = DataType['Date'];
             });
 
-            it('should return null when calling fmtOData for null', () => {
-                const result = dataType.fmtOData(null);
+            describe('fmtOData', () => {
+                it('should return null when calling fmtOData for null', () => {
+                    const result = dataType.fmtOData(null);
 
-                expect(result).toBeNull();
+                    expect(result).toBeNull();
+                });
+
+                it('should return null when calling fmtOData for undefined', () => {
+                    const result = dataType.fmtOData(undefined);
+
+                    expect(result).toBeNull();
+                });
+
+                it('should return date string when calling fmtOData for date', () => {
+                    const input = new Date();
+
+                    const result = dataType.fmtOData(input);
+
+                    const expected = input.toISOString().split('T')[0];
+                    expect(result).toEqual(expected);
+                });
+
+                it('should allow 0000 year', () => {
+                    const input = '0000-01-01';
+
+                    const result = dataType.fmtOData(input);
+
+                    const expected = input;
+                    expect(result).toEqual(expected);
+                });
+
+                it('should allow negative year', () => {
+                    const input = '-10000-01-01';
+
+                    const result = dataType.fmtOData(input);
+
+                    const expected = input;
+                    expect(result).toEqual(expected);
+                });
+
+                it('should return date string when calling fmtOData for date string', () => {
+                    const input = '2021-01-01';
+
+                    const result = dataType.fmtOData(input);
+
+                    const expected = input;
+                    expect(result).toEqual(expected);
+                });
+
+                it('should throw exception when calling fmtOData with invalid date string', () => {
+                    const input = 'x';
+                    expect(() => {
+                        dataType.fmtOData(input);
+                    }).toThrowError('\'x\' is not a valid EdmDate');
+                });
+
+                it('should throw exception when calling fmtOData with non-date', () => {
+                    expect(() => {
+                        dataType.fmtOData(123.45);
+                    }).toThrowError('\'123.45\' is not a valid EdmDate');
+                });
             });
 
-            it('should return null when calling fmtOData for undefined', () => {
-                const result = dataType.fmtOData(undefined);
-
-                expect(result).toBeNull();
+            describe('defaultValue', () => {
+                it('should return empty date for defaultValue', () => {
+                    const result = dataType.defaultValue;
+                    expect(result).toMatchObject({ year: 0, month: 1, day: 1 });
+                });
             });
 
-            it('should return date string when calling fmtOData for date', () => {
-                const input = new Date();
-
-                const result = dataType.fmtOData(input);
-
-                const expected = input.toISOString().split('T')[0];
-                expect(result).toEqual(expected);
+            describe('getNext', () => {
+                it('should return current date', () => {
+                    const result = dataType.getNext();
+                    const expected = EdmDate.create(new Date());
+                    expect(result).toMatchObject(expected);
+                });
             });
 
-            it('should allow 0000 year', () => {
-                const input = '0000-01-01';
+            describe('normalize', () => {
+                it('should return null for null', () => {
+                    const result = dataType.normalize(null);
 
-                const result = dataType.fmtOData(input);
+                    expect(result).toBeNull();
+                });
 
-                const expected = input;
-                expect(result).toEqual(expected);
+                it('should return null for undefined', () => {
+                    const result = dataType.normalize(undefined);
+
+                    expect(result).toBeNull();
+                });
+
+                it('should return date string for date', () => {
+                    const input = new Date();
+
+                    const result = dataType.normalize(input);
+
+                    const expected = input.toISOString().split('T')[0];
+                    expect(result).toEqual(expected);
+                });
             });
 
-            it('should allow negative year', () => {
-                const input = '-10000-01-01';
+            describe('parse', () => {
+                it('should return null for null', () => {
+                    const result = dataType.parse(null, 'object');
 
-                const result = dataType.fmtOData(input);
+                    expect(result).toBeNull();
+                });
 
-                const expected = input;
-                expect(result).toEqual(expected);
-            });
+                it('should return instance for undefined', () => {
+                    const result = dataType.parse(undefined, 'undefined');
 
-            it('should return date string when calling fmtOData for date string', () => {
-                const input = '2021-01-01';
+                    const expected = EdmDate.create(new Date());
+                    expect(result).toMatchObject(expected);
+                });
 
-                const result = dataType.fmtOData(input);
+                it('should return instance for date', () => {
+                    const input = new Date();
 
-                const expected = input;
-                expect(result).toEqual(expected);
-            });
+                    const result = dataType.parse(input, 'date');
 
-            it('should throw exception when calling fmtOData with invalid date string', () => {
-                const input = 'x';
-                expect(() => {
-                    dataType.fmtOData(input);
-                }).toThrowError('\'x\' is not a valid EdmDate');
-            });
+                    const expected = EdmDate.create(new Date());
+                    expect(result).toEqual(expected);
+                });
 
-            it('should throw exception when calling fmtOData with non-date', () => {
-                expect(() => {
-                    dataType.fmtOData(123.45);
-                }).toThrowError('\'123.45\' is not a valid EdmDate');
+                it('should return instance for date string', () => {
+                    const input = '2021-01-01';
+
+                    const result = dataType.parse(input, 'string');
+
+                    const expected = EdmDate.create('2021-01-01');
+                    expect(result).toEqual(expected);
+                });
             });
         });
     });

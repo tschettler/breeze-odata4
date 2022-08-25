@@ -14,6 +14,8 @@ export class DurationDataTypeSetup extends BaseDataTypeSetup {
             ...DataType.Time,
             fmtOData: (val: any) => val ? EdmDuration.create(val).toString() : null,
             name: this.name,
+            normalize: (value: any) => value ? EdmDuration.create(value).totalSeconds : null,
+            parse: EdmDuration.create,
             parseRawValue: EdmDuration.create
         });
 
