@@ -481,7 +481,7 @@ describe('Utilities', () => {
       const date = new Date();
       const input = date.toISOString();
 
-      const result = Utilities.parseValue(DataType.DateTimeOffset, input);
+      const result = Utilities.parseValue(DataType.DateTimeOffset, input).toDate();
       expect(result).toEqual(date);
     });
 

@@ -16,10 +16,13 @@ export class DateDataTypeSetup extends BaseDataTypeSetup {
 
     public addSymbol = () => {
         const result = new DataType({
-            defaultValue: '0000-01-01',
-            fmtOData: (val: any) => val ? EdmDate.create(val).toString() : null,
+            defaultValue: EdmDate.create('0000-01-01'),
+            fmtOData: (value: any) => value ? EdmDate.create(value).toString() : null,
+            getNext: EdmDate.create,
             isDate: true,
             name: this.name,
+            normalize: (value: any) => value ? EdmDate.create(value).toString() : null,
+            parse: EdmDate.create,
             parseRawValue: EdmDate.create
         });
 

@@ -14,6 +14,7 @@ export class TimeOfDayDataTypeSetup extends BaseDataTypeSetup {
             defaultValue: '00:00',
             fmtOData: (val: any) => val ? EdmTimeOfDay.create(val).toString() : null,
             name: this.name,
+            parse: EdmTimeOfDay.create,
             parseRawValue: EdmTimeOfDay.create,
             validatorCtor: Validator.string
         });

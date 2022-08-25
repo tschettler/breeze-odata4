@@ -1,4 +1,5 @@
 import { DataType } from 'breeze-client';
+import { EdmDuration } from '../../../src/datatypes/models';
 
 import { DurationDataTypeSetup } from '../../../src/datatypes/setups/duration-datatype-setup';
 import { Utilities } from '../../../src/utilities';
@@ -55,6 +56,29 @@ describe('DurationDataTypeSetup', () => {
                 expect(() => {
                     dataType.fmtOData(123.45);
                 }).toThrowError('\'123.45\' is not a valid EdmDuration');
+            });
+
+            describe('normalize', () => {
+                it('should return null for null', () => {
+                    const result = dataType.normalize(null);
+
+                    expect(result).toBeNull();
+                });
+
+                it('should return null for undefined', () => {
+                    const result = dataType.normalize(undefined);
+
+                    expect(result).toBeNull();
+                });
+
+                it('should return total seconds for duration', () => {
+                    const input = "PT24M33S";
+
+                    const result = dataType.normalize(input);
+
+                    const expected = 1473;
+                    expect(result).toEqual(expected);
+                });
             });
         });
     });
