@@ -29,35 +29,14 @@ export class JsonResultsAdapterFactory {
 
   private static visitNode(node: any, mappingContext: MappingContext, nodeContext: NodeContext): NodeMeta {
     const result: NodeMeta = {};
-    const metadataStore = mappingContext.entityManager.metadataStore;
-    const workingNode = node;
 
-    let nodeODataType: string;
     if (node === null) {
       return result;
     }
 
-    let entityType: EntityType;
-    let entityTypeName: string;
-    if (nodeContext.nodeType === 'root') {
-      if (mappingContext.query instanceof EntityQuery) {
-        const eq = mappingContext.query;
-        if (eq.resultEntityType) {
-          entityType = eq.resultEntityType as EntityType;
-        } else {
-          entityTypeName = metadataStore.getEntityTypeNameForResourceName(eq.resourceName);
-        }
-      } else {
-        // convert from #Namespace.EntityType to EntityType:#Namespace
-        nodeODataType = node['@odata.type'];
-        entityTypeName = MetadataStore.normalizeTypeName(nodeODataType.replace('#', ''));
-      }
-    } else if (nodeContext.nodeType === 'navProp' || /* old */ nodeContext.nodeType === 'navPropItem') {
-      entityTypeName = nodeContext.navigationProperty.entityTypeName;
-    }
+    const entityType = JsonResultsAdapterFactory.getEntityType(node, mappingContext, nodeContext);
 
-    entityType = entityType || (entityTypeName && (metadataStore.getEntityType(entityTypeName, true) as EntityType));
-    if (entityType) {
+    if (entityType && JsonResultsAdapterFactory.hasMatchingProperties(node, entityType)) {
       result.entityType = entityType;
       result.extraMetadata = {};
     }
@@ -69,10 +48,47 @@ export class JsonResultsAdapterFactory {
 
     const propertyName = nodeContext.propertyName;
     result.ignore =
-      workingNode.__deferred != null ||
+      node.__deferred != null ||
       propertyName === '__metadata' ||
       // EntityKey properties can be produced by EDMX models
-      (propertyName === 'EntityKey' && workingNode.$type && core.stringStartsWith(workingNode.$type, 'System.Data'));
+      (propertyName === 'EntityKey' && node.$type && core.stringStartsWith(node.$type, 'System.Data'));
+
+    return result;
+  }
+
+  private static getEntityType(node: any, mappingContext: MappingContext, nodeContext: NodeContext): EntityType {
+    const metadataStore = mappingContext.entityManager.metadataStore;
+    let entityType: EntityType;
+    let entityTypeName: string;
+
+    if (nodeContext.nodeType === 'root') {
+      if (mappingContext.query instanceof EntityQuery) {
+        const eq = mappingContext.query;
+        if (!eq.resultEntityType) {
+          entityTypeName = metadataStore.getEntityTypeNameForResourceName(eq.resourceName);
+        } else if (eq.resultEntityType instanceof EntityType) {
+          entityType = eq.resultEntityType;
+        } else {
+          entityTypeName = eq.resultEntityType;
+        }
+      } else {
+        // convert from #Namespace.EntityType to EntityType:#Namespace
+        const nodeODataType = node['@odata.type'];
+        entityTypeName = MetadataStore.normalizeTypeName(nodeODataType.replace('#', ''));
+      }
+    } else if (nodeContext.nodeType === 'navProp' || /* old */ nodeContext.nodeType === 'navPropItem') {
+      entityTypeName = nodeContext.navigationProperty.entityTypeName;
+    }
+
+    entityType = entityType || (entityTypeName && metadataStore.getAsEntityType(entityTypeName, true));
+
+    return entityType;
+  }
+
+  private static hasMatchingProperties(node: any, entityType: EntityType): boolean {
+    const nodePropNames = Object.keys(node);
+    const result = entityType.dataProperties
+      .every(p => nodePropNames.includes(p.nameOnServer));
 
     return result;
   }
