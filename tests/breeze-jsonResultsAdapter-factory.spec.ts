@@ -63,7 +63,7 @@ describe('JsonResultsAdapterFactory', () => {
 
   it('should return result with EntityType when visitNode is called for node with @odata.type', () => {
     const sut = JsonResultsAdapterFactory.create();
-    const node = {};
+    const node = { personId: 1, firstName: 'Test', lastLogin: null };
     node['@odata.type'] = '#UnitTesting.Person';
 
     const result = sut.visitNode(node, mappingContext, nodeContext);
@@ -75,7 +75,7 @@ describe('JsonResultsAdapterFactory', () => {
     const query = new EntityQuery('Person');
     query.resultEntityType = (metadataStore.getEntityType('Person') as any);
     mappingContext.query = query;
-    const node = {};
+    const node = { personId: 1, firstName: 'Test', lastLogin: null };
 
     const result = sut.visitNode(node, mappingContext, nodeContext);
     expect(result.entityType.shortName).toBe('Person');
@@ -85,15 +85,26 @@ describe('JsonResultsAdapterFactory', () => {
     const sut = JsonResultsAdapterFactory.create();
     const query = new EntityQuery('Person');
     mappingContext.query = query;
-    const node = {};
+    const node = { personId: 1, firstName: 'Test', lastLogin: null };
 
     const result = sut.visitNode(node, mappingContext, nodeContext);
     expect(result.entityType.shortName).toBe('Person');
   });
 
+  it('should return result with EntityType when visitNode is called for query with entityType name', () => {
+    const sut = JsonResultsAdapterFactory.create();
+    const query = new EntityQuery('Person').toType('Person');
+    mappingContext.query = query;
+    const node = { personId: 1, firstName: 'Test', lastLogin: null };
+
+    const result = sut.visitNode(node, mappingContext, nodeContext);
+    expect(result.entityType.shortName).toBe('Person');
+  });
+
+
   it('should return result with EntityType when visitNode is called for navProp', () => {
     const sut = JsonResultsAdapterFactory.create();
-    const node = {};
+    const node = { personId: 1, firstName: 'Test', lastLogin: null };
     nodeContext.nodeType = 'navProp';
     nodeContext.navigationProperty = { entityTypeName: 'Person' } as any;
 
@@ -103,7 +114,7 @@ describe('JsonResultsAdapterFactory', () => {
 
   it('should return result with EntityType when visitNode is called for navPropItem', () => {
     const sut = JsonResultsAdapterFactory.create();
-    const node = {};
+    const node = { personId: 1, firstName: 'Test', lastLogin: null };
     nodeContext.nodeType = 'navPropItem';
     nodeContext.navigationProperty = { entityTypeName: 'Person' } as any;
 
@@ -119,6 +130,17 @@ describe('JsonResultsAdapterFactory', () => {
     const result = sut.visitNode(node, mappingContext, nodeContext);
     expect(result.entityType).toBeUndefined();
   });
+
+  it('should not return result with EntityType when visitNode is called for node without all properties', () => {
+    const sut = JsonResultsAdapterFactory.create();
+    const query = new EntityQuery('Person');
+    mappingContext.query = query;
+    const node = { personId: 1, firstName: 'Test' };
+
+    const result = sut.visitNode(node, mappingContext, nodeContext);
+    expect(result.entityType).toBeUndefined();
+  });
+
 
   it('should return result with ignore true when __deferred is not null', () => {
     const sut = JsonResultsAdapterFactory.create();
