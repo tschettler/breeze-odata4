@@ -58,11 +58,11 @@
   },
   "dependencies": {
     "breeze-client": "^2.1.2",
-    "ts-odatajs": "^4.0.8"
+    "ts-odatajs": "^4.0.9"
   },
   "peerDependencies": {
     "breeze-client": "^2.1.2",
-    "ts-odatajs": "^4.0.8"
+    "ts-odatajs": "^4.0.9"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",

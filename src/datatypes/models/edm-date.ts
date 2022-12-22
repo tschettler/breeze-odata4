@@ -60,11 +60,22 @@ export class EdmDate {
     }
 
     /**
-     * Gets the date in ISO 8601 format (YYYY-MM-DD).
+     * Gets a @see Date representation of the EdmDate.
+     * @returns The EdmDate as a date. 
+     */
+    public toDate(): Date {
+        const result = new Date(this.toString(true));
+
+        return result;
+    }
+
+    /**
+     * Gets the date in ISO 8601 format (`YYYY-MM-DD`).
+     * @param includeTime Whether to include the time component. If so, format returned is `YYYY-MM-DDT00:00:00Z`
      * @returns the date string.
      */
-    public toString(): string {
-        const result = this.formatDate(this._year, this._month, this._day);
+    public toString(includeTime: boolean = false): string {
+        const result = this.formatDate(this._year, this._month, this._day, includeTime);
 
         return result;
     }
@@ -94,12 +105,16 @@ export class EdmDate {
      */
     public static readonly MaxValue: Readonly<EdmDate> = new EdmDate(new Date(8640000000000000));
 
-    private formatDate(year: number, month: number, day: number): string {
+    private formatDate(year: number, month: number, day: number, includeTime: boolean = false): string {
         const sign = (year < 0 ? '-' : '');
 
-        const result = sign + [year, month, day]
+        let result = sign + [year, month, day]
             .map((x, i) => Math.abs(x).toString().padStart(partLengths[i], '0'))
             .join('-');
+
+        if (includeTime) {
+            result += 'T00:00:00Z';
+        }
 
         return result;
     }

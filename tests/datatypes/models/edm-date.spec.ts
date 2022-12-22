@@ -178,6 +178,17 @@ describe('EdmDate', () => {
         });
     });
 
+    describe('toDate', () => {
+        it('should return UTC date', () => {
+            const input = EdmDate.create('2022-12-22');
+
+            const result = input.toDate();
+
+            const expected = new Date('2022-12-22T00:00:00Z');
+            expect(result).toEqual(expected);
+        });
+    });
+
     describe('toString', () => {
         const testCases = [
             {
@@ -218,6 +229,14 @@ describe('EdmDate', () => {
                 const result = sut.toString();
 
                 expect(result).toEqual(test.expected);
+            });
+
+            it('including time ' + test.name, ()=> {
+                const sut = EdmDate.create(test.input);
+
+                const result = sut.toString(true);
+
+                expect(result).toEqual(test.expected + 'T00:00:00Z');
             });
         });
     });
