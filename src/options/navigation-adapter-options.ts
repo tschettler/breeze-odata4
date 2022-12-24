@@ -9,11 +9,26 @@ export const DefaultNavigationAdapterOptions: NavigationAdapterOptions = {
     (endpoint, suffix) => `${endpoint.propertyName}${suffix}`.toLowerCase(),
     (endpoint) => `${endpoint.propertyName}Id`.toLowerCase(),
     (endpoint, suffix) => `${endpoint.partnerEntityShortName}${suffix}`.toLowerCase(),
-    (endpoint) => `${endpoint.partnerEntityShortName}Id`.toLowerCase()
+    (endpoint) => `${endpoint.partnerEntityShortName}Id`.toLowerCase(),
+    getPartialMatchingProperty,
+    (endpoint) => getPartialMatchingProperty(endpoint, 'id')
   ],
   inferNavigationPropertyPartner: true,
   inferReferentialConstraints: true
 };
+
+function getPartialMatchingProperty(endpoint: AssociationEndpoint, suffix: string): string {
+  const propertyName = endpoint.propertyName.toLowerCase();
+  const partnerEntityName = endpoint.partnerEntityShortName.toLowerCase();
+  const propertyEnd = propertyName.replace(partnerEntityName, '');
+  if (!propertyEnd || propertyEnd === suffix) {
+    return null;
+  }
+
+  const result = `${propertyEnd}${suffix}`.toLowerCase();
+
+  return result;
+}
 
 /**
  * The navigation adapter options.
