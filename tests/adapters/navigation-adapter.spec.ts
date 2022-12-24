@@ -284,6 +284,17 @@ describe('NavigationAdapter', () => {
     expect(schema.association).toHaveLength(0);
   });
 
+  it('should add associations for partial matching navigation property', () => {
+    const entityType = getProductEntityType();
+    entityType.property?.push({name: 'ParentId', type: 'Edm.Int32'});
+    entityType.navigationProperty = [{ name: 'ParentProduct', type: 'UnitTesting.Product' }];
+    schema.entityType = [entityType];
+
+    sut.adapt(metadata.dataServices);
+
+    expect(schema.association[0].referentialConstraint.dependent.propertyRef[0]).toMatchObject({name: 'ParentId'});
+  });
+
   it('should throw Error when adapt is called with missing entityType', () => {
     const entityType = getProductEntityType();
     entityType.navigationProperty = [{ name: 'NotHere', type: 'UnitTesting.Nothing' }];
